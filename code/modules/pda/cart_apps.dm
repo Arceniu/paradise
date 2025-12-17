@@ -16,6 +16,9 @@
 	if(..())
 		return
 
+	if(!pda.silent)
+		playsound(pda, 'sound/machines/terminal_select.ogg', 15, TRUE)
+
 	. = TRUE
 	switch(action)
 		if("Status")
@@ -34,7 +37,6 @@
 						return
 				else
 					post_status(params["statdisp"])
-
 
 /datum/data/pda/app/signaller
 	name = "Signaler System"
@@ -55,6 +57,9 @@
 		return
 
 	. = TRUE
+
+	if(!pda.silent)
+		playsound(pda, 'sound/machines/terminal_select.ogg', 15, TRUE)
 
 	if(pda.cartridge && istype(pda.cartridge.radio, /obj/item/integrated_radio/signal))
 		var/obj/item/integrated_radio/signal/R = pda.cartridge.radio
@@ -88,6 +93,9 @@
 	if(..())
 		return
 
+	if(!pda.silent)
+		playsound(pda, 'sound/machines/terminal_select.ogg', 15, TRUE)
+
 	. = TRUE
 	// Observe
 	pm.ui_act(action, params, ui, state)
@@ -116,6 +124,9 @@
 		return
 
 	. = TRUE
+
+	if(pda && !pda.silent)
+		playsound(pda, 'sound/machines/terminal_select.ogg', 15, TRUE)
 
 	switch(action)
 		if("Records")
@@ -204,13 +215,13 @@
 		else
 			beepskyData["botstatus"] = list("loca" = null, "mode" = -1)
 		var/botsCount=0
-		if(SC.botlist && SC.botlist.len)
+		if(SC.botlist && length(SC.botlist))
 			for(var/mob/living/simple_animal/bot/B in SC.botlist)
 				botsCount++
 				if(B.loc)
 					botsData[++botsData.len] = list("Name" = sanitize(B.name), "Location" = sanitize(B.loc.loc.name), "uid" = "[B.UID()]")
 
-		if(!botsData.len)
+		if(!length(botsData))
 			botsData[++botsData.len] = list("Name" = "No bots found", "Location" = "Invalid", "uid"= null)
 
 		beepskyData["bots"] = botsData
@@ -229,6 +240,9 @@
 /datum/data/pda/app/secbot_control/ui_act(action, list/params)
 	if(..())
 		return
+
+	if(!pda.silent)
+		playsound(pda, 'sound/machines/terminal_select.ogg', 15, TRUE)
 
 	. = TRUE
 
@@ -284,14 +298,13 @@
 		else
 			muleData["botstatus"] = list("loca" = null, "mode" = -1,"home"=null,"powr" = null,"retn" =null, "pick"=null, "load" = null, "dest" = null)
 
-
 		var/mulebotsCount=0
 		for(var/mob/living/simple_animal/bot/B in QC.botlist)
 			mulebotsCount++
 			if(B.loc)
 				mulebotsData[++mulebotsData.len] = list("Name" = sanitize(B.name), "Location" = sanitize(B.loc.loc.name), "uid" = "[B.UID()]")
 
-		if(!mulebotsData.len)
+		if(!length(mulebotsData))
 			mulebotsData[++mulebotsData.len] = list("Name" = "No bots found", "Location" = "Invalid", "uid"= null)
 
 		muleData["bots"] = mulebotsData
@@ -310,6 +323,9 @@
 /datum/data/pda/app/mule_control/ui_act(action, list/params)
 	if(..())
 		return
+
+	if(!pda.silent)
+		playsound(pda, 'sound/machines/terminal_select.ogg', 15, TRUE)
 
 	. = TRUE
 
@@ -375,7 +391,7 @@
 		supplyOrderCount++
 		supplyOrderData[++supplyOrderData.len] = list("Number" = SO.ordernum, "Name" = html_encode(SO.object.name), "ApprovedBy" = SO.orderedby, "Comment" = html_encode(SO.comment))
 
-	if(!supplyOrderData.len)
+	if(!length(supplyOrderData))
 		supplyOrderData[++supplyOrderData.len] = list("Number" = null, "Name" = null, "OrderedBy"=null)
 
 	supplyData["approved"] = supplyOrderData
@@ -388,7 +404,7 @@
 		requestCount++
 		requestData[++requestData.len] = list("Number" = SO.ordernum, "Name" = html_encode(SO.object.name), "OrderedBy" = SO.orderedby, "Comment" = html_encode(SO.comment))
 
-	if(!requestData.len)
+	if(!length(requestData))
 		requestData[++requestData.len] = list("Number" = null, "Name" = null, "orderedBy" = null, "Comment" = null)
 
 	supplyData["requests"] = requestData
@@ -448,8 +464,8 @@
 			var/direction = get_dir(pda,B)
 			CartData[++CartData.len] = list("x" = bl.x, "y" = bl.y, "dir" = uppertext(dir2text(direction)), "volume" = B.reagents.total_volume, "max_volume" = B.reagents.maximum_volume)
 
-	JaniData["mops"] = MopData.len ? MopData : null
-	JaniData["buckets"] = BucketData.len ? BucketData : null
-	JaniData["cleanbots"] = CbotData.len ? CbotData : null
-	JaniData["carts"] = CartData.len ? CartData : null
+	JaniData["mops"] = length(MopData) ? MopData : null
+	JaniData["buckets"] = length(BucketData) ? BucketData : null
+	JaniData["cleanbots"] = length(CbotData) ? CbotData : null
+	JaniData["carts"] = length(CartData) ? CartData : null
 	data["janitor"] = JaniData

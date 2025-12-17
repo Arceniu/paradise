@@ -1,7 +1,7 @@
 /datum/gear/suit
 	subtype_path = /datum/gear/suit
 	slot = ITEM_SLOT_CLOTH_OUTER
-	sort_category = "External Wear"
+	sort_category = "Верхняя одежда"
 
 //WINTER COATS
 /datum/gear/suit/coat
@@ -33,7 +33,7 @@
 /datum/gear/suit/coat/job/med
 	index_name = "winter coat, medical"
 	path = /obj/item/clothing/suit/hooded/wintercoat/medical
-	allowed_roles = list(JOB_TITLE_CMO, JOB_TITLE_DOCTOR, JOB_TITLE_INTERN, JOB_TITLE_CHEMIST, JOB_TITLE_PSYCHIATRIST, JOB_TITLE_PARAMEDIC, JOB_TITLE_VIROLOGIST, JOB_TITLE_BRIGDOC , JOB_TITLE_CORONER)
+	allowed_roles = list(JOB_TITLE_CMO, JOB_TITLE_DOCTOR, JOB_TITLE_MINING_MEDIC, JOB_TITLE_INTERN, JOB_TITLE_CHEMIST, JOB_TITLE_PSYCHIATRIST, JOB_TITLE_PARAMEDIC, JOB_TITLE_VIROLOGIST, JOB_TITLE_BRIGDOC , JOB_TITLE_CORONER)
 
 /datum/gear/suit/coat/job/cmo
 	index_name = "winter coat, chief medical officer"
@@ -83,7 +83,7 @@
 /datum/gear/suit/coat/job/miner
 	index_name = "winter coat, miner"
 	path = /obj/item/clothing/suit/hooded/wintercoat/miner
-	allowed_roles = list(JOB_TITLE_MINER)
+	allowed_roles = list(JOB_TITLE_MINER, JOB_TITLE_MINING_MEDIC)
 
 /datum/gear/suit/coat/job/hop
 	index_name = "winter coat, head of personnel"
@@ -91,6 +91,10 @@
 	allowed_roles = list(JOB_TITLE_HOP)
 
 //LABCOATS
+/datum/gear/suit/labcoat
+	index_name = "labcoat"
+	path = /obj/item/clothing/suit/storage/labcoat
+
 /datum/gear/suit/labcoat_emt
 	index_name = "labcoat, paramedic"
 	path = /obj/item/clothing/suit/storage/labcoat/emt
@@ -119,7 +123,7 @@
 
 /datum/gear/suit/miljacket
 	index_name = "military jacket, select"
-	display_name = "military jacket"
+	display_name = "Армейская куртка"
 	path = /obj/item/clothing/suit/jacket/miljacket
 
 /datum/gear/suit/miljacket/New()
@@ -147,7 +151,7 @@
 
 /datum/gear/suit/sec_rps
 	index_name = "security belt-shoulder system"
-	path = /obj/item/clothing/suit/armor/vest/sec_rps
+	path = /obj/item/clothing/suit/storage/sec_rps
 	allowed_roles = list(JOB_TITLE_HOS, JOB_TITLE_WARDEN, JOB_TITLE_DETECTIVE, JOB_TITLE_OFFICER, JOB_TITLE_PILOT)
 
 //SURAGI JACKET
@@ -158,84 +162,70 @@
 	index_name = "Suragi Jacket"
 	path = /obj/item/clothing/suit/storage/suragi_jacket/civ
 
-
 /datum/gear/suit/suragi_jacket/sec
 	index_name = "Suragi Jacket - Security"
 	path = /obj/item/clothing/suit/storage/suragi_jacket/sec
 	allowed_roles = list(JOB_TITLE_WARDEN, JOB_TITLE_DETECTIVE, JOB_TITLE_OFFICER, JOB_TITLE_PILOT)
-
 
 /datum/gear/suit/suragi_jacket/cargo
 	index_name = "Suragi Jacket - Cargo"
 	path = /obj/item/clothing/suit/storage/suragi_jacket/cargo
 	allowed_roles = list(JOB_TITLE_CARGOTECH)
 
-
 /datum/gear/suit/suragi_jacket/atmos
 	index_name = "Suragi Jacket - Atmospherics"
 	path = /obj/item/clothing/suit/storage/suragi_jacket/atmos
 	allowed_roles = list(JOB_TITLE_ATMOSTECH)
-
 
 /datum/gear/suit/suragi_jacket/eng
 	index_name = "Suragi Jacket - Engineering"
 	path = /obj/item/clothing/suit/storage/suragi_jacket/eng
 	allowed_roles = list(JOB_TITLE_ENGINEER, JOB_TITLE_ENGINEER_TRAINEE, JOB_TITLE_MECHANIC)
 
-
 /datum/gear/suit/suragi_jacket/botany
 	index_name = "Suragi Jacket - Hydroponics"
 	path = /obj/item/clothing/suit/storage/suragi_jacket/botany
 	allowed_roles = list(JOB_TITLE_BOTANIST)
 
-
 /datum/gear/suit/suragi_jacket/medic
 	index_name = "Suragi Jacket - Medical"
 	path = /obj/item/clothing/suit/storage/suragi_jacket/medic
-	allowed_roles = list(JOB_TITLE_DOCTOR, JOB_TITLE_INTERN, JOB_TITLE_PSYCHIATRIST, JOB_TITLE_PARAMEDIC, JOB_TITLE_CORONER)
-
+	allowed_roles = list(JOB_TITLE_DOCTOR, JOB_TITLE_MINING_MEDIC, JOB_TITLE_INTERN, JOB_TITLE_PSYCHIATRIST, JOB_TITLE_PARAMEDIC, JOB_TITLE_CORONER)
 
 /datum/gear/suit/suragi_jacket/medsec
 	index_name = "Suragi Jacket - Medical Security"
 	path = /obj/item/clothing/suit/storage/suragi_jacket/medsec
 	allowed_roles = list(JOB_TITLE_BRIGDOC)
 
-
 /datum/gear/suit/suragi_jacket/virus
 	index_name = "Suragi Jacket - Virology"
 	path = /obj/item/clothing/suit/storage/suragi_jacket/virus
 	allowed_roles = list(JOB_TITLE_VIROLOGIST)
-
 
 /datum/gear/suit/suragi_jacket/chem
 	index_name = "Suragi Jacket - Chemistry"
 	path = /obj/item/clothing/suit/storage/suragi_jacket/chem
 	allowed_roles = list(JOB_TITLE_CHEMIST)
 
-
 /datum/gear/suit/suragi_jacket/genetics
 	index_name = "Suragi Jacket - Genetics"
 	path = /obj/item/clothing/suit/storage/suragi_jacket/genetics
 	allowed_roles = list(JOB_TITLE_GENETICIST)
-
 
 /datum/gear/suit/suragi_jacket/robot
 	index_name = "Suragi Jacket - Roboticist"
 	path = /obj/item/clothing/suit/storage/suragi_jacket/robot
 	allowed_roles = list(JOB_TITLE_ROBOTICIST)
 
-
 /datum/gear/suit/suragi_jacket/sci
 	index_name = "Suragi Jacket - Science"
 	path = /obj/item/clothing/suit/storage/suragi_jacket/sci
 	allowed_roles = list(JOB_TITLE_SCIENTIST, JOB_TITLE_SCIENTIST_STUDENT)
 
-
 /datum/gear/suit/suragi_jacket/janitor
 	index_name = "Suragi Jacket - Janitor"
 	path = /obj/item/clothing/suit/storage/suragi_jacket/janitor
 	allowed_roles = list(JOB_TITLE_JANITOR)
-
 
 /datum/gear/suit/ianshirt
 	index_name = "Ian Shirt"
@@ -243,33 +233,36 @@
 
 /datum/gear/suit/hoodie
 	index_name = "hoodie, select"
-	display_name = "hoodie"
+	display_name = "Худи"
 	path = /obj/item/clothing/suit/hooded/hoodie
 
 /datum/gear/suit/hoodie/New()
 	..()
-	var/list/hoods = list(/obj/item/clothing/suit/hooded/hoodie,
-						  /obj/item/clothing/suit/hooded/hoodie/tp,
-						  /obj/item/clothing/suit/hooded/hoodie/nt,
-						  /obj/item/clothing/suit/hooded/hoodie/lam,
-						  /obj/item/clothing/suit/hooded/hoodie/cut,
-						  /obj/item/clothing/suit/hooded/hoodie/mit,
-						  /obj/item/clothing/suit/hooded/hoodie/blue,
-						  )
+	var/list/hoods = list(
+		/obj/item/clothing/suit/hooded/hoodie,
+		/obj/item/clothing/suit/hooded/hoodie/tp,
+		/obj/item/clothing/suit/hooded/hoodie/nt,
+		/obj/item/clothing/suit/hooded/hoodie/lam,
+		/obj/item/clothing/suit/hooded/hoodie/cut,
+		/obj/item/clothing/suit/hooded/hoodie/mit,
+		/obj/item/clothing/suit/hooded/hoodie/blue,
+	)
 	gear_tweaks += new /datum/gear_tweak/path(hoods, src, TRUE)
 
 //SUITS!
 
 /datum/gear/suit/blacksuit
 	index_name = "suit jacket, select"
-	display_name = "suit jacket"
+	display_name = "Пиджак"
 	path = /obj/item/clothing/suit/storage/lawyer/blackjacket
 
 /datum/gear/suit/blacksuit/New()
 	..()
-	var/list/suits = list("black" = /obj/item/clothing/suit/storage/lawyer/blackjacket,
-						  "blue" = /obj/item/clothing/suit/storage/lawyer/bluejacket,
-						  "purple" = /obj/item/clothing/suit/storage/lawyer/purpjacket,)
+	var/list/suits = list(
+		"black" = /obj/item/clothing/suit/storage/lawyer/blackjacket,
+		"blue" = /obj/item/clothing/suit/storage/lawyer/bluejacket,
+		"purple" = /obj/item/clothing/suit/storage/lawyer/purpjacket
+	)
 	gear_tweaks += new /datum/gear_tweak/path(suits, src)
 
 //Robes!
@@ -278,7 +271,6 @@
 	index_name = "witch robes"
 	path = /obj/item/clothing/suit/wizrobe/marisa/fake
 
-
 //Suspenders
 
 /datum/gear/suit/suspenders
@@ -286,5 +278,13 @@
 	path = /obj/item/clothing/suit/suspenders
 
 /datum/gear/suit/suspenders/New()
+	..()
+	gear_tweaks += new /datum/gear_tweak/color(parent = src)
+
+/datum/gear/suit/bomber
+	index_name = "bomber"
+	path = /obj/item/clothing/suit/storage/bomber
+
+/datum/gear/suit/bomber/New()
 	..()
 	gear_tweaks += new /datum/gear_tweak/color(parent = src)

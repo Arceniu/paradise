@@ -4,7 +4,6 @@
 /mob/living/simple_animal/hostile/blob_minion/spore
 	name = "blob spore"
 	desc = "Плавающая хрупкая спора."
-	icon = 'icons/mob/blob.dmi'
 	icon_state = "blobpod"
 	icon_living = "blobpod"
 	health_doll_icon = "blobpod"
@@ -17,7 +16,6 @@
 	melee_damage_lower = BLOBMOB_SPORE_DMG_LOWER
 	melee_damage_upper = BLOBMOB_SPORE_DMG_UPPER
 	obj_damage = BLOBMOB_SPORE_OBJ_DMG
-	environment_smash = ENVIRONMENT_SMASH_STRUCTURES
 	attacktext = "ударяет"
 	attack_sound = 'sound/weapons/genhit1.ogg'
 	deathmessage = "взрывается облаком газа!"
@@ -28,7 +26,6 @@
 	var/death_cloud_size = 2
 	/// Type of mob to create
 	var/mob/living/zombie_type = /mob/living/simple_animal/hostile/blob_minion/zombie
-
 
 /mob/living/simple_animal/hostile/blob_minion/spore/Initialize(mapload)
 	. = ..()
@@ -70,8 +67,11 @@
 /mob/living/simple_animal/hostile/blob_minion/spore/AttackingTarget()
 	. = ..()
 	var/mob/living/carbon/human/human_target = target
-	if(!istype(human_target) || human_target.stat != DEAD)
-		return
+	if(!target || !istype(human_target) || human_target.stat != DEAD)
+		return .
+
+	if(HAS_TRAIT(human_target, TRAIT_BLOB_ZOMBIFIED))
+		return .
 	zombify(human_target)
 
 /// Become a zombie
@@ -103,7 +103,7 @@
 	SIGNAL_HANDLER
 	if(isnull(z_turf))
 		return
-	if(!is_valid_z_level(get_turf(src), z_turf))
+	if(!are_zs_connected(src, z_turf))
 		death()
 
 /// Mark the turf we need to track from our factory
@@ -124,7 +124,6 @@
 
 /mob/living/simple_animal/hostile/blob_minion/spore/minion/death_burst()
 	return // This behaviour is superceded by the overmind's intervention
-
 
 /// Weakened spore spawned by distributed neurons, can't zombify people and makes a teeny explosion
 /mob/living/simple_animal/hostile/blob_minion/spore/minion/weak

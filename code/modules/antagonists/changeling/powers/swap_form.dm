@@ -8,7 +8,6 @@
 	dna_cost = 1
 	req_human = TRUE //Monkeys can't grab
 
-
 /datum/action/changeling/swap_form/can_sting(mob/living/carbon/user)
 	if(!..())
 		return FALSE
@@ -30,12 +29,15 @@
 		to_chat(user, span_warning("We are unable to swap forms with another changeling!"))
 		return FALSE
 
+	if(isdevilantag(target))
+		to_chat(user, span_warning("Что бы это ни было, вы не хотите прикасаться к этому!"))
+		return FALSE
+
 	if(target.has_brain_worms() || user.has_brain_worms())
 		to_chat(user, span_warning("A foreign presence repels us from this body!"))
 		return FALSE
 
 	return TRUE
-
 
 /datum/action/changeling/swap_form/sting_action(mob/living/carbon/user)
 	var/mob/living/carbon/human/target = user.pulling
@@ -71,7 +73,7 @@
 	if(ghost?.mind)
 		ghost.mind.transfer_to(user)
 		GLOB.non_respawnable_keys -= ghost.ckey //they have a new body, let them be able to re-enter their corpse if they die
-		user.key = ghost.key
+		user.possess_by_player(ghost.key)
 	qdel(ghost)
 
 	user.Paralyse(4 SECONDS)

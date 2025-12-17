@@ -45,7 +45,7 @@ GLOBAL_VAR_INIT(intercom_range_display_status, 0)
 	return FALSE
 
 /client/proc/camera_view()
-	set category = "Mapping"
+	set category = STATPANEL_DEBUG_MAPPING
 	set name = "Camera Range Display"
 
 	if(!check_rights(R_DEBUG))
@@ -62,10 +62,10 @@ GLOBAL_VAR_INIT(intercom_range_display_status, 0)
 	if(GLOB.camera_range_display_status)
 		for(var/obj/machinery/camera/C in GLOB.cameranet.cameras)
 			new/obj/effect/debugging/camera_range(C.loc)
-	SSblackbox.record_feedback("tally", "admin_verb", 1, "Camera Range Display") //If you are copy-pasting this, ensure the 4th parameter is unique to the new proc!
+	BLACKBOX_LOG_ADMIN_VERB("Camera Range Display")
 
 /client/proc/sec_camera_report()
-	set category = "Mapping"
+	set category = STATPANEL_DEBUG_MAPPING
 	set name = "Camera Report"
 
 	if(!check_rights(R_DEBUG))
@@ -76,8 +76,8 @@ GLOBAL_VAR_INIT(intercom_range_display_status, 0)
 	for(var/obj/machinery/camera/C in GLOB.cameranet.cameras)
 		CL += C
 
-	var/output = {"<meta charset="UTF-8"><B>CAMERA ANOMALIES REPORT</B><HR>
-<B>The following anomalies have been detected. The ones in red need immediate attention: Some of those in black may be intentional.</B><BR><ul>"}
+	var/output = {"<b>CAMERA ANOMALIES REPORT</b><hr>
+<b>The following anomalies have been detected. The ones in red need immediate attention: Some of those in black may be intentional.</b><br><ul>"}
 
 	for(var/obj/machinery/camera/C1 in CL)
 		for(var/obj/machinery/camera/C2 in CL)
@@ -89,7 +89,7 @@ GLOBAL_VAR_INIT(intercom_range_display_status, 0)
 				if(C1.loc == C2.loc)
 					output += "<li>overlapping sec. cameras at \[[C1.x], [C1.y], [C1.z]\] ([C1.loc.loc]) Networks: [C1.network] and [C2.network]</font></li>"
 		var/turf/T = get_step(C1,turn(C1.dir,180))
-		if(!T || !isturf(T) || !T.density )
+		if(!T || !isturf(T) || !T.density)
 			if(!(locate(/obj/structure/grille,T)))
 				var/window_check = 0
 				for(var/obj/structure/window/W in T)
@@ -100,11 +100,13 @@ GLOBAL_VAR_INIT(intercom_range_display_status, 0)
 					output += "<li><font color='red'>Camera not connected to wall at \[[C1.x], [C1.y], [C1.z]\] ([C1.loc.loc]) Network: [C1.network]</color></li>"
 
 	output += "</ul>"
-	usr << browse(output,"window=airreport;size=1000x500")
-	SSblackbox.record_feedback("tally", "admin_verb", 1, "Camera Report") //If you are copy-pasting this, ensure the 4th parameter is unique to the new proc!
+	var/datum/browser/popup = new(usr, "airreport", "CAMERA ANOMALIES REPORT", 1000, 500)
+	popup.set_content(output)
+	popup.open(FALSE)
+	BLACKBOX_LOG_ADMIN_VERB("Camera Report")
 
 /client/proc/intercom_view()
-	set category = "Mapping"
+	set category = STATPANEL_DEBUG_MAPPING
 	set name = "Intercom Range Display"
 
 	if(!check_rights(R_DEBUG))
@@ -124,22 +126,22 @@ GLOBAL_VAR_INIT(intercom_range_display_status, 0)
 				var/obj/effect/debugging/marker/F = new/obj/effect/debugging/marker(T)
 				if(!(F in view(7,I.loc)))
 					qdel(F)
-	SSblackbox.record_feedback("tally", "admin_verb", 1, "Intercom Range Display") //If you are copy-pasting this, ensure the 4th parameter is unique to the new proc!
+	BLACKBOX_LOG_ADMIN_VERB("Intercom Range Display")
 
 /client/proc/count_objects_on_z_level()
-	set category = "Mapping"
+	set category = STATPANEL_DEBUG_MAPPING
 	set name = "Count Objects On Level"
 
 	if(!check_rights(R_DEBUG))
 		return
 
-	var/level = clean_input("Which z-level?","Level?")
+	var/level = tgui_input_text(usr, "Which z-level?", "Level?")
 	if(!level) return
 	var/num_level = text2num(level)
 	if(!num_level) return
 	if(!isnum(num_level)) return
 
-	var/type_text = clean_input("Which type path?","Path?")
+	var/type_text = tgui_input_text(usr, "Which type path?","Path?")
 	if(!type_text) return
 	var/type_path = text2path(type_text)
 	if(!type_path) return
@@ -152,7 +154,7 @@ GLOBAL_VAR_INIT(intercom_range_display_status, 0)
 		if(istype(A,type_path))
 			var/atom/B = A
 			while(!(isturf(B.loc)))
-				if(B && B.loc)
+				if(B?.loc)
 					B = B.loc
 				else
 					break
@@ -162,16 +164,16 @@ GLOBAL_VAR_INIT(intercom_range_display_status, 0)
 					atom_list += A
 
 	to_chat(world, "There are [count] objects of type [type_path] on z-level [num_level].")
-	SSblackbox.record_feedback("tally", "admin_verb", 1, "Count Objects (On Level)") //If you are copy-pasting this, ensure the 4th parameter is unique to the new proc!
+	BLACKBOX_LOG_ADMIN_VERB("Count Objects (On Level)")
 
 /client/proc/count_objects_all()
-	set category = "Mapping"
+	set category = STATPANEL_DEBUG_MAPPING
 	set name = "Count Objects All"
 
 	if(!check_rights(R_DEBUG))
 		return
 
-	var/type_text = clean_input("Which type path?","")
+	var/type_text = tgui_input_text(usr, "Which type path?", "")
 	if(!type_text) return
 	var/type_path = text2path(type_text)
 	if(!type_path) return
@@ -183,4 +185,4 @@ GLOBAL_VAR_INIT(intercom_range_display_status, 0)
 			count++
 
 	to_chat(world, "There are [count] objects of type [type_path] in the game world.")
-	SSblackbox.record_feedback("tally", "admin_verb", 1, "Count Objects (Global)") //If you are copy-pasting this, ensure the 4th parameter is unique to the new proc!
+	BLACKBOX_LOG_ADMIN_VERB("Count Objects (Global)")

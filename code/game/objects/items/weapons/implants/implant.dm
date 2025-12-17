@@ -10,6 +10,7 @@
 	icon_state = "generic" //Shows up as a auto surgeon, used as a placeholder when a implant doesn't have a sprite
 	origin_tech = "materials=2;biotech=3;programming=2"
 	actions_types = list(/datum/action/item_action/hands_free/activate)
+	var/datum/action/item_action/hands_free/activate/action
 	item_color = "black"
 	item_flags = DROPDEL  // By default, don't let implants be harvestable.
 
@@ -26,6 +27,9 @@
 	var/allow_multiple = FALSE
 	/// Amount of times that the implant can be triggered by the user. If the implant can't be used, it can't be inserted.
 	var/uses = -1
+	var/datum/implant_cooldown/cooldown_system
+	var/base_cooldown = 10 SECONDS
+	var/starts_charged = TRUE
 
 	/// List of emote keys that activate this implant when used.
 	var/list/trigger_emotes
@@ -37,12 +41,19 @@
 	///the implant_fluff datum attached to this implant, purely cosmetic "lore" information
 	var/datum/implant_fluff/implant_data = /datum/implant_fluff
 
-
 /obj/item/implant/Initialize(mapload)
 	. = ..()
+	RegisterSignal(src, COMSIG_ACTION_BUTTON_UPDATE, PROC_REF(update_button))
 	if(ispath(implant_data, /datum/implant_fluff))
 		implant_data = new implant_data
+		cooldown_system = create_new_cooldown()
+		cooldown_system.cooldown_init(src)
 
+/obj/item/implant/proc/create_new_cooldown()
+	RETURN_TYPE(/datum/implant_cooldown)
+	var/datum/implant_cooldown/i_cooldown = new
+	i_cooldown.recharge_duration = base_cooldown
+	return i_cooldown
 
 /obj/item/implant/Destroy()
 	if(imp_in)
@@ -57,14 +68,14 @@
 		implantcase.imp = null
 		implantcase.update_state()
 	QDEL_NULL(implant_data)
+	QDEL_NULL(cooldown_system)
+	UnregisterSignal(src, COMSIG_ACTION_BUTTON_UPDATE)
 	return ..()
-
 
 /obj/item/implant/proc/unregister_emotes()
 	if(imp_in && LAZYLEN(trigger_emotes))
 		for(var/emote in trigger_emotes)
 			UnregisterSignal(imp_in, COMSIG_MOB_EMOTED(emote))
-
 
 /**
  * Set the emote that will trigger the implant.
@@ -101,7 +112,6 @@
 	LAZYOR(trigger_emotes, emote_key)
 	RegisterSignal(user, COMSIG_MOB_EMOTED(emote_key), PROC_REF(on_emote))
 
-
 /obj/item/implant/proc/on_emote(mob/living/user, datum/emote/fired_emote, key, emote_type, message, intentional)
 	SIGNAL_HANDLER
 
@@ -113,7 +123,6 @@
 
 	add_attack_logs(user, user, "[src] was [intentional ? "intentionally" : "unintentionally"] triggered with the emote [fired_emote].")
 	emote_trigger(key, user, intentional)
-
 
 /obj/item/implant/proc/on_death(mob/source, gibbed)
 	SIGNAL_HANDLER
@@ -133,22 +142,17 @@
 	add_attack_logs(source, source, "had their [src] bio-chip triggered on [gibbed ? "gib" : "death"].")
 	death_trigger(source, gibbed)
 
-
 /obj/item/implant/proc/emote_trigger(emote, mob/source, intentional)
 	return
-
 
 /obj/item/implant/proc/death_trigger(mob/source, gibbed)
 	return
 
-
 /obj/item/implant/proc/activate(cause)
 	return
 
-
 /obj/item/implant/ui_action_click(mob/user, datum/action/action, leftclick)
 	activate("action_button")
-
 
 /**
  * Try to implant ourselves into a mob.
@@ -164,7 +168,7 @@
 	if(!force && !can_implant(source, user))
 		return
 	var/obj/item/implant/imp_e = locate(type) in source
-	if(!allow_multiple && imp_e && imp_e != src)
+	if(!allow_multiple && imp_e && imp_e != src && imp_e.type == src.type)
 		if(imp_e.uses < initial(imp_e.uses) * 2)
 			if(uses == -1)
 				imp_e.uses = -1
@@ -179,7 +183,7 @@
 	implanted = BIOCHIP_IMPLANTED
 
 	if(trigger_emotes)
-		if(!(trigger_causes & BIOCHIP_EMOTE_TRIGGER_INTENTIONAL|BIOCHIP_EMOTE_TRIGGER_UNINTENTIONAL))
+		if(!(trigger_causes & (BIOCHIP_EMOTE_TRIGGER_INTENTIONAL|BIOCHIP_EMOTE_TRIGGER_UNINTENTIONAL)))
 			CRASH("Bio-chip [src] has trigger emotes defined but no trigger cause with which to use them!")
 		if(activated == BIOCHIP_ACTIVATED_PASSIVE && (trigger_causes & BIOCHIP_EMOTE_TRIGGER_INTENTIONAL))
 			CRASH("Bio-chip [src] has intentional emote triggers on a passive bio-chip")
@@ -190,6 +194,10 @@
 	if(activated == BIOCHIP_ACTIVATED_ACTIVE)
 		for(var/datum/action/action as anything in actions)
 			action.Grant(source)
+			update_button(action)
+	else
+		for(var/datum/action/action as anything in actions)
+			action.Remove(source)
 			update_button(action)
 
 	if(trigger_causes & (BIOCHIP_TRIGGER_DEATH_ONCE|BIOCHIP_TRIGGER_DEATH_ANY))
@@ -203,7 +211,6 @@
 
 	return TRUE
 
-
 /**
  * Check that we can actually implant this before implanting it
  * * source - The person being implanted
@@ -215,7 +222,6 @@
  */
 /obj/item/implant/proc/can_implant(mob/source, mob/user)
 	return TRUE
-
 
 /**
  * Clean up when an implant is removed.
@@ -241,12 +247,15 @@
 
 	return TRUE
 
-
 /**
  * Updates button name and description.
  */
-/obj/item/implant/proc/update_button(datum/action/action)
-	action.name = "[initial(action.name)] [name]"
-	action.desc = desc
-	action.UpdateButtonIcon()
-
+/obj/item/implant/proc/update_button(datum/source, datum/action/action)
+	SIGNAL_HANDLER
+	action?.name = "[initial(action.name)] [name]"
+	action?.desc = desc
+	action?.status_text = cooldown_system.cooldown_info()
+	action?.UpdateButtonIcon()
+	if(cooldown_system?.should_draw_cooldown())
+		return COMSIG_ACTION_UPDATE_INTERRUPT
+	return NONE

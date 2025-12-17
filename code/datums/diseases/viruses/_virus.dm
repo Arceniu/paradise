@@ -46,14 +46,12 @@
 			discovered = TRUE
 			affected_mob.med_hud_set_status()
 
-
 /datum/disease/virus/proc/can_spread()
 	if(istype(affected_mob.loc, /obj/structure/closet/body_bag/biohazard))
 		return FALSE
 	if(prob(infectivity) && (affected_mob.stat != DEAD || prob(spread_from_dead_prob)))
 		return TRUE
 	return FALSE
-
 
 /datum/disease/virus/proc/spread(force_spread = 0)
 	if(!affected_mob)
@@ -100,4 +98,4 @@
 		spread += "Контактный"
 	if(spread_flags & AIRBORNE)
 		spread += "Воздушно-капельный"
-	return english_list(spread, "Неизвестен", " и ")
+	return russian_list(spread, "Неизвестено", " и ")

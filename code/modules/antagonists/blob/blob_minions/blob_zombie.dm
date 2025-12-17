@@ -7,27 +7,26 @@
 	health_doll_icon = "blobpod"
 	health = BLOBMOB_ZOMBIE_HEALTH
 	maxHealth = BLOBMOB_ZOMBIE_HEALTH
-	verb_say = list("gurgles", "groans")
-	verb_ask = "demands"
-	verb_exclaim = "roars"
-	verb_yell = "bellows"
+	verb_say = list("тяжело произносит", "бормочет")
+	verb_ask = "вопросительно бормочет"
+	verb_exclaim = "рычит"
+	verb_yell = "ревёт"
 	melee_damage_lower = BLOBMOB_ZOMBIE_DMG_LOWER
 	melee_damage_upper = BLOBMOB_ZOMBIE_DMG_UPPER
 	obj_damage = BLOBMOB_ZOMBIE_OBJ_DMG
-	environment_smash = ENVIRONMENT_SMASH_STRUCTURES
 	attacktext = "ударяет"
 	attack_sound = 'sound/weapons/genhit1.ogg'
-	deathmessage = 	"падает на землю!"
-	gold_core_spawnable = NO_SPAWN
+	deathmessage =	"падает на землю!"
 	del_on_death = TRUE
 	speed = BLOBMOB_ZOMBIE_SPEED_MOD
 	/// The dead body we have inside
 	var/mob/living/carbon/human/corpse
 
-
 /mob/living/simple_animal/hostile/blob_minion/zombie/death(gibbed)
-	REMOVE_TRAIT(corpse, TRAIT_BLOB_ZOMBIFIED, BLOB_ZOMBIE_TRAIT)
-	corpse?.forceMove(loc)
+	if(corpse)
+		REMOVE_TRAIT(corpse, TRAIT_BLOB_ZOMBIFIED, BLOB_ZOMBIE_TRAIT)
+		UnregisterSignal(corpse, list(COMSIG_HUMAN_DESTROYED, COMSIG_LIVING_REVIVE))
+		corpse.forceMove(loc)
 	death_burst()
 	return ..()
 
@@ -50,7 +49,6 @@
 	if(istype(mover, /obj/structure/blob))
 		return TRUE
 
-
 /mob/living/simple_animal/hostile/blob_minion/zombie/Initialize(mapload)
 	. = ..()
 	ADD_TRAIT(src, TRAIT_NO_FLOATING_ANIM, INNATE_TRAIT)
@@ -65,17 +63,13 @@
 
 /mob/living/simple_animal/hostile/blob_minion/zombie/update_overlays()
 	. = ..()
-	set_up_zombie_appearance()
-
-//Sets up our appearance
-/mob/living/simple_animal/hostile/blob_minion/zombie/proc/set_up_zombie_appearance()
-	copy_overlays(corpse, TRUE)
+	. |= corpse?.overlays?.Copy()
 	var/mutable_appearance/blob_head_overlay = mutable_appearance('icons/mob/blob.dmi', "blob_head")
 	blob_head_overlay.color = LAZYACCESS(atom_colours, FIXED_COLOUR_PRIORITY) || COLOR_WHITE
 	color = initial(color) // reversing what our component did lol, but we needed the value for the overlay
-	overlays += blob_head_overlay
+	. |= blob_head_overlay
 	if(blocks_emissive)
-		add_overlay(get_emissive_block())
+		. |= get_emissive_block()
 
 /// Create an explosion of spores on death
 /mob/living/simple_animal/hostile/blob_minion/zombie/proc/death_burst()
@@ -91,13 +85,19 @@
 	new_corpse.change_hair("Bald")
 	new_corpse.forceMove(src)
 	corpse = new_corpse
-	update_icon(UPDATE_OVERLAYS)
+	update_icon()
 	RegisterSignal(corpse, COMSIG_LIVING_REVIVE, PROC_REF(on_corpse_revived))
+	RegisterSignal(corpse, COMSIG_HUMAN_DESTROYED, PROC_REF(on_corpse_destroyed))
 
 /// Dynamic changeling reentry
 /mob/living/simple_animal/hostile/blob_minion/zombie/proc/on_corpse_revived()
 	SIGNAL_HANDLER
 	visible_message(span_boldwarning("[src] разрывается изнутри!"))
+	death()
+
+/mob/living/simple_animal/hostile/blob_minion/zombie/proc/on_corpse_destroyed()
+	SIGNAL_HANDLER
+	visible_message(span_boldwarning("C носитель уничтожено. [src] разрушается изнутри!"))
 	death()
 
 /// Blob-created zombies will ping for player control when they make a zombie
@@ -110,6 +110,7 @@
 	AddComponent(\
 		/datum/component/ghost_direct_control,\
 		ban_type = ROLE_BLOB,\
+		ban_syndicate = TRUE,\
 		poll_candidates = TRUE,\
 	)
 

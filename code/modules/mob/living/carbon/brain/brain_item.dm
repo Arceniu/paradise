@@ -1,14 +1,13 @@
 /obj/item/organ/internal/brain
 	name = "brain"
-	max_damage = 120
+	desc = "Основной орган центральной нервной системы гуманоида. Фактически, именно здесь и находится разум. Этот принадлежал человеку."
 	icon_state = "brain2"
-	force = 1.0
-	w_class = WEIGHT_CLASS_SMALL
+	max_damage = 120
 	throwforce = 1.0
 	throw_speed = 3
 	throw_range = 5
 	origin_tech = "biotech=5"
-	attack_verb = list("attacked", "slapped", "whacked")
+	attack_verb = list("атаковал", "шлёпнул", "огрел")
 	var/mob/living/carbon/brain/brainmob = null
 	parent_organ_zone = BODY_ZONE_HEAD
 	slot = INTERNAL_ORGAN_BRAIN
@@ -18,25 +17,34 @@
 	var/mmi_icon_state = "mmi_full"
 	/// If it's a fake brain without a mob assigned that should still be treated like a real brain.
 	var/decoy_brain = FALSE
+	/// TRUE giving to a user sci hud and active research scanner
+	var/smart_mind = FALSE
+	/// The original body for this brain, if this valriable is null - brain can apply any body without desease.
+	var/original_body = null
 
-/obj/item/organ/internal/brain/xeno
-	name = "xenomorph brain"
-	desc = "We barely understand the brains of terrestial animals. Who knows what we may find in the brain of such an advanced species?"
-	icon_state = "brain-x"
-	origin_tech = "biotech=6"
-	mmi_icon = 'icons/mob/alien.dmi'
-	mmi_icon_state = "AlienMMI"
+/obj/item/organ/internal/brain/get_ru_names()
+	return list(
+		NOMINATIVE = "мозг человека",
+		GENITIVE = "мозга человека",
+		DATIVE = "мозгу человека",
+		ACCUSATIVE = "мозг человека",
+		INSTRUMENTAL = "мозгом человека",
+		PREPOSITIONAL = "мозге человека",
+	)
 
 /obj/item/organ/internal/brain/Destroy()
 	QDEL_NULL(brainmob)
 	return ..()
 
-/obj/item/organ/internal/brain/proc/transfer_identity(var/mob/living/carbon/H)
+/obj/item/organ/internal/brain/proc/transfer_identity(mob/living/carbon/H)
 	brainmob = new(src)
 	if(isnull(dna)) // someone didn't set this right...
 		log_runtime(EXCEPTION("[src] at [loc] did not contain a dna datum at time of removal."), src)
 		dna = H.dna.Clone()
-	name = "\the [dna.real_name]'s [initial(src.name)]"
+	name = "\the [dna.real_name]’s [initial(src.name)]"
+	if(ru_names)
+		for(var/i in NOMINATIVE to PREPOSITIONAL)
+			ru_names[i] = initial(ru_names[i]) + " [dna.real_name]"
 	brainmob.dna = dna.Clone() // Silly baycode, what you do
 //	brainmob.dna = H.dna.Clone() Putting in and taking out a brain doesn't make it a carbon copy of the original brain of the body you put it in
 	brainmob.name = dna.real_name
@@ -45,12 +53,12 @@
 	if(H.mind)
 		H.mind.transfer_to(brainmob)
 
-	to_chat(brainmob, "<span class='notice'>You feel slightly disoriented. That's normal when you're just a [initial(src.name)].</span>")
+	to_chat(brainmob, span_notice("Вы чувствуете себя немного дезориентированным. Это нормально, когда вы просто мозг."))
 
 /obj/item/organ/internal/brain/examine(mob/user) // -- TLE
 	. = ..()
-	if(brainmob && brainmob.client)//if there be a brain inside... the brain.
-		. += "You can feel a bright spark of life in this one!"
+	if(brainmob?.client)//if there be a brain inside... the brain.
+		. += "В нём ощущается мощная нейронная активность."
 		return
 	if(brainmob?.mind)
 		var/foundghost = FALSE
@@ -59,14 +67,17 @@
 				foundghost = G.can_reenter_corpse
 				break
 		if(foundghost)
-			. += "You can feel the small spark of life still left in this one."
+			. += "В нём ощущается слабая нейронная активность."
 			return
 
-	. += "This one seems particularly lifeless. Perhaps it will regain some of its luster later.."
+	. += "Выглядит абсолютно безжизненным и неактивным."
 
 /obj/item/organ/internal/brain/remove(mob/living/user, special = ORGAN_MANIPULATION_DEFAULT)
 	if(dna)
-		name = "[dna.real_name]'s [initial(name)]"
+		name = "[dna.real_name]’s [initial(name)]"
+		if(ru_names)
+			for(var/i in NOMINATIVE to PREPOSITIONAL)
+				ru_names[i] = initial(ru_names[i]) + " [dna.real_name]"
 
 	if(!owner)
 		return ..() // Probably a redundant removal; just bail
@@ -77,7 +88,7 @@
 		if(borer)
 			borer.leave_host() //Should remove borer if the brain is removed - RR
 
-		if(owner.mind && !decoy_brain)	//don't transfer if the owner does not have a mind.
+		if(owner.mind && !decoy_brain && !HAS_TRAIT(owner, TRAIT_DECOY_BRAIN))	//don't transfer if the owner does not have a mind.
 			our_brain.transfer_identity(user)
 
 	if(ishuman(owner))
@@ -85,7 +96,6 @@
 
 	owner.thought_bubble_image = initial(owner.thought_bubble_image)
 	. = ..()
-
 
 /obj/item/organ/internal/brain/insert(mob/living/target, special = ORGAN_MANIPULATION_DEFAULT)
 
@@ -109,7 +119,7 @@
 			if(brainmob.mind)
 				brainmob.mind.transfer_to(target)
 			else
-				target.key = brainmob.key
+				target.possess_by_player(brainmob.key)
 		else if(brainmob?.mind && target_changeling)
 			brainmob.mind.current = null
 			brainmob.ghostize()
@@ -118,37 +128,35 @@
 
 	if(ishuman(target))
 		var/mob/living/carbon/human/H = target
-		H.special_post_clone_handling()
+		H.special_post_clone_handling(special == ORGAN_MANIPULATION_TRANSPLANTATE)
 
 	..(target, special)
 
-
 /obj/item/organ/internal/brain/internal_receive_damage(amount = 0, silent = FALSE) //brains are special; if they receive damage by other means, we really just want the damage to be passed ot the owner and back onto the brain.
 	owner?.apply_damage(amount, BRAIN)
-
 
 /obj/item/organ/internal/brain/necrotize(silent = FALSE) //Brain also has special handling for when it necrotizes
 	if(..() && owner && vital)
 		owner.setBrainLoss(120)
 
-
 /obj/item/organ/internal/brain/prepare_eat()
 	return // Too important to eat.
 
-/obj/item/organ/internal/brain/slime
-	species_type = /datum/species/slime
-	name = "slime core"
-	desc = "A complex, organic knot of jelly and crystalline particles."
-	icon = 'icons/mob/slimes.dmi'
-	icon_state = "green slime extract"
-	mmi_icon_state = "slime_mmi"
-	parent_organ_zone = BODY_ZONE_CHEST
-
 /obj/item/organ/internal/brain/golem
-	name = "Runic mind"
-	desc = "A tightly furled roll of paper, covered with indecipherable runes."
+	name = "runic mind"
+	desc = "Туго свёрнутый свиток, испещрённый неразборчивыми рунами."
 	icon = 'icons/obj/wizard.dmi'
 	icon_state = "scroll"
+
+/obj/item/organ/internal/brain/golem/get_ru_names()
+	return list(
+		NOMINATIVE = "рунический разум",
+		GENITIVE = "рунического разума",
+		DATIVE = "руническому разуму",
+		ACCUSATIVE = "рунический разум",
+		INSTRUMENTAL = "руническим разумом",
+		PREPOSITIONAL = "руническом разуме",
+	)
 
 /obj/item/organ/internal/brain/Destroy() //copypasted from MMIs.
 	QDEL_NULL(brainmob)

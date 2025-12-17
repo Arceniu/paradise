@@ -1,5 +1,5 @@
-/client/proc/cmd_mass_modify_object_variables(atom/A, var/var_name)
-	set category = "Debug"
+/client/proc/cmd_mass_modify_object_variables(atom/A, var_name)
+	set category = STATPANEL_ADMIN_DEBUG
 	set name = "Mass Edit Variables"
 	set desc="(target) Edit all instances of a target item's variables"
 
@@ -7,9 +7,9 @@
 
 	if(!check_rights(R_VAREDIT))	return
 
-	if(A && A.type)
+	if(A?.type)
 		if(typesof(A.type))
-			switch(input("Strict object type detection?") as null|anything in list("Strictly this type","This type and subtypes", "Cancel"))
+			switch(tgui_input_list(usr, "Strict object type detection?", items = list("Strictly this type","This type and subtypes", "Cancel")))
 				if("Strictly this type")
 					method = 0
 				if("This type and subtypes")
@@ -20,7 +20,7 @@
 					return
 
 	src.massmodify_variables(A, var_name, method)
-	SSblackbox.record_feedback("tally", "admin_verb", 1, "Mass Edit Variables") //If you are copy-pasting this, ensure the 4th parameter is unique to the new proc!
+	BLACKBOX_LOG_ADMIN_VERB("Mass Edit Variables")
 
 /client/proc/massmodify_variables(datum/O, var_name = "", method = 0)
 	if(!check_rights(R_VAREDIT))
@@ -36,7 +36,7 @@
 
 		names = sortList(names)
 
-		variable = input("Which var?", "Var") as null|anything in names
+		variable = tgui_input_list(usr, "Which var?", "Var", names)
 	else
 		variable = var_name
 
@@ -57,7 +57,7 @@
 	if(variable in GLOB.VVpixelmovement)
 		if(!check_rights(R_DEBUG))
 			return
-		var/prompt = alert(src, "Editing this var may irreparably break tile gliding for the rest of the round. THIS CAN'T BE UNDONE", "DANGER", "ABORT ", "Continue", " ABORT")
+		var/prompt = tgui_alert(src, "Editing this var may irreparably break tile gliding for the rest of the round. THIS CAN'T BE UNDONE", "DANGER", list("ABORT ", "Continue", " ABORT"))
 		if(prompt != "Continue")
 			return
 
@@ -74,13 +74,13 @@
 		var/dir_text = ""
 		if(dir < 0 && dir < 16)
 			if(dir & 1)
-				dir_text += "NORTH"
+				dir_text += DIR_NAME_ENG_NORTH
 			if(dir & 2)
-				dir_text += "SOUTH"
+				dir_text += DIR_NAME_ENG_SOUTH
 			if(dir & 4)
-				dir_text += "EAST"
+				dir_text += DIR_NAME_ENG_EAST
 			if(dir & 8)
-				dir_text += "WEST"
+				dir_text += DIR_NAME_ENG_WEST
 
 		if(dir_text)
 			to_chat(src, "If a direction, direction is: [dir_text]")
@@ -107,7 +107,7 @@
 		if(VV_RESTORE_DEFAULT)
 			to_chat(src, "Finding items...")
 			var/list/items = get_all_of_type(O.type, method)
-			to_chat(src, "Changing [items.len] items...")
+			to_chat(src, "Changing [length(items)] items...")
 			for(var/thing in items)
 				if(!thing)
 					continue
@@ -122,8 +122,8 @@
 			var/list/varsvars = vv_parse_text(O, new_value)
 			var/pre_processing = new_value
 			var/unique
-			if(varsvars && varsvars.len)
-				unique = alert(usr, "Process vars unique to each instance, or same for all?", "Variable Association", "Unique", "Same")
+			if(varsvars && length(varsvars))
+				unique = tgui_alert(usr, "Process vars unique to each instance, or same for all?", "Variable Association", list("Unique", "Same"))
 				if(unique == "Unique")
 					unique = TRUE
 				else
@@ -133,7 +133,7 @@
 
 			to_chat(src, "Finding items...")
 			var/list/items = get_all_of_type(O.type, method)
-			to_chat(src, "Changing [items.len] items...")
+			to_chat(src, "Changing [length(items)] items...")
 			for(var/thing in items)
 				if(!thing)
 					continue
@@ -150,7 +150,7 @@
 				CHECK_TICK
 
 		if(VV_NEW_TYPE)
-			var/many = alert(src, "Create only one [value["type"]] and assign each or a new one for each thing", "How Many", "One", "Many", "Cancel")
+			var/many = tgui_alert(src, "Create only one [value["type"]] and assign each or a new one for each thing", "How Many", list("One", "Many", "Cancel"))
 			if(many == "Cancel")
 				return
 			if(many == "Many")
@@ -161,7 +161,7 @@
 			var/type = value["type"]
 			to_chat(src, "Finding items...")
 			var/list/items = get_all_of_type(O.type, method)
-			to_chat(src, "Changing [items.len] items...")
+			to_chat(src, "Changing [length(items)] items...")
 			for(var/thing in items)
 				if(!thing)
 					continue
@@ -179,7 +179,7 @@
 		else
 			to_chat(src, "Finding items...")
 			var/list/items = get_all_of_type(O.type, method)
-			to_chat(src, "Changing [items.len] items...")
+			to_chat(src, "Changing [length(items)] items...")
 			for(var/thing in items)
 				if(!thing)
 					continue
@@ -189,7 +189,6 @@
 				else
 					rejected++
 				CHECK_TICK
-
 
 	var/count = rejected+accepted
 	if(!count)
@@ -205,7 +204,7 @@
 	log_admin("[key_name(src)] mass modified [original_name]'s [variable] to [O.vars[variable]] ([accepted] objects modified)")
 	message_admins("[key_name_admin(src)] mass modified [original_name]'s [variable] to [html_encode(translate_bitfield(default, variable, O.vars[variable]))] (Type: [class]) ([accepted] objects modified)")
 
-/proc/get_all_of_type(var/T, subtypes = TRUE)
+/proc/get_all_of_type(T, subtypes = TRUE)
 	var/list/typecache = list()
 	typecache[T] = 1
 	if(subtypes)
@@ -224,7 +223,7 @@
 			CHECK_TICK
 
 	else if(ispath(T, /obj/machinery))
-		for(var/obj/machinery/thing in GLOB.machines)
+		for(var/obj/machinery/thing in SSmachines.get_by_type(/obj/machinery))
 			if(typecache[thing.type])
 				. += thing
 			CHECK_TICK

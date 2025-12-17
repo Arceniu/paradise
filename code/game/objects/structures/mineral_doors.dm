@@ -8,7 +8,7 @@
 	icon = 'icons/obj/doors/mineral_doors.dmi'
 	icon_state = "metal"
 	max_integrity = 200
-	armor = list("melee" = 10, "bullet" = 0, "laser" = 0, "energy" = 100, "bomb" = 10, "bio" = 100, "rad" = 100, "fire" = 50, "acid" = 50)
+	armor = list(MELEE = 10, BULLET = 0, LASER = 0, ENERGY = 100, BOMB = 10, BIO = 100, RAD = 100, FIRE = 50, ACID = 50)
 	var/initial_state
 	var/state = 0 //closed, 1 == open
 	var/isSwitchingStates = 0
@@ -22,7 +22,7 @@
 	var/damageSound = null
 	var/is_opaque = TRUE
 
-/obj/structure/mineral_door/Initialize()
+/obj/structure/mineral_door/Initialize(mapload)
 	. = ..()
 	initial_state = icon_state
 	air_update_turf(1)
@@ -31,6 +31,9 @@
 	set_density(FALSE)
 	air_update_turf(1)
 	return ..()
+
+/obj/structure/mineral_door/add_debris_element()
+	AddElement(/datum/element/debris, DEBRIS_SPARKS, -20, 10)
 
 /obj/structure/mineral_door/Move(atom/newloc, direct = NONE, glide_size_override = 0, update_dir = TRUE)
 	var/turf/T = loc
@@ -55,14 +58,12 @@
 	if(user.can_advanced_admin_interact())
 		SwitchState()
 
-
 /obj/structure/mineral_door/CanAllowThrough(atom/movable/mover, border_dir)
 	. = ..()
 	if(checkpass(mover))
 		return TRUE
 	if(istype(mover, /obj/effect/beam))
 		return !opacity
-
 
 /obj/structure/mineral_door/CanAtmosPass(turf/T, vertical)
 	return !density
@@ -94,7 +95,7 @@
 
 /obj/structure/mineral_door/proc/Open()
 	isSwitchingStates = 1
-	playsound(loc, openSound, 100, 1)
+	playsound(loc, openSound, 100, TRUE)
 	flick("[initial_state]opening",src)
 	sleep(10)
 	set_density(FALSE)
@@ -117,7 +118,7 @@
 		return FALSE
 	. = TRUE
 	isSwitchingStates = 1
-	playsound(loc, closeSound, 100, 1)
+	playsound(loc, closeSound, 100, TRUE)
 	flick("[initial_state]closing",src)
 	sleep(10)
 	set_density(TRUE)
@@ -128,13 +129,11 @@
 	update_icon(UPDATE_ICON_STATE)
 	isSwitchingStates = 0
 
-
 /obj/structure/mineral_door/update_icon_state()
 	if(state)
 		icon_state = "[initial_state]open"
 	else
 		icon_state = initial_state
-
 
 /obj/structure/mineral_door/attackby(obj/item/I, mob/user, params)
 	if(istype(I, /obj/item/pickaxe))
@@ -160,7 +159,6 @@
 		return ATTACK_CHAIN_BLOCKED_ALL
 
 	return ..()
-
 
 /obj/structure/mineral_door/deconstruct(disassembled = TRUE)
 	var/turf/T = get_turf(src)
@@ -207,16 +205,14 @@
 	icon_state = "plasma"
 	sheetType = /obj/item/stack/sheet/mineral/plasma
 
-
 /obj/structure/mineral_door/transparent/plasma/attackby(obj/item/I, mob/user, params)
-	var/hot_temp = is_hot(I)
+	var/hot_temp = I.get_heat()
 	if(hot_temp)
 		add_attack_logs(user, src, "Ignited using [I]", ATKLOG_FEW)
-		investigate_log("was <span class='warning'>ignited</span> by [key_name_log(user)]",INVESTIGATE_ATMOS)
+		investigate_log("was [span_warning("ignited")] by [key_name_log(user)]",INVESTIGATE_ATMOS)
 		TemperatureAct(hot_temp)
 		return ATTACK_CHAIN_BLOCKED_ALL
 	return ..()
-
 
 /obj/structure/mineral_door/transparent/plasma/temperature_expose(datum/gas_mixture/air, exposed_temperature, exposed_volume)
 	..()
@@ -239,9 +235,10 @@
 	openSound = 'sound/effects/doorcreaky.ogg'
 	closeSound = 'sound/effects/doorcreaky.ogg'
 	sheetType = /obj/item/stack/sheet/wood
-	hardness = 1
 	resistance_flags = FLAMMABLE
-	max_integrity = 200
+
+/obj/structure/mineral_door/wood/add_debris_element()
+	AddElement(/datum/element/debris, DEBRIS_WOOD, -40, 5)
 
 /obj/structure/mineral_door/wood/paperframe
 	name = "Paperframe door"
@@ -249,10 +246,6 @@
 	icon_state = "paperframe"
 	openSound = 'sound/effects/glider_door.ogg'
 	closeSound = 'sound/effects/glider_door.ogg'
-	sheetType = /obj/item/stack/sheet/wood
-	hardness = 1
-	resistance_flags = FLAMMABLE
-	max_integrity = 200
 
 /obj/structure/mineral_door/resin
 	name = "resin door"
@@ -276,4 +269,3 @@
 	sheetType = /obj/item/stack/sheet/gingerbread
 	hardness = 0.5
 	resistance_flags = FLAMMABLE
-	max_integrity = 200

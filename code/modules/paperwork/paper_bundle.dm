@@ -4,22 +4,20 @@
 	icon = 'icons/obj/bureaucracy.dmi'
 	icon_state = "paper"
 	item_state = "paper"
-	throwforce = 0
 	w_class = WEIGHT_CLASS_TINY
 	throw_range = 2
 	resistance_flags = FLAMMABLE
 	throw_speed = 1
 	layer = 4
 	pressure_resistance = 2
-	attack_verb = list("bapped")
-	drop_sound = 'sound/items/handling/paper_drop.ogg'
-	pickup_sound =  'sound/items/handling/paper_pickup.ogg'
+	attack_verb = list("стукнул")
+	drop_sound = 'sound/items/handling/drop/paper_drop.ogg'
+	pickup_sound =  'sound/items/handling/pickup/paper_pickup.ogg'
 	var/list/papers
 	var/amount = 0 //Amount of total items clipped to the paper. Note: If you have 2 paper, this should be 1
 	var/photos = 0 //Amount of photos clipped to the paper.
 	var/page = 1
 	var/screen = 0
-
 
 /obj/item/paper_bundle/Initialize(mapload, default_papers = TRUE)
 	. = ..()
@@ -30,17 +28,15 @@
 			papers += paper
 		amount++
 
-
 /obj/item/paper_bundle/Destroy()
 	QDEL_LIST(papers)
 	return ..()
-
 
 /obj/item/paper_bundle/attackby(obj/item/I, mob/living/user, params)
 	if(resistance_flags & ON_FIRE)
 		return ATTACK_CHAIN_BLOCKED_ALL
 
-	if(is_hot(I))
+	if(I.get_heat())
 		if(!Adjacent(user)) //to prevent issues as a result of telepathically lighting a paper bundles
 			return ATTACK_CHAIN_BLOCKED_ALL
 
@@ -70,17 +66,22 @@
 		if(!user.is_literate())
 			to_chat(user, span_warning("You don't know how to write!"))
 			return ATTACK_CHAIN_PROCEED
-		user << browse("", "window=PaperBundle[UID()]") //Closes the dialog
+		close_window(user, "PaperBundle[UID()]") //Closes the dialog
 		paper.show_content(user, infolinks = TRUE)
 		return ATTACK_CHAIN_BLOCKED_ALL
 
 	if(istype(I, /obj/item/paper))
 		add_fingerprint(user)
+		var/obj/item/paper/paper = I
 		if(istype(I, /obj/item/paper/carbon))
 			var/obj/item/paper/carbon/carbon_paper = I
 			if(!carbon_paper.iscopy && !carbon_paper.copied)
 				to_chat(user, span_notice("Take off the carbon copy first."))
 				return .
+
+		if(!paper.joinable)
+			return ..()
+
 		if(!user.drop_transfer_item_to_loc(I, src))
 			return ..()
 		amount++
@@ -134,13 +135,11 @@
 
 	return ..()
 
-
 /obj/item/paper_bundle/fire_act(datum/gas_mixture/air, exposed_temperature, exposed_volume, global_overlay = TRUE)
 	..()
 	if(!(resistance_flags & FIRE_PROOF))
 		for(var/obj/item/paper/paper in papers)
 			paper.info = "<i>Heat-curled corners and sooty words offer little insight. Whatever was once written on this page has been rendered illegible through fire.</i>"
-
 
 /obj/item/paper_bundle/proc/burnpaper(obj/item/lighter/P, mob/user)
 	var/class = "<span class='warning'>"
@@ -167,7 +166,7 @@
 				qdel(src)
 
 			else
-				to_chat(user, "<span class='warning'>You must hold \the [P] steady to burn \the [src].</span>")
+				to_chat(user, span_warning("You must hold \the [P] steady to burn \the [src]."))
 
 /obj/item/paper_bundle/examine(mob/user)
 	. = ..()
@@ -175,44 +174,47 @@
 		if(user.is_literate())
 			show_content(user)
 		else
-			. += "<span class='notice'>You don't know how to read.</span>"
+			. += span_notice("You don't know how to read.")
 	else
-		. += "<span class='notice'>It is too far away.</span>"
+		. += span_notice("It is too far away.")
 
 /obj/item/paper_bundle/proc/show_content(mob/user)
-	var/dat = {"<html><meta charset="UTF-8">"}
+	var/dat = ""
 	var/obj/item/W = papers[page]
 	switch(screen)
 		if(0)
-			dat+= "<DIV STYLE='float:left; text-align:left; width:33.33333%'></DIV>"
-			dat+= "<DIV STYLE='float:left; text-align:center; width:33.33333%'><a href='byond://?src=[UID()];remove=1'>Remove [(istype(W, /obj/item/paper)) ? "paper" : "photo"]</A></DIV>"
-			dat+= "<DIV STYLE='float:left; text-align:right; width:33.33333%'><a href='byond://?src=[UID()];next_page=1'>Next Page</A></DIV><BR><HR>"
+			dat+= "<div style='float:left; text-align:left; width:33.33333%'></div>"
+			dat+= "<div style='float:left; text-align:center; width:33.33333%'><a href='byond://?src=[UID()];remove=1'>Remove [(istype(W, /obj/item/paper)) ? "paper" : "photo"]</a></div>"
+			dat+= "<div style='float:left; text-align:right; width:33.33333%'><a href='byond://?src=[UID()];next_page=1'>Next Page</a></div><br><hr>"
 		if(1)
-			dat+= "<DIV STYLE='float:left; text-align:left; width:33.33333%'><a href='byond://?src=[UID()];prev_page=1'>Previous Page</A></DIV>"
-			dat+= "<DIV STYLE='float:left; text-align:center; width:33.33333%'><a href='byond://?src=[UID()];remove=1'>Remove [(istype(W, /obj/item/paper)) ? "paper" : "photo"]</A></DIV>"
-			dat+= "<DIV STYLE='float:left; text-align:right; width:33.33333%'><a href='byond://?src=[UID()];next_page=1'>Next Page</A></DIV><BR><HR>"
+			dat+= "<div style='float:left; text-align:left; width:33.33333%'><a href='byond://?src=[UID()];prev_page=1'>Previous Page</a></div>"
+			dat+= "<div style='float:left; text-align:center; width:33.33333%'><a href='byond://?src=[UID()];remove=1'>Remove [(istype(W, /obj/item/paper)) ? "paper" : "photo"]</a></div>"
+			dat+= "<div style='float:left; text-align:right; width:33.33333%'><a href='byond://?src=[UID()];next_page=1'>Next Page</a></div><br><hr>"
 		if(2)
-			dat+= "<DIV STYLE='float:left; text-align:left; width:33.33333%'><a href='byond://?src=[UID()];prev_page=1'>Previous Page</A></DIV>"
-			dat+= "<DIV STYLE='float:left; text-align:center; width:33.33333%'><a href='byond://?src=[UID()];remove=1'>Remove [(istype(W, /obj/item/paper)) ? "paper" : "photo"]</A></DIV><BR><HR>"
-			dat+= "<DIV STYLE='float;left; text-align:right; with:33.33333%'></DIV>"
+			dat+= "<div style='float:left; text-align:left; width:33.33333%'><a href='byond://?src=[UID()];prev_page=1'>Previous Page</a></div>"
+			dat+= "<div style='float:left; text-align:center; width:33.33333%'><a href='byond://?src=[UID()];remove=1'>Remove [(istype(W, /obj/item/paper)) ? "paper" : "photo"]</a></div><br><hr>"
+			dat+= "<div style='float;left; text-align:right; with:33.33333%'></div>"
 	if(istype(papers[page], /obj/item/paper))
 		var/obj/item/paper/P = W
 		dat += P.show_content(usr, view = 0)
-		usr << browse(dat, "window=PaperBundle[UID()];size=[P.paper_width]x[P.paper_height]")
+		var/datum/browser/popup = new(usr, "PaperBundle[UID()]", "", P.paper_width, P.paper_height)
+		popup.include_default_stylesheet = FALSE
+		popup.set_content(dat)
+		popup.open(FALSE)
 	else if(istype(papers[page], /obj/item/photo))
 		var/obj/item/photo/P = W
 		usr << browse_rsc(P.img, "tmp_photo.png")
-		usr << browse(dat + {"<html><meta charset="UTF-8"><head><title>[P.name]</title></head>"} \
-		+ "<body style='overflow:hidden'>" \
-		+ "<div> <img src='tmp_photo.png' width = '180'" \
-		+ "[P.scribble ? "<div><br> Written on the back:<br><i>[P.scribble]</i>" : ""]"\
-		+ "</body></html>", "window=PaperBundle[UID()]")
+		var/datum/browser/popup = new(usr, "PaperBundle[UID()]", P.name, P.photo_size, P.photo_size)
+		popup.include_default_stylesheet = FALSE
+		popup.set_content(dat + "<div><img src='tmp_photo.png' width = '180'" \
+		+ "[P.scribble ? "<div><br> Written on the back:<br><i>[P.scribble]</i>" : ""]")
+		popup.add_stylesheet("paper_bundle", 'html/css/paper_bundle.css')
+		popup.open(FALSE)
 
 /obj/item/paper_bundle/attack_self(mob/user)
 	show_content(user)
 	add_fingerprint(user)
 	update_appearance(UPDATE_ICON|UPDATE_DESC)
-
 
 /obj/item/paper_bundle/Topic(href, href_list)
 	..()
@@ -226,7 +228,7 @@
 			else if(page == amount+1)
 				return
 			page++
-			playsound(src.loc, "pageturn", 50, 1)
+			playsound(src.loc, SFX_PAGE_TURN, 50, TRUE)
 		if(href_list["prev_page"])
 			if(page == 1)
 				return
@@ -235,20 +237,20 @@
 			else if(page == amount+1)
 				screen = 1
 			page--
-			playsound(src.loc, "pageturn", 50, 1)
+			playsound(src.loc, SFX_PAGE_TURN, 50, TRUE)
 		if(href_list["remove"])
 			var/obj/item/W = papers[page]
 			papers -= W
 			W.forceMove_turf()
 			usr.put_in_hands(W, ignore_anim = FALSE)
-			to_chat(usr, "<span class='notice'>You remove the [W.name] from the bundle.</span>")
+			to_chat(usr, span_notice("You remove the [W.name] from the bundle."))
 			if(amount == 1)
 				var/obj/item/paper/P = papers[1]
 				papers -= P
 				P.forceMove_turf()
 				usr.temporarily_remove_item_from_inventory(src, force = TRUE)
 				usr.put_in_hands(P, ignore_anim = FALSE)
-				usr << browse("", "window=PaperBundle[UID()]")
+				close_window(usr, "PaperBundle[UID()]")
 				qdel(src)
 			else if(page == amount)
 				screen = 2
@@ -258,16 +260,14 @@
 			amount--
 			update_appearance(UPDATE_ICON|UPDATE_DESC)
 	else
-		to_chat(usr, "<span class='notice'>You need to hold it in your hands to change pages.</span>")
+		to_chat(usr, span_notice("You need to hold it in your hands to change pages."))
 	if(!QDELETED(src) && ismob(loc))
 		attack_self(loc)
 		updateUsrDialog()
 
-
-
 /obj/item/paper_bundle/verb/rename()
-	set name = "Rename bundle"
-	set category = "Object"
+	set name = "Переименовать пачку"
+	set category = STATPANEL_OBJECT
 	set src in usr
 
 	var/n_name = tgui_input_text(usr, "What would you like to label the bundle?", "Bundle Labelling", name)
@@ -277,13 +277,12 @@
 	add_fingerprint(usr)
 	return
 
-
 /obj/item/paper_bundle/verb/remove_all()
-	set name = "Loose bundle"
-	set category = "Object"
+	set name = "Распустить пачку"
+	set category = STATPANEL_OBJECT
 	set src in usr
 
-	to_chat(usr, "<span class='notice'>You loosen the bundle.</span>")
+	to_chat(usr, span_notice("You loosen the bundle."))
 	for(var/obj/O in src)
 		O.loc = usr.loc
 		O.layer = initial(O.layer)
@@ -292,7 +291,6 @@
 	usr.temporarily_remove_item_from_inventory(src)
 	qdel(src)
 	return
-
 
 /obj/item/paper_bundle/update_desc(updates = ALL)
 	. = ..()
@@ -308,12 +306,10 @@
 	if(photos)
 		desc += "\nThere [photos == 1 ? "is a photo" : "are [photos] photos"] attached to it."
 
-
 /obj/item/paper_bundle/update_icon_state()
 	if(length(contents))
 		var/obj/item/paper/P = contents[1]
 		icon_state = P.icon_state // must have an icon_state to show up on clipboards
-
 
 /obj/item/paper_bundle/update_overlays()
 	. = ..()

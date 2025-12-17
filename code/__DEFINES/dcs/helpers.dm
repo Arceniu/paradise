@@ -4,7 +4,6 @@
 /// Arguments given here are packaged in a list and given to _SendSignal
 #define SEND_SIGNAL(target, sigtype, arguments...) ( !target.comp_lookup?[sigtype] ? NONE : target._SendSignal(sigtype, list(target, ##arguments)) )
 
-
 #define SEND_GLOBAL_SIGNAL(sigtype, arguments...) ( SEND_SIGNAL(SSdcs, sigtype, ##arguments) )
 
 /// Signifies that this proc is used to handle signals.
@@ -18,6 +17,11 @@
 
 /// A wrapper for _AddComponent that allows us to pretend we're using normal named arguments
 #define AddComponent(arguments...) _AddComponent(list(##arguments))
+// Raw version
+#define RawAddComponent(arg_list) _AddComponent(##arg_list)
 
 /// A wrapper for _LoadComponent that allows us to pretend we're using normal named arguments
 #define LoadComponent(arguments...) _LoadComponent(list(##arguments))
+
+//Just a beautiful raw version without _
+

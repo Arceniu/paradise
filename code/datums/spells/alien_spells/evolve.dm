@@ -7,27 +7,22 @@
 	action_icon = 'icons/mob/alien.dmi'
 	var/evolution_path = /mob/living/carbon/alien/larva
 
-
 /obj/effect/proc_holder/spell/alien_spell/evolve/larva
 	desc = "Evolve into a fully grown Alien."
 	action_icon_state = "alienh_running"
-
 
 /obj/effect/proc_holder/spell/alien_spell/evolve/praetorian
 	desc = "Become a Praetorian, Royal Guard to the Queen."
 	action_icon_state = "aliens_running"
 	evolution_path = /mob/living/carbon/alien/humanoid/praetorian
 
-
 /obj/effect/proc_holder/spell/alien_spell/evolve/queen
 	desc = "Evolve into an Alien Queen."
 	action_icon_state = "alienq_running"
 	evolution_path = /mob/living/carbon/alien/humanoid/queen/large
 
-
 /obj/effect/proc_holder/spell/alien_spell/evolve/create_new_targeting()
 	return new /datum/spell_targeting/self
-
 
 /obj/effect/proc_holder/spell/alien_spell/evolve/can_cast(mob/living/carbon/alien/user, charge_check, show_message)
 	if(!..())
@@ -50,13 +45,13 @@
 
 	return TRUE
 
-
 /obj/effect/proc_holder/spell/alien_spell/evolve/cast(list/targets, mob/living/carbon/alien/user)
 	to_chat(user, span_noticealien("You begin to evolve!"))
 	user.visible_message(span_alertalien("[user] begins to twist and contort!"))
 
 	var/mob/living/carbon/alien/new_xeno = new evolution_path(get_turf(user))
 	user.mind.transfer_to(new_xeno)
+	SEND_SIGNAL(new_xeno.mind, COMSIG_ALIEN_EVOLVE, user.type, evolution_path)
 	new_xeno.mind.name = new_xeno.name
 
 	if(HAS_TRAIT(user, TRAIT_MOVE_VENTCRAWLING))
@@ -70,24 +65,22 @@
 
 			var/turf/simulated/floor/turf = get_turf(new_xeno)
 			if(istype(turf))
-				playsound(turf, "sound/effects/clang.ogg", 50, TRUE)
+				playsound(turf, 'sound/effects/clang.ogg', 50, TRUE)
 				turf.break_tile_to_plating()
 				pipe?.deconstruct()
 		else
 			new_xeno.move_into_vent(pipe, message = FALSE)
 
-
 	playsound_xenobuild(user.loc)
 	SSblackbox.record_feedback("tally", "alien_growth", 1, "[new_xeno]")
 	qdel(user)
 
-
 /obj/effect/proc_holder/spell/alien_spell/evolve/larva/cast(list/targets, mob/living/carbon/alien/larva/user)
 	to_chat(user, span_boldnotice("You are growing into a beautiful alien! It is time to choose a caste."))
 	to_chat(user, span_notice("There are three to choose from:"))
-	to_chat(user, span_notice("<B>Hunters</B> are strong and agile, able to hunt away from the hive and rapidly move through ventilation shafts. Hunters generate plasma slowly and have low reserves."))
-	to_chat(user, span_notice("<B>Sentinels</B> are tasked with protecting the hive and are deadly up close and at a range. They are not as physically imposing nor fast as the hunters."))
-	to_chat(user, span_notice("<B>Drones</B> are the working class, offering the largest plasma storage and generation. They are the only caste which may evolve again, turning into the dreaded alien queen."))
+	to_chat(user, span_notice("<b>Hunters</b> are strong and agile, able to hunt away from the hive and rapidly move through ventilation shafts. Hunters generate plasma slowly and have low reserves."))
+	to_chat(user, span_notice("<b>Sentinels</b> are tasked with protecting the hive and are deadly up close and at a range. They are not as physically imposing nor fast as the hunters."))
+	to_chat(user, span_notice("<b>Drones</b> are the working class, offering the largest plasma storage and generation. They are the only caste which may evolve again, turning into the dreaded alien queen."))
 	var/static/list/to_evolve = list("Hunter" = image(icon = 'icons/mob/alien.dmi', icon_state = "alienh_running"),
 								"Sentinel" = image(icon = 'icons/mob/alien.dmi', icon_state = "aliens_running"),
 								"Drone" = image(icon = 'icons/mob/alien.dmi', icon_state = "aliend_running"))
@@ -102,7 +95,6 @@
 		if("Drone")
 			evolution_path = /mob/living/carbon/alien/humanoid/drone
 	..()
-
 
 /obj/effect/proc_holder/spell/alien_spell/evolve/praetorian/cast(list/targets, mob/living/carbon/user)
 	var/mob/living/carbon/alien/spell_owner = user
@@ -119,7 +111,6 @@
 	else
 		to_chat(user, span_warning("We have too many praetorians."))
 
-
 /obj/effect/proc_holder/spell/alien_spell/evolve/queen/can_cast(mob/living/carbon/alien/user, charge_check, show_message)
 	if(!..())
 		return FALSE
@@ -128,12 +119,16 @@
 		if(show_message)
 			to_chat(user, span_warning("We already have a queen."))
 		return FALSE
+	var/datum/team/xenomorph/team = locate(/datum/team/xenomorph) in GLOB.antagonist_teams
+	if(team?.current_queen?.current && team.current_queen.current.stat != DEAD)
+		if(show_message)
+			to_chat(user, span_warning("Королева всё ещё жива."))
+		return FALSE
 
 	return TRUE
 
 /obj/effect/proc_holder/spell/alien_spell/evolve/queen/cast(list/targets, mob/living/carbon/alien/user)
 	..()
 	user.queen_count++
-
 
 #undef LIVING_PLAYERS_COUNT_FOR_1_PRAETORIAN

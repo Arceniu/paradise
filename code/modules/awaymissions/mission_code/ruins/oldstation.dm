@@ -1,6 +1,5 @@
 // items
 /obj/item/storage/firstaid/ancient
-	icon_state = "firstaid"
 	desc = "A first aid kit with the ability to heal common types of injuries."
 
 /obj/item/storage/firstaid/ancient/populate_contents()
@@ -13,7 +12,6 @@
 /obj/item/card/id/away/old
 	name = "A perfectly retrograde identification card"
 	desc = "A perfectly retrograde identification card. Looks like it could use some flavor."
-	icon = 'icons/obj/card.dmi'
 	icon_state = "retro"
 	access = list(ACCESS_AWAY01, ACCESS_MINERAL_STOREROOM, ACCESS_CHEMISTRY, ACCESS_RESEARCH)
 
@@ -46,26 +44,12 @@
 /obj/item/card/id/away/old/mechatron
 	name = "Mechatronic Access ID"
 	desc = "An old special ID card in retro style that allows access to Cyborg and Mech panels."
-	icon_state = "retro"
 	access = list(ACCESS_ROBOTICS)
 
 /obj/item/storage/backpack/old
 	max_combined_w_class = 12
 
 // Equipment
-/obj/item/clothing/head/helmet/space/nasavoid/old
-	name = "Engineering Void Helmet"
-	desc = "A CentCom engineering dark red space suit helmet. While old and dusty, it still gets the job done."
-	icon_state = "void-red"
-	item_state = "void"
-
-/obj/item/clothing/suit/space/nasavoid/old
-	name = "Engineering Voidsuit"
-	icon_state = "void-red"
-	item_state = "void"
-	desc = "A CentCom engineering dark red space suit. Age has degraded the suit making is difficult to move around in."
-	slowdown = 4
-	allowed = list(/obj/item/flashlight, /obj/item/tank/internals, /obj/item/multitool)
 
 /obj/item/clothing/head/helmet/old
 	name = "degrading helmet"
@@ -75,27 +59,20 @@
 /obj/item/clothing/suit/armor/vest/old
 	name = "degrading armor vest"
 	desc = "Older generation Type 1 armored vest. Due to degradation over time the vest is far less maneuverable to move in."
-	icon_state = "armor"
-	item_state = "armor"
 	slowdown = 1
 
 /obj/item/gun/energy/laser/retro/old
 	name ="laser gun"
-	icon_state = "retro"
 	desc = "First generation lasergun, developed by Nanotrasen. Suffers from ammo issues but its unique ability to recharge its ammo without the need of a magazine helps compensate. You really hope someone has developed a better lasergun while you were in cryo."
 	ammo_type = list(/obj/item/ammo_casing/energy/lasergun/old)
-	ammo_x_offset = 3
 
 /obj/item/ammo_casing/energy/lasergun/old
-	projectile_type = /obj/item/projectile/beam/laser
 	e_cost = 200
-	select_name = "kill"
 
 /obj/item/gun/energy/e_gun/old
 	name = "prototype energy gun"
 	desc = "NT-P:01 Prototype Energy Gun. Early stage development of a unique laser rifle that has multifaceted energy lens allowing the gun to alter the form of projectile it fires on command."
 	icon_state = "protolaser"
-	ammo_x_offset = 2
 	ammo_type = list(/obj/item/ammo_casing/energy/laser, /obj/item/ammo_casing/energy/electrode/old)
 
 /obj/item/ammo_casing/energy/electrode/old
@@ -105,7 +82,7 @@
 /obj/item/paper/fluff/ruins/oldstation
 	name = "Cryo Awakening Alert"
 	language = LANGUAGE_SOL_COMMON
-	info = "<B>**WARNING**</B><BR><BR>Catastrophic damage sustained to station. Powernet exhausted to reawaken crew.<BR><BR>Immediate Objectives<br><br>1: Activate emergency power generator<br>2: Lift station lockdown on the bridge<br><br>Please locate the 'Damage Report' on the bridge for a detailed situation report."
+	info = "<b>**WARNING**</b><br><br>Catastrophic damage sustained to station. Powernet exhausted to reawaken crew.<br><br>Immediate Objectives<br><br>1: Activate emergency power generator<br>2: Lift station lockdown on the bridge<br><br>Please locate the 'Damage Report' on the bridge for a detailed situation report."
 
 /obj/item/paper/fluff/ruins/oldstation/damagereport
 	name = "Damage Report"
@@ -207,14 +184,13 @@
 	At least the good news. Report sent<br /><br />Our management requested new chemicals and one of them very expensive - Plasma, solid and gas. I personaly sure it will give us what we waiting from the cores.  \
 	Chemical analysis shows that reagents close to Plasma parameters are most effective rise electrical activity inside. It should be the answer."
 
-
 	//Old Prototype Hardsuit
 /obj/item/clothing/head/helmet/space/hardsuit/ancient
 	name = "prototype RIG hardsuit helmet"
 	desc = "Early prototype RIG hardsuit helmet, designed to quickly shift over a user's head. Design constraints of the helmet mean it has no inbuilt cameras, thus it restricts the users visability."
 	icon_state = "hardsuit0-ancient"
 	item_state = "anc_helm"
-	armor = list("melee" = 30, "bullet" = 5, "laser" = 5, "energy" = 0, "bomb" = 50, "bio" = 100, "rad" = 100, "fire" = 100, "acid" = 75)
+	armor = list(MELEE = 30, BULLET = 5, LASER = 5, ENERGY = 0, BOMB = 50, BIO = 100, RAD = 100, FIRE = 100, ACID = 75)
 	item_color = "ancient"
 	resistance_flags = FIRE_PROOF
 	sprite_sheets = null
@@ -224,7 +200,7 @@
 	desc = "Prototype powered RIG hardsuit. Provides excellent protection from the elements of space while being comfortable to move around in, thanks to the powered locomotives. Remains very bulky however."
 	icon_state = "hardsuit-ancient"
 	item_state = "anc_hardsuit"
-	armor = list("melee" = 30, "bullet" = 5, "laser" = 5, "energy" = 0, "bomb" = 50, "bio" = 100, "rad" = 100, "fire" = 100, "acid" = 75)
+	armor = list(MELEE = 30, BULLET = 5, LASER = 5, ENERGY = 0, BOMB = 50, BIO = 100, RAD = 100, FIRE = 100, ACID = 75)
 	resistance_flags = FIRE_PROOF
 	slowdown = 3
 	sprite_sheets = null
@@ -347,86 +323,166 @@
 /obj/item/reagent_containers/glass/bottle/bromine
 	name = "bromine bottle"
 	list_reagents = list("bromine" = 30)
+
 // areas
-//Ruin of ancient Space Station
-
-/area/ruin/space/ancientstation
-	name = "Charlie Station Main Corridor"
-	icon_state = "green"
-	has_gravity = STANDARD_GRAVITY
-
-/area/ruin/space/ancientstation/powered
-	name = "Powered Tile"
-	icon_state = "teleporter"
-	requires_power = FALSE
-	static_lighting = FALSE
-	base_lighting_alpha = 255
-	base_lighting_color = COLOR_WHITE
-
-/area/ruin/space/ancientstation/space
-	name = "Exposed To Space"
-	icon_state = "teleporter"
-	has_gravity = FALSE
-
-/area/ruin/space/ancientstation/atmos
-	name = "Beta Station Atmospherics"
-	icon_state = "atmos"
-	ambientsounds = ENGINEERING_SOUNDS
-
-/area/ruin/space/ancientstation/betanorth
-	name = "Beta Station North Corridor"
-	icon_state = "bluenew"
-
-/area/ruin/space/ancientstation/betacargo
-	name = "Beta Station Cargo Equipment"
-	icon_state = "quartstorage"
-
-/area/ruin/space/ancientstation/betamincorridor
-	name = "Beta Station Mining Corridor"
-	icon_state = "mining"
-
-/area/ruin/space/ancientstation/betaengi
-	name = "Beta Station Engineering"
-	icon_state = "storage"
-	ambientsounds = ENGINEERING_SOUNDS
-
-/area/ruin/space/ancientstation/atmosfoyer
-	name = "Beta Station Atmospherics Foyer"
-	icon_state = "engine_control"
-
-/area/ruin/space/ancientstation/engi
-	name = "Charlie Station Engineering"
-	icon_state = "engine"
-	ambientsounds = ENGINEERING_SOUNDS
-
-/area/ruin/space/ancientstation/comm
-	name = "Charlie Station Command"
-	icon_state = "captain"
-
-/area/ruin/space/ancientstation/hydroponics
-	name = "Charlie Station Hydroponics"
-	icon_state = "hydro"
-
-/area/ruin/space/ancientstation/kitchen
-	name = "Charlie Station Kitchen"
-	icon_state = "kitchen"
-
-/area/ruin/space/ancientstation/sec
-	name = "Charlie Station Security"
-	icon_state = "security"
-
-/area/ruin/space/ancientstation/thetacorridor
-	name = "Theta Station Main Corridor"
-	icon_state = "yellow"
-
-/area/ruin/space/ancientstation/proto
-	name = "Theta Station Prototype Lab"
-	icon_state = "toxstorage"
-
-/area/ruin/space/ancientstation/rnd
-	name = "Theta Station Research and Development"
-	icon_state = "toxlab"
+//area/ruin/space/ancientstation
 
 /area/ruin/space/ancientstation/hivebot
 	name = "Hivebot Mothership"
 	icon_state = "xenocell1"
+	ambientsounds = MINING_SOUNDS
+
+/area/ruin/space/ancientstation/cowasteroid
+	icon_state = "away2"
+	ambientsounds = MINING_SOUNDS
+
+//charly
+
+/area/ruin/space/ancientstation/charlie_corridor
+	name = "Charlie Station Main Corridor"
+	icon_state = "green"
+
+/area/ruin/space/ancientstation/charlie_kitchen
+	name = "Charlie Station Kitchen"
+	icon_state = "kitchen"
+
+/area/ruin/space/ancientstation/charlie_dininghall
+	name = "Charlie Station Dining Hall"
+	icon_state = "oldbar"
+
+/area/ruin/space/ancientstation/charlie_engi
+	name = "Charlie Station Engineering"
+	icon_state = "engine"
+	ambientsounds = ENGINEERING_SOUNDS
+
+/area/ruin/space/ancientstation/charlie_comm
+	name = "Charlie Station Command"
+	icon_state = "captain"
+
+/area/ruin/space/ancientstation/charlie_cryo
+	name = "Charlie Station Cryogenetics"
+	icon_state = "dorms"
+
+/area/ruin/space/ancientstation/charlie_recycler
+	name = "Charlie Station Recycler"
+	icon_state = "pet_store"
+
+/area/ruin/space/ancientstation/charlie_restroom
+	name = "Charlie Station Restroom"
+	icon_state = "start"
+
+/area/ruin/space/ancientstation/charlie_hydroponics
+	name = "Charlie Station Hydroponics"
+	icon_state = "hydro"
+
+/area/ruin/space/ancientstation/charlie_hydrostorage
+	name = "Charlie Station Hydroponics Storage"
+	icon_state = "away6"
+
+/area/ruin/space/ancientstation/charlie_hydroroom
+	name = "Charlie Station Hydroponics Rooms"
+	icon_state = "ninja_dojo"
+
+/area/ruin/space/ancientstation/charlie_sec
+	name = "Charlie Station Security"
+	icon_state = "security"
+	ambientsounds = HIGHSEC_SOUNDS
+
+/area/ruin/space/ancientstation/charlie_armory
+	name = "Charlie Station Armory"
+	icon_state = "secarmory"
+	ambientsounds = HIGHSEC_SOUNDS
+
+/area/ruin/space/ancientstation/charlie_warden
+	name = "Charlie Station Warden's Room"
+	icon_state = "brig"
+	ambientsounds = HIGHSEC_SOUNDS
+
+/area/ruin/space/ancientstation/charlie_prison
+	name = "Charlie Station Prison"
+	icon_state = "sec_prison"
+	ambientsounds = HIGHSEC_SOUNDS
+
+/area/ruin/space/ancientstation/charlie_punishmentcell
+	name = "Charlie Station Punishment Cell"
+	icon_state = "brigcella"
+	ambientsounds = HIGHSEC_SOUNDS
+
+/area/ruin/space/ancientstation/charlie_secrest
+	name = "Charlie Station Rest Room"
+	icon_state = "red"
+	ambientsounds = HIGHSEC_SOUNDS
+
+/area/ruin/space/ancientstation/charlie_secintel
+	name = "Charlie Station Interrogation"
+	icon_state = "holdingcell"
+	ambientsounds = HIGHSEC_SOUNDS
+
+//theta
+
+/area/ruin/space/ancientstation/theta_corridor
+	name = "Theta Station Main Corridor"
+	icon_state = "yellow"
+
+/area/ruin/space/ancientstation/theta_exit
+	name = "Theta Station External Output"
+	icon_state = "escape"
+
+/area/ruin/space/ancientstation/theta_docks
+	name = "Tetta station docks"
+	icon_state = "explored"
+
+/area/ruin/space/ancientstation/theta_storage
+	name = "Tetta Station Docks Storage"
+	icon_state = "away4"
+
+/area/ruin/space/ancientstation/theta_mine
+	name = "Tetta Station Miners Lockers"
+	icon_state = "construction"
+
+/area/ruin/space/ancientstation/theta_experi
+	name = "Tetta Station Experimental Room"
+	icon_state = "chapel"
+
+/area/ruin/space/ancientstation/theta_solar
+	name = "Tetta Station Solar Control"
+	icon_state = "dk_yellow"
+
+/area/ruin/space/ancientstation/theta_proto
+	name = "Theta Station Prototype Lab"
+	icon_state = "toxstorage"
+
+/area/ruin/space/ancientstation/theta_rnd
+	name = "Theta Station Research and Development"
+	icon_state = "toxlab"
+
+//beta
+
+/area/ruin/space/ancientstation/beta_north
+	name = "Beta Station North Corridor"
+	icon_state = "away4"
+
+/area/ruin/space/ancientstation/beta_medbay
+	name = "Beta Station Medbay"
+	icon_state = "away1"
+	ambientsounds = MEDICAL_SOUNDS
+
+/area/ruin/space/ancientstation/beta_medstorage
+	name = "Beta Station Medical Storage"
+	icon_state = "quartstorage"
+	ambientsounds = MEDICAL_SOUNDS
+
+/area/ruin/space/ancientstation/beta_surgery
+	name = "Beta Station Surgery"
+	icon_state = "surgery"
+	ambientsounds = MEDICAL_SOUNDS
+
+/area/ruin/space/ancientstation/beta_surgery1
+	name = "Beta Station Surgery"
+	icon_state = "surgery1"
+	ambientsounds = MEDICAL_SOUNDS
+
+/area/ruin/space/ancientstation/beta_atmos
+	name = "Beta Station Atmospherics"
+	icon_state = "atmos"
+	ambientsounds = ENGINEERING_SOUNDS

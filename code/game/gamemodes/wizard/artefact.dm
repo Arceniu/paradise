@@ -8,7 +8,6 @@
 	item_state = "render"
 	force = 15
 	throwforce = 10
-	w_class = WEIGHT_CLASS_NORMAL
 	hitsound = 'sound/weapons/bladeslice.ogg'
 	var/charged = 1
 	var/spawn_type = /obj/singularity/god/narsie/wizard
@@ -20,10 +19,9 @@
 	if(charged)
 		new /obj/effect/rend(get_turf(user), spawn_type, spawn_amt, rend_desc)
 		charged = 0
-		user.visible_message("<span class='userdanger'>[src] hums with power as [user] deals a blow to [activate_descriptor] itself!</span>")
+		user.visible_message(span_userdanger("[src] hums with power as [user] deals a blow to [activate_descriptor] itself!"))
 	else
-		to_chat(user, "<span class='danger'>The unearthly energies that powered the blade are now dormant.</span>")
-
+		to_chat(user, span_danger("The unearthly energies that powered the blade are now dormant."))
 
 /obj/effect/rend
 	name = "tear in the fabric of reality"
@@ -31,11 +29,10 @@
 	icon = 'icons/obj/biomass.dmi'
 	icon_state = "rift"
 	density = TRUE
-	anchored = TRUE
 	var/spawn_path = /mob/living/simple_animal/cow //defaulty cows to prevent unintentional narsies
 	var/spawn_amt_left = 20
 
-/obj/effect/rend/New(loc, var/spawn_type, var/spawn_amt, var/desc)
+/obj/effect/rend/New(loc, spawn_type, spawn_amt, desc)
 	..()
 	src.spawn_path = spawn_type
 	src.spawn_amt_left = spawn_amt
@@ -56,7 +53,6 @@
 	if(spawn_amt_left <= 0)
 		qdel(src)
 
-
 /obj/effect/rend/attackby(obj/item/I, mob/user, params)
 	if(istype(I, /obj/item/nullrod))
 		add_fingerprint(user)
@@ -64,7 +60,6 @@
 		qdel(src)
 		return ATTACK_CHAIN_BLOCKED_ALL
 	return ..()
-
 
 /obj/effect/rend/singularity_pull()
 	return
@@ -89,7 +84,6 @@
 	rend_desc = "Gently wafting with the sounds of endless laughter."
 	icon_state = "clownrender"
 
-
 /obj/item/veilrender/crabrender
 	name = "crab render"
 	desc = "A wicked curved blade of alien origin, recovered from the ruins of a vast aquarium."
@@ -103,7 +97,7 @@
 /obj/item/scrying
 	name = "scrying orb"
 	desc = "An incandescent orb of otherworldly energy, staring into it gives you vision beyond mortal means."
-	icon = 'icons/obj/weapons/projectiles.dmi'
+	icon = 'icons/obj/weapons/guns/projectiles.dmi'
 	icon_state ="bluespace"
 	throw_speed = 7
 	throw_range = 15
@@ -113,8 +107,8 @@
 	hitsound = 'sound/items/welder2.ogg'
 
 /obj/item/scrying/attack_self(mob/user as mob)
-	to_chat(user, "<span class='notice'> You can see...everything!</span>")
-	visible_message("<span class='danger'>[user] stares into [src], [user.p_their()] eyes glazing over.</span>")
+	to_chat(user, span_notice(" You can see...everything!"))
+	visible_message(span_danger("[user] stares into [src], [user.p_their()] eyes glazing over."))
 	user.ghostize(1)
 
 /////////////////////Multiverse Blade////////////////////
@@ -132,7 +126,7 @@ GLOBAL_LIST_EMPTY(multiverse)
 	throwforce = 10
 	sharp = 1
 	w_class = WEIGHT_CLASS_SMALL
-	attack_verb = list("attacked", "slashed", "stabbed", "sliced", "torn", "ripped", "diced", "cut")
+	attack_verb = list("атаковал", "полоснул", "уколол", "поранил", "порезал")
 	var/faction = list("unassigned")
 	var/cooldown = 0
 	var/cooldown_between_uses = 400 //time in deciseconds between uses--default of 40 seconds.
@@ -146,11 +140,9 @@ GLOBAL_LIST_EMPTY(multiverse)
 	..()
 	GLOB.multiverse |= src
 
-
 /obj/item/multisword/Destroy()
 	GLOB.multiverse.Remove(src)
 	return ..()
-
 
 /obj/item/multisword/attack(mob/living/target, mob/living/user, params, def_zone, skip_attack_anim = FALSE)
 	if(target.real_name == user.real_name)	//to prevent accidental friendly fire or out and out grief.
@@ -158,10 +150,9 @@ GLOBAL_LIST_EMPTY(multiverse)
 		return ATTACK_CHAIN_PROCEED
 	return ..()
 
-
 /obj/item/multisword/attack_self(mob/user)
 	if(user.mind.special_role == SPECIAL_ROLE_WIZARD_APPRENTICE)
-		to_chat(user, "<span class='warning'>You know better than to touch your teacher's stuff.</span>")
+		to_chat(user, span_warning("You know better than to touch your teacher's stuff."))
 		return
 	if(cooldown < world.time)
 		var/faction_check = 0
@@ -177,7 +168,7 @@ GLOBAL_LIST_EMPTY(multiverse)
 			if(!usr.mind.special_role)
 				var/list/messages = list()
 				if(prob(probability_evil))
-					messages.Add("<span class='warning'><B>With your new found power you could easily conquer the station!</B></span>")
+					messages.Add(span_warning("<b>With your new found power you could easily conquer the station!</b>"))
 					var/datum/objective/hijackclone/hijack_objective = new /datum/objective/hijackclone
 					hijack_objective.explanation_text = "Ensure only [usr.real_name] and [usr.p_their()] copies are on the shuttle!"
 					hijack_objective.owner = usr.mind
@@ -187,7 +178,7 @@ GLOBAL_LIST_EMPTY(multiverse)
 					usr.mind.special_role = "[usr.real_name] Prime"
 					evil = TRUE
 				else
-					messages.Add("<span class='warning'><B>With your new found power you could easily defend the station!</B></span>")
+					messages.Add(span_warning("<b>With your new found power you could easily defend the station!</b>"))
 					var/datum/objective/survive/new_objective = new /datum/objective/survive
 					new_objective.explanation_text = "Survive, and help defend the innocent from the mobs of multiverse clones."
 					new_objective.owner = usr.mind
@@ -205,26 +196,25 @@ GLOBAL_LIST_EMPTY(multiverse)
 
 			var/image/source = image('icons/obj/cardboard_cutout.dmi', "cutout_wizard")
 			var/list/candidates = SSghost_spawns.poll_candidates("Do you want to play as the wizard apprentice of [user.real_name]?", ROLE_WIZARD, TRUE, 10 SECONDS, source = source)
-			if(candidates.len)
+			if(length(candidates))
 				var/mob/C = pick(candidates)
 				spawn_copy(C.client, get_turf(user.loc), user)
-				to_chat(user, "<span class='warning'><B>The sword flashes, and you find yourself face to face with...you!</B></span>")
+				to_chat(user, span_warning("<b>The sword flashes, and you find yourself face to face with...you!</b>"))
 
 			else
 				to_chat(user, "You fail to summon any copies of yourself. Perhaps you should try again in a bit.")
 	else
-		to_chat(user, "<span class='warning'><B>[src] is recharging! Keep in mind it shares a cooldown with the swords wielded by your copies.</span>")
+		to_chat(user, span_warning("<b>[src] is recharging! Keep in mind it shares a cooldown with the swords wielded by your copies."))
 
-
-/obj/item/multisword/proc/spawn_copy(var/client/C, var/turf/T, mob/user)
+/obj/item/multisword/proc/spawn_copy(client/C, turf/T, mob/user)
 	var/mob/living/carbon/human/M = new/mob/living/carbon/human(T)
 	if(duplicate_self)
 		user.client.prefs.copy_to(M)
 	else
 		C.prefs.copy_to(M)
-	M.key = C.key
+	M.possess_by_player(C.key)
 	M.mind.name = user.real_name
-	to_chat(M, "<B>You are an alternate version of [user.real_name] from another universe! Help [user.p_them()] accomplish [user.p_their()] goals at all costs.</B>")
+	to_chat(M, "<b>You are an alternate version of [user.real_name] from another universe! Help [user.p_them()] accomplish [user.p_their()] goals at all costs.</b>")
 	M.faction = list("[user.real_name]")
 	if(duplicate_self)
 		M.set_species(user.dna.species.type) //duplicate the sword user's species.
@@ -263,7 +253,7 @@ GLOBAL_LIST_EMPTY(multiverse)
 		M.mind.special_role = SPECIAL_ROLE_MULTIVERSE
 		add_game_logs("[M.key] was made a multiverse traveller with the objective to help [usr.real_name] protect the station.", M)
 
-/obj/item/multisword/proc/equip_copy(var/mob/living/carbon/human/M)
+/obj/item/multisword/proc/equip_copy(mob/living/carbon/human/M)
 
 	var/obj/item/multisword/sword = new sword_type
 	sword.assigned = assigned
@@ -468,7 +458,6 @@ GLOBAL_LIST_EMPTY(multiverse)
 				M.equip_to_slot_or_del(new /obj/item/clothing/shoes/sandal(M), ITEM_SLOT_FEET)
 				M.equip_to_slot_or_del(sword, ITEM_SLOT_HAND_RIGHT)
 
-
 			else
 				return
 
@@ -511,7 +500,6 @@ GLOBAL_LIST_EMPTY(multiverse)
 	duplicate_self = 1
 	sword_type = /obj/item/multisword/pike
 
-
 /////////////////////////////////////////Necromantic Stone///////////////////
 
 /obj/item/necromantic_stone
@@ -548,7 +536,7 @@ GLOBAL_LIST_EMPTY(multiverse)
 
 	check_spooky()//clean out/refresh the list
 
-	if(spooky_scaries.len >= 3 && !unlimited)
+	if(length(spooky_scaries) >= 3 && !unlimited)
 		to_chat(user, span_warning("This artifact can only affect three undead at a time!"))
 		return .
 
@@ -563,10 +551,9 @@ GLOBAL_LIST_EMPTY(multiverse)
 		target.revive()
 		equip_skeleton(target)
 	spooky_scaries |= target
-	to_chat(target, "[span_userdanger("You have been revived by ")]<B>[user.real_name]!</B>")
+	to_chat(target, "[span_userdanger("You have been revived by ")]<b>[user.real_name]!</b>")
 	to_chat(target, span_userdanger("[user.p_theyre(TRUE)] your master now, assist them even if it costs you your new life!"))
-	desc = "A shard capable of resurrecting humans as skeleton thralls[unlimited ? "." : ", [spooky_scaries.len]/3 active thralls."]"
-
+	desc = "A shard capable of resurrecting humans as skeleton thralls[unlimited ? "." : ", [length(spooky_scaries)]/3 active thralls."]"
 
 /obj/item/necromantic_stone/proc/check_spooky()
 	if(unlimited) //no point, the list isn't used.
@@ -579,7 +566,7 @@ GLOBAL_LIST_EMPTY(multiverse)
 		if(H.stat == DEAD)
 			spooky_scaries.Remove(X)
 			continue
-	listclearnulls(spooky_scaries)
+	list_clear_nulls(spooky_scaries)
 
 //Funny gimmick, skeletons always seem to wear roman/ancient armour
 //Voodoo Zombie Pirates added for paradise
@@ -650,7 +637,7 @@ GLOBAL_LIST_EMPTY(multiverse)
 	H.equip_to_slot_or_del(new /obj/item/melee/katana(H), ITEM_SLOT_HAND_RIGHT)
 	H.equip_to_slot_or_del(new /obj/item/shield/riot/roman(H), ITEM_SLOT_HAND_LEFT)
 	H.equip_to_slot_or_del(new /obj/item/twohanded/spear(H), ITEM_SLOT_BACK)
-	if(!H.real_name || H.real_name == "unknown")
+	if(!H.real_name || H.real_name == UNKNOWN_NAME_RUS)
 		H.real_name = "Neko-chan"
 	else
 		H.real_name = "[H.name]-chan"
@@ -659,36 +646,41 @@ GLOBAL_LIST_EMPTY(multiverse)
 /obj/item/necromantic_stone/nya
 	name = "nya-cromantic stone"
 	desc = "A shard capable of resurrecting humans as creatures of Vile Heresy. Even the Wizard Federation fears it.."
-	icon = 'icons/obj/wizard.dmi'
 	icon_state = "nyacrostone"
-	item_state = "electronic"
-	origin_tech = "bluespace=4;materials=4"
-	w_class = WEIGHT_CLASS_TINY
 	heresy = 1
 	unlimited = 1
 
 /////////////////////////////////////////Voodoo///////////////////
 
-
 /obj/item/voodoo
 	name = "wicker doll"
-	desc = "Something creepy about it."
+	desc = "Выглядит зловеще."
+	gender = FEMALE
 	icon = 'icons/obj/wizard.dmi'
 	icon_state = "voodoo"
 	item_state = "electronic"
 	var/mob/living/carbon/human/target = null
-	var/list/mob/living/carbon/human/possible = list()
+	var/list/mob/living/carbon/human/possible
 	var/obj/item/link = null
 	var/cooldown_time = 3 SECONDS
 	COOLDOWN_DECLARE(cooldown)
 	max_integrity = 10
 	resistance_flags = FLAMMABLE
 
+/obj/item/voodoo/get_ru_names()
+	return list(
+		NOMINATIVE = "плетёная кукла",
+		GENITIVE = "плетёной куклы",
+		DATIVE = "плетёной кукле",
+		ACCUSATIVE = "плетёную куклу",
+		INSTRUMENTAL = "плетёной куклой",
+		PREPOSITIONAL = "плетёной кукле",
+	)
 
 /obj/item/voodoo/attackby(obj/item/I, mob/user, params)
 	if(target && COOLDOWN_FINISHED(src, cooldown))
 		add_fingerprint(user)
-		if(is_hot(I))
+		if(I.get_heat())
 			to_chat(target, span_userdanger("You suddenly feel very hot."))
 			target.adjust_bodytemperature(50)
 		else if(is_pointed(I))
@@ -713,14 +705,13 @@ GLOBAL_LIST_EMPTY(multiverse)
 
 	return ..()
 
-
 /obj/item/voodoo/check_eye(mob/user)
 	if(loc != user)
 		user.reset_perspective(null)
 		user.unset_machine()
 
 /obj/item/voodoo/attack_self(mob/user as mob)
-	if(!target && possible.len)
+	if(!target && LAZYLEN(possible))
 		target = tgui_input_list(user, "Select your victim!", "Voodoo", possible)
 		return
 
@@ -728,7 +719,7 @@ GLOBAL_LIST_EMPTY(multiverse)
 		if(link)
 			target = null
 			link.forceMove(get_turf(src))
-			to_chat(user, "<span class='notice'>You remove the [link] from the doll.</span>")
+			to_chat(user, span_notice("You remove the [link] from the doll."))
 			link = null
 			update_targets()
 			return
@@ -736,7 +727,7 @@ GLOBAL_LIST_EMPTY(multiverse)
 	if(target && cooldown < world.time)
 		switch(user.zone_selected)
 			if(BODY_ZONE_PRECISE_MOUTH)
-				var/wgw =  sanitize(input(user, "What would you like the victim to say", "Voodoo", null)  as text)
+				var/wgw = tgui_input_text(user, "What would you like the victim to say", "Voodoo", null)
 				target.say(wgw)
 				add_attack_logs(user, target, "force say ([wgw]) with a voodoo doll.")
 				add_say_logs(target, wgw, src)
@@ -747,7 +738,7 @@ GLOBAL_LIST_EMPTY(multiverse)
 					user.reset_perspective(null)
 					user.unset_machine()
 			if(BODY_ZONE_L_LEG, BODY_ZONE_R_LEG)
-				to_chat(user, "<span class='notice'>You move the doll's legs around.</span>")
+				to_chat(user, span_notice("You move the doll's legs around."))
 				var/turf/T = get_step(target,pick(GLOB.cardinal))
 				target.Move(T)
 			if(BODY_ZONE_L_ARM, BODY_ZONE_R_ARM)
@@ -756,34 +747,36 @@ GLOBAL_LIST_EMPTY(multiverse)
 				for(var/mob/living/L in range(1,target))
 					if(L!=target)
 						nearby_mobs |= L
-				if(nearby_mobs.len)
+				if(length(nearby_mobs))
 					var/mob/living/T = pick(nearby_mobs)
 					add_attack_logs(user, target, "force click on [T] with a voodoo doll.")
 					target.ClickOn(T)
 					GiveHint(target)
 			if(BODY_ZONE_HEAD)
-				to_chat(user, "<span class='notice'>You smack the doll's head with your hand.</span>")
+				to_chat(user, span_notice("You smack the doll's head with your hand."))
 				target.Dizzy(20 SECONDS)
-				to_chat(target, "<span class='warning'>You suddenly feel as if your head was hit with a hammer!</span>")
+				to_chat(target, span_warning("You suddenly feel as if your head was hit with a hammer!"))
 				GiveHint(target,user)
 		cooldown = world.time + cooldown_time
 
 /obj/item/voodoo/proc/update_targets()
-	possible = list()
+	LAZYCLEARLIST(possible)
+
 	if(!link)
 		return
+
 	for(var/thing in GLOB.human_list)
 		var/mob/living/carbon/human/H = thing
-		if(H.stat != DEAD && (md5(H.dna.uni_identity) in link.fingerprints))
-			possible |= H
+		if(H.stat != DEAD && (H.real_name in link.interactors))
+			LAZYOR(possible, H)
 
 /obj/item/voodoo/proc/GiveHint(mob/victim,force=0)
 	if(prob(50) || force)
 		var/way = dir2text(get_dir(victim,get_turf(src)))
-		to_chat(victim, "<span class='notice'>You feel a dark presence from [way]</span>")
+		to_chat(victim, span_notice("You feel a dark presence from [way]"))
 	if(prob(20) || force)
 		var/area/A = get_area(src)
-		to_chat(victim, "<span class='notice'>You feel a dark presence from [A.name]</span>")
+		to_chat(victim, span_notice("You feel a dark presence from [A.name]"))
 
 /obj/item/voodoo/fire_act(datum/gas_mixture/air, exposed_temperature, exposed_volume, global_overlay = TRUE)
 	if(target)

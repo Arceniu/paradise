@@ -11,11 +11,9 @@
 	var/dirty_icon = "mixing_bowl_dirty"
 	var/is_GUI_opened = FALSE
 
-
 /obj/item/mixing_bowl/Initialize(mapload)
 	. = ..()
 	create_reagents(100)
-
 
 /obj/item/mixing_bowl/attackby(obj/item/stack/I, mob/user, params)
 	if(istype(I, /obj/item/soap))
@@ -37,7 +35,7 @@
 		update_dialog(user)
 		return ATTACK_CHAIN_PROCEED_SUCCESS
 
-	if(is_type_in_list(I, GLOB.cooking_ingredients[RECIPE_MICROWAVE]) || is_type_in_list(I, GLOB.cooking_ingredients[RECIPE_GRILL]) || is_type_in_list(I, GLOB.cooking_ingredients[RECIPE_OVEN]) || is_type_in_list(I, GLOB.cooking_ingredients[RECIPE_CANDY]))
+	if(is_type_in_list(I, GLOB.cooking_ingredients[RECIPE_MICROWAVE]) || is_type_in_list(I, GLOB.cooking_ingredients[RECIPE_GRILL]) || is_type_in_list(I, GLOB.cooking_ingredients[RECIPE_OVEN]) || is_type_in_list(I, GLOB.cooking_ingredients[RECIPE_CANDY]) || is_type_in_list(I, GLOB.cooking_ingredients[RECIPE_TRIBAL_OVEN]))
 		add_fingerprint(user)
 		if(dirty)
 			to_chat(user, span_warning("You should clean [src] before you use it for food prep."))
@@ -46,7 +44,7 @@
 			to_chat(user, span_warning("This [name] is full of ingredients, you cannot put more."))
 			return ATTACK_CHAIN_PROCEED
 		if(isstack(I) && I.get_amount() > 1)
-			var/obj/item/stack/to_add = I.split_stack(user, 1)
+			var/obj/item/stack/to_add = I.split(user, 1)
 			to_add.forceMove(src)
 			user.visible_message(
 				span_notice("[user] adds one of [I] to [src]."),
@@ -77,7 +75,7 @@
 			to_chat(user, span_warning("The [I.name] is empty!"))
 			return ATTACK_CHAIN_PROCEED
 		for(var/datum/reagent/reagent as anything in I.reagents.reagent_list)
-			if(!(reagent.id in GLOB.cooking_reagents[RECIPE_MICROWAVE]) && !(reagent.id in GLOB.cooking_reagents[RECIPE_GRILL]) && !(reagent.id in GLOB.cooking_reagents[RECIPE_OVEN]) && !(reagent.id in GLOB.cooking_reagents[RECIPE_CANDY]))
+			if(!(reagent.id in GLOB.cooking_reagents[RECIPE_MICROWAVE]) && !(reagent.id in GLOB.cooking_reagents[RECIPE_GRILL]) && !(reagent.id in GLOB.cooking_reagents[RECIPE_OVEN]) && !(reagent.id in GLOB.cooking_reagents[RECIPE_CANDY]) && !(reagent.id in GLOB.cooking_reagents[RECIPE_TRIBAL_OVEN]))
 				to_chat(user, span_warning("Your [I.name] contains components unsuitable for cookery."))
 				return ATTACK_CHAIN_PROCEED
 		var/obj/item/reagent_containers/container = I
@@ -93,11 +91,10 @@
 	to_chat(user, span_warning("You have no idea what you can cook with [I]."))
 	return ..()
 
-
 /obj/item/mixing_bowl/attack_self(mob/user)
-	var/dat = {"<!DOCTYPE html><meta charset="UTF-8">"}
+	var/dat = ""
 	if(dirty)
-		dat = {"<code>This [src] is dirty!<BR>Please clean it before use!</code>"}
+		dat = {"<code>This [src] is dirty!<br>Please clean it before use!</code>"}
 	else
 		var/list/items_counts = new
 		var/list/items_measures = new
@@ -124,12 +121,12 @@
 		for(var/O in items_counts)
 			var/N = items_counts[O]
 			if(!(O in items_measures))
-				dat += {"<B>[capitalize(O)]:</B> [N] [lowertext(O)]\s<BR>"}
+				dat += {"<b>[capitalize(O)]:</b> [N] [lowertext(O)]\s<br>"}
 			else
 				if(N==1)
-					dat += {"<B>[capitalize(O)]:</B> [N] [items_measures[O]]<BR>"}
+					dat += {"<b>[capitalize(O)]:</b> [N] [items_measures[O]]<br>"}
 				else
-					dat += {"<B>[capitalize(O)]:</B> [N] [items_measures_p[O]]<BR>"}
+					dat += {"<b>[capitalize(O)]:</b> [N] [items_measures_p[O]]<br>"}
 
 		for(var/datum/reagent/R in reagents.reagent_list)
 			var/display_name = R.name
@@ -137,13 +134,13 @@
 				display_name = "Hotsauce"
 			if(R.id == "frostoil")
 				display_name = "Coldsauce"
-			dat += {"<B>[display_name]:</B> [R.volume] unit\s<BR>"}
+			dat += {"<b>[display_name]:</b> [R.volume] unit\s<br>"}
 
 		if(items_counts.len==0 && reagents.reagent_list.len==0)
-			dat = {"<B>The [src] is empty</B><BR>"}
+			dat = {"<b>The [src] is empty</b><br>"}
 		else
 			dat = {"<b>Ingredients:</b><br>[dat]"}
-		dat += {"<HR><BR> <a href='byond://?src=[UID()];action=dispose'>Eject ingredients!</A><BR>"}
+		dat += {"<hr><br> <a href='byond://?src=[UID()];action=dispose'>Eject ingredients!</a><br>"}
 
 	var/datum/browser/popup = new(user, "[name][UID()]", "[name]", 400, 400, src)
 	popup.set_content(dat)
@@ -166,7 +163,7 @@
 	if(reagents.total_volume)
 		make_dirty(5)
 	reagents.clear_reagents()
-	to_chat(usr, "<span class='notice'>You dispose of [src]'s contents.</span>")
+	to_chat(usr, span_notice("You dispose of [src]'s contents."))
 	update_dialog(usr)
 
 /obj/item/mixing_bowl/proc/update_dialog(mob/user)
@@ -202,7 +199,7 @@
 			if(id)
 				amount+=O.reagents.get_reagent_amount(id)
 		qdel(O)
-	if(reagents && reagents.total_volume)
+	if(reagents?.total_volume)
 		var/id = reagents.get_master_reagent_id()
 		if(id)
 			amount += reagents.get_reagent_amount(id)
@@ -211,7 +208,6 @@
 	ffuu.reagents.add_reagent("carbon", amount)
 	ffuu.reagents.add_reagent("????", amount/10)
 	make_dirty(75)
-
 
 /obj/item/mixing_bowl/update_icon_state()
 	icon_state = dirty ? dirty_icon : clean_icon

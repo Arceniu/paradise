@@ -152,7 +152,7 @@
 	paintable = FALSE
 	var/event_step = 20
 
-/obj/machinery/door/airlock/uranium/Initialize()
+/obj/machinery/door/airlock/uranium/Initialize(mapload)
 	. = ..()
 	AddComponent(/datum/component/radioactivity, \
 				rad_per_cycle = 15, \
@@ -189,22 +189,18 @@
 		DA.glass = TRUE
 	if(heat_proof)
 		DA.heat_proof_finished = TRUE
-	DA.update_icon()
-	DA.update_name()
+	DA.update_appearance(UPDATE_NAME|UPDATE_ICON)
 	qdel(src)
 
-
 /obj/machinery/door/airlock/plasma/attackby(obj/item/I, mob/user, params)
-	var/heat_temp = is_hot(I)
-	if(heat_temp > 300)
+	if(I.get_heat() > 300)
 		add_fingerprint(user)
 		add_attack_logs(user, src, "ignited using [I]", ATKLOG_FEW)
 		investigate_log("was <font color='red'><b>ignited</b></font> by [key_name_log(user)]", INVESTIGATE_ATMOS)
-		ignite(heat_temp)
+		ignite(I.get_heat())
 		return ATTACK_CHAIN_PROCEED_SUCCESS
 
 	return ..()
-
 
 /obj/machinery/door/airlock/plasma/BlockSuperconductivity() //we don't stop the heat~
 	return 0
@@ -229,11 +225,11 @@
 /obj/machinery/door/airlock/tranquillite
 	name = "tranquillite airlock"
 	icon = 'icons/obj/doors/airlocks/station/freezer.dmi'
-	doorOpen = null // it's silent!
+/*	doorOpen = null // it's silent!
 	doorClose = null
 	doorDeni = null
 	boltUp = null
-	boltDown = null
+	boltDown = null*/
 	paintable = FALSE
 
 /obj/machinery/door/airlock/sandstone
@@ -341,7 +337,6 @@
 		return RCD_NO_ACT
 	. = ..()
 
-
 //////////////////////////////////
 /*
 	Hatch Airlocks
@@ -385,7 +380,6 @@
 	resistance_flags = FIRE_PROOF | ACID_PROOF
 	is_special = TRUE
 
-
 /obj/machinery/door/airlock/hatch/gamma/attackby(obj/item/I, mob/user, params)
 	if(!issilicon(user) && isElectrified() && shock(user, 75))
 		add_fingerprint(user)
@@ -405,7 +399,6 @@
 		return ATTACK_CHAIN_BLOCKED_ALL
 
 	return ..()
-
 
 /obj/machinery/door/airlock/hatch/gamma/welder_act(mob/user, obj/item/I)
 	if(shock_user(user, 75))
@@ -455,6 +448,19 @@
 	hackProof = TRUE
 	aiControlDisabled = AICONTROLDISABLED_ON
 
+/obj/machinery/door/airlock/highsecurity/red/Initialize(mapload)
+	. = ..()
+	if(!is_station_level(z))
+		return
+	RegisterSignal(SSsecurity_level, COMSIG_SECURITY_LEVEL_CHANGED, PROC_REF(on_security_level_update))
+
+/obj/machinery/door/airlock/highsecurity/red/proc/on_security_level_update(datum/source, previous_level_number, new_level_number)
+	SIGNAL_HANDLER
+
+	if(new_level_number >= SEC_LEVEL_RED)
+		unlock(TRUE)
+	else
+		lock(TRUE)
 
 /obj/machinery/door/airlock/highsecurity/red/attackby(obj/item/I, mob/user, params)
 	if(!issilicon(user) && isElectrified() && shock(user, 75))
@@ -465,7 +471,6 @@
 		return ATTACK_CHAIN_PROCEED
 
 	return ..()
-
 
 /obj/machinery/door/airlock/highsecurity/red/welder_act(mob/user, obj/item/I)
 	if(shock_user(user, 75))
@@ -481,7 +486,6 @@
 					span_italics("You hear welding."))
 	update_icon()
 
-
 //////////////////////////////////
 /*
 	Shuttle Airlocks
@@ -493,7 +497,6 @@
 	overlays_file = 'icons/obj/doors/airlocks/shuttle/overlays.dmi'
 	assemblytype = /obj/structure/door_assembly/door_assembly_shuttle
 	paintable = FALSE
-	smoothing_groups = SMOOTH_GROUP_AIRLOCK
 
 /obj/machinery/door/airlock/shuttle/glass
 	opacity = FALSE
@@ -551,13 +554,13 @@
 	overlays_file = 'icons/obj/doors/airlocks/cult/runed/cult-overlays.dmi'
 	assemblytype = /obj/structure/door_assembly/door_assembly_cult_fake
 
-/obj/machinery/door/airlock/cult_fake/Initialize()
+/obj/machinery/door/airlock/cult_fake/Initialize(mapload)
 	. = ..()
 	icon = SSticker.cultdat?.airlock_runed_icon_file
 	overlays_file = SSticker.cultdat?.airlock_runed_overlays_file
 	update_icon()
 
-/obj/machinery/door/airlock/cult/Initialize()
+/obj/machinery/door/airlock/cult/Initialize(mapload)
 	. = ..()
 	icon = SSticker.cultdat?.airlock_runed_icon_file
 	overlays_file = SSticker.cultdat?.airlock_runed_overlays_file
@@ -579,7 +582,7 @@
 			new /obj/effect/temp_visual/cult/sac(loc)
 			var/atom/throwtarget
 			throwtarget = get_edge_target_turf(src, get_dir(src, get_step_away(L, src)))
-			SEND_SOUND(L, pick(sound('sound/hallucinations/turn_around1.ogg', 0, 1, 50), sound('sound/hallucinations/turn_around2.ogg', 0, 1, 50)))
+			SEND_SOUND(L, pick(sound('sound/hallucinations/turn_around1.ogg', 0, TRUE, 50), sound('sound/hallucinations/turn_around2.ogg', 0, TRUE, 50)))
 			L.Weaken(4 SECONDS)
 			L.throw_at(throwtarget, 5, 1,src)
 		return FALSE
@@ -624,7 +627,7 @@
 	glass = TRUE
 	opacity = FALSE
 
-/obj/machinery/door/airlock/cult/glass/Initialize()
+/obj/machinery/door/airlock/cult/glass/Initialize(mapload)
 	. = ..()
 	update_icon()
 
@@ -637,7 +640,7 @@
 	assemblytype = /obj/structure/door_assembly/door_assembly_cult/unruned
 	openingoverlaytype = /obj/effect/temp_visual/cult/door/unruned
 
-/obj/machinery/door/airlock/cult/unruned/Initialize()
+/obj/machinery/door/airlock/cult/unruned/Initialize(mapload)
 	. = ..()
 	icon = SSticker.cultdat?.airlock_unruned_icon_file
 	overlays_file = SSticker.cultdat?.airlock_unruned_overlays_file
@@ -650,7 +653,7 @@
 	glass = TRUE
 	opacity = FALSE
 
-/obj/machinery/door/airlock/cult/unruned/glass/Initialize()
+/obj/machinery/door/airlock/cult/unruned/glass/Initialize(mapload)
 	. = ..()
 	update_icon()
 
@@ -662,7 +665,7 @@
 	desc = "An airlock hastily corrupted by blood magic, it is unusually brittle in this state."
 	normal_integrity = 150
 	damage_deflection = 5
-	armor = list("melee" = 0, "bullet" = 0, "laser" = 0,"energy" = 0, "bomb" = 0, "bio" = 0, "rad" = 0, "fire" = 0, "acid" = 0)
+	armor = list(MELEE = 0, BULLET = 0, LASER = 0,ENERGY = 0, BOMB = 0, BIO = 0, RAD = 0, FIRE = 0, ACID = 0)
 
 //////////////////////////////////
 /*
@@ -681,7 +684,7 @@
 	/// Will the door let anyone through
 	var/friendly = FALSE
 
-/obj/machinery/door/airlock/clockwork/Initialize()
+/obj/machinery/door/airlock/clockwork/Initialize(mapload)
 	. = ..()
 	new /obj/effect/temp_visual/ratvar/door(get_turf(src))
 
@@ -697,7 +700,7 @@
 		new /obj/effect/temp_visual/ratvar/door(loc)
 		var/atom/throwtarget
 		throwtarget = get_edge_target_turf(src, get_dir(src, get_step_away(L, src)))
-		SEND_SOUND(L, pick(sound('sound/hallucinations/turn_around1.ogg', 0, 1, 50), sound('sound/hallucinations/turn_around2.ogg', 0, 1, 50)))
+		SEND_SOUND(L, pick(sound('sound/hallucinations/turn_around1.ogg', 0, TRUE, 50), sound('sound/hallucinations/turn_around2.ogg', 0, TRUE, 50)))
 		L.Weaken(4 SECONDS)
 		L.throw_at(throwtarget, 5, 1,src)
 		return FALSE
@@ -724,7 +727,7 @@
 	desc = "An airlock made from pure-hands into some brass moving structure."
 	normal_integrity = 150
 	damage_deflection = 5
-	armor = list("melee" = 0, "bullet" = 0, "laser" = 0,"energy" = 0, "bomb" = 0, "bio" = 0, "rad" = 0, "fire" = 0, "acid" = 0)
+	armor = list(MELEE = 0, BULLET = 0, LASER = 0,ENERGY = 0, BOMB = 0, BIO = 0, RAD = 0, FIRE = 0, ACID = 0)
 
 //////////////////////////////////
 /*
@@ -779,7 +782,6 @@
 	name = "evil looking maintenance airlock"
 	icon = 'icons/obj/doors/airlocks/syndicate/maintenance.dmi'
 	assemblytype = /obj/structure/door_assembly/syndicate/door_assembly_syndie_maint
-	normal_integrity = 300
 
 /obj/machinery/door/airlock/syndicate/maintenance/glass
 	opacity = FALSE
@@ -791,7 +793,6 @@
 	icon = 'icons/obj/doors/airlocks/syndicate/medical.dmi'
 	assemblytype = /obj/structure/door_assembly/syndicate/door_assembly_syndie_med
 	normal_integrity = 400
-
 
 /obj/machinery/door/airlock/syndicate/medical/glass
 	opacity = FALSE
@@ -884,7 +885,6 @@
 	note_overlay_file = 'icons/obj/doors/airlocks/glass_large/overlays.dmi'
 	assemblytype = /obj/structure/door_assembly/multi_tile
 	paintable = FALSE
-
 
 /obj/machinery/door/airlock/multi_tile/narsie_act()
 	return

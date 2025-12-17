@@ -9,13 +9,20 @@
 
 #define STATUS_EFFECT_REFRESH 3 // if it only allows one, and new instances just instead refresh the timer
 
-
 ///Processing flags - used to define the speed at which the status will work
 ///This is fast - 0.2s between ticks (I believe!)
 #define STATUS_EFFECT_FAST_PROCESS 0
 ///This is slower and better for more intensive status effects - 1s between ticks
 #define STATUS_EFFECT_NORMAL_PROCESS 1
 
+#define STATUS_EFFECT_NECROPOLIS_CURSE /datum/status_effect/necropolis_curse
+//several flags for the Necropolis curse status effect
+///makes the edges of the target's screen obscured
+#define CURSE_BLINDING (1<<0)
+///causes gradual damage
+#define CURSE_WASTING (1<<1)
+///hands reach out from the sides of the screen, doing damage and stunning if they hit the target
+#define CURSE_GRASPING (1<<2)
 
 ///////////
 // BUFFS //
@@ -29,6 +36,14 @@
 #define STATUS_EFFECT_HIPPOCRATIC_OATH /datum/status_effect/hippocraticOath //Gives you an aura of healing as well as regrowing the Rod of Asclepius if lost
 
 #define STATUS_EFFECT_REGENERATIVE_CORE /datum/status_effect/regenerative_core
+
+#define STATUS_EFFECT_LAVALAND_NO_PAIN /datum/status_effect/lavaland_no_pain
+
+#define STATUS_EFFECT_LAVALAND_ETERNAL_BLEEDING_FIX /datum/status_effect/lavaland_eternal_bleeding_fix
+
+#define STATUS_EFFECT_LAVALAND_NIGHT_VISION /datum/status_effect/lavaland_night_vision
+
+#define STATUS_EFFECT_LAVALAND_BLOOD_REGEN /datum/status_effect/lavaland_blood_regen
 
 #define STATUS_EFFECT_DRASK_COMA /datum/status_effect/drask_coma
 
@@ -47,7 +62,7 @@
 
 //#define STATUS_EFFECT_POWERREGEN /datum/status_effect/cyborg_power_regen //Regenerates power on a given cyborg over time
 
-//#define STATUS_EFFECT_HISGRACE /datum/status_effect/his_grace //His Grace.
+#define STATUS_EFFECT_HISGRACE /datum/status_effect/his_grace //His Grace.
 
 //#define STATUS_EFFECT_WISH_GRANTERS_GIFT /datum/status_effect/wish_granters_gift //If you're currently resurrecting with the Wish Granter
 
@@ -120,16 +135,6 @@
 
 #define STATUS_EFFECT_VOMIT /datum/status_effect/tox_vomit // When carbon got enough tox damage - he will vomit.
 
-//#define STATUS_EFFECT_NECROPOLIS_CURSE /datum/status_effect/necropolis_curse
-//#define CURSE_BLINDING	1 //makes the edges of the target's screen obscured
-//#define CURSE_SPAWNING	2 //spawns creatures that attack the target only
-//#define CURSE_WASTING	4 //causes gradual damage
-//#define CURSE_GRASPING	8 //hands reach out from the sides of the screen, doing damage and stunning if they hit the target
-
-//#define STATUS_EFFECT_KINDLE /datum/status_effect/kindle //A knockdown reduced by 1 second for every 3 points of damage the target takes.
-
-//#define STATUS_EFFECT_ICHORIAL_STAIN /datum/status_effect/ichorial_stain //Prevents a servant from being revived by vitality matrices for one minute.
-
 /// Whether a moth's wings are burnt
 #define STATUS_EFFECT_BURNT_WINGS /datum/status_effect/burnt_wings
 
@@ -142,6 +147,7 @@
 #define STATUS_EFFECT_SLOWED /datum/status_effect/incapacitating/slowed
 #define STATUS_EFFECT_PARALYZED /datum/status_effect/incapacitating/paralyzed
 #define STATUS_EFFECT_KNOCKDOWN /datum/status_effect/incapacitating/knockdown
+#define STATUS_EFFECT_ARMBAR /datum/status_effect/judo_armbar
 
 // transient
 #define STATUS_EFFECT_CONFUSION /datum/status_effect/transient/confusion
@@ -173,6 +179,7 @@
 #define STATUS_EFFECT_HANDSHAKE /datum/status_effect/high_five/handshake
 
 #define STATUS_EFFECT_CHARGING /datum/status_effect/charging
+#define STATUS_EFFECT_LUNGING /datum/status_effect/lunging
 
 #define STATUS_EFFECT_DROPNROLL /datum/status_effect/stop_drop_roll
 
@@ -190,3 +197,16 @@
 #define STATUS_EFFECT_STARING /datum/status_effect/staring //Used in ../human/examine() proc
 
 #define STATUS_EFFECT_RECENTLY_SUCCUMBED /datum/status_effect/recently_succumbed
+
+#define STATUS_EFFECT_FORCED_RUMBLE /datum/status_effect/forced_rumble
+
+#define STATUS_EFFECT_FORCED_SNEEZE /datum/status_effect/forced_sneeze
+
+#define STATUS_EFFECT_LAVALAND_VISION /datum/status_effect/lavaland_vision
+
+#define STATUS_EFFECT_TEMPERATURE_STABILIZE /datum/status_effect/temperature_stabilize
+
+/// Makes you lean on something
+#define STATUS_EFFECT_LEANING /datum/status_effect/leaning
+
+#define STATUS_EFFECT_TEMPERATURE /datum/status_effect/transient/temperature

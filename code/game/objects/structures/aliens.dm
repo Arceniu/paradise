@@ -19,7 +19,7 @@
 	max_integrity = 100
 
 /obj/structure/alien/run_obj_armor(damage_amount, damage_type, damage_flag = 0, attack_dir)
-	if(damage_flag == "melee")
+	if(damage_flag == MELEE)
 		switch(damage_type)
 			if(BRUTE)
 				damage_amount *= ALIEN_RESIN_BRUTE_MOD
@@ -58,7 +58,10 @@
 	max_integrity = 200
 	smooth = SMOOTH_BITMASK
 
-/obj/structure/alien/resin/Initialize()
+/obj/structure/alien/resin/add_debris_element()
+	AddElement(/datum/element/debris, null, -40, 8, 0.7)
+
+/obj/structure/alien/resin/Initialize(mapload)
 	air_update_turf(1)
 	. = ..()
 
@@ -76,31 +79,24 @@
 /obj/structure/alien/resin/CanAtmosPass(turf/T, vertical)
 	return !density
 
-
 /obj/structure/alien/resin/proc/playdestroysound(source)
 	playsound(source, 'sound/creatures/alien/xeno_resin_break.ogg', 80, TRUE)
-
 
 /obj/structure/alien/resin/wall
 	name = "resin wall"
 	desc = "Thick resin solidified into a wall."
-	icon = 'icons/obj/smooth_structures/alien/resin_wall.dmi'
 	icon_state = "resin_wall-0"
-	base_icon_state = "resin_wall"
 
 /obj/structure/alien/resin/wall/BlockSuperconductivity()
 	return 1
-
 
 /obj/structure/alien/resin/wall/shadowling //For chrysalis
 	name = "chrysalis wall"
 	desc = "Some sort of purple substance in an egglike shape. It pulses and throbs from within and seems impenetrable."
 	max_integrity = INFINITY
 
-
 /obj/structure/alien/resin/wall/shadowling/playdestroysound(source)
 	playsound(source, 'sound/effects/splat.ogg', 30, TRUE, SHORT_RANGE_SOUND_EXTRARANGE)
-
 
 /obj/structure/alien/resin/membrane
 	name = "resin membrane"
@@ -112,7 +108,6 @@
 	base_icon_state = "resin_membrane"
 	pass_flags_self = PASSGLASS
 
-
 /obj/structure/alien/resin/attack_alien(mob/living/carbon/alien/humanoid/A)
 	if(A.a_intent == INTENT_HARM)
 		var/damage = 0
@@ -123,71 +118,76 @@
 				damage = max_integrity/ALIEN_RESIN_BRUTE_MOD
 			else
 				return ..()
-		if(attack_generic(A, damage, BRUTE, "melee", 0, 100))
+		if(attack_generic(A, damage, BRUTE, MELEE, 0, 100))
 			playsound(loc, 'sound/effects/attackblob.ogg', 50, TRUE)
-
 
 #define RESIN_DOOR_CLOSED 0
 #define RESIN_DOOR_OPENED 1
-
 
 /obj/structure/alien/resin/door
 	name = "resin door"
 	desc = "Thick resin solidified into a weird looking door."
 	icon = 'icons/obj/smooth_structures/alien/resin_door.dmi'
 	icon_state = "resin_door_closed"
+	var/icon_closed = "resin_door_closed"
+	var/icon_opened = "resin_door_opened"
+	var/icon_closing = "resin_door_closing"
+	var/icon_opening = "resin_door_opening"
 	max_integrity = 160
 	canSmoothWith = null
 	smooth = NONE
 	pass_flags_self = PASSDOOR
+	var/open_sound = 'sound/creatures/alien/xeno_door_open.ogg'
+	var/close_sound = 'sound/creatures/alien/xeno_door_close.ogg'
 	var/state = RESIN_DOOR_CLOSED
 	var/operating = FALSE
 	var/autoclose = TRUE
 	var/autoclose_delay = 10 SECONDS
 
-
-/obj/structure/alien/resin/door/Initialize()
+/obj/structure/alien/resin/door/Initialize(mapload)
 	. = ..()
 	update_freelook_sight()
-
 
 /obj/structure/alien/resin/door/Destroy()
 	set_density(FALSE)
 	update_freelook_sight()
 	return ..()
 
-
 /obj/structure/alien/resin/door/update_icon_state()
 	switch(state)
 		if(RESIN_DOOR_CLOSED)
-			icon_state = "resin_door_closed"
+			icon_state = icon_closed
 		if(RESIN_DOOR_OPENED)
-			icon_state = "resin_door_opened"
-
+			icon_state = icon_opened
 
 /obj/structure/alien/resin/door/attack_alien(mob/living/carbon/alien/humanoid/user)
 	if(user.a_intent == INTENT_HARM)
 		return ..()
 
-	try_switch_state(user)
+	return try_switch_state(user)
 
+/obj/structure/alien/resin/door/attack_animal(mob/living/simple_animal/M)
+	if(M.a_intent == INTENT_HARM)
+		return ..()
+
+	return try_switch_state(M)
 
 /obj/structure/alien/resin/door/attack_hand(mob/living/user)
+	..()
+	attack_check(user)
+
+/obj/structure/alien/resin/door/proc/attack_check(mob/living/user)
 	if(!isalien(user))
 		to_chat(user, span_notice("You can't find a way to manipulate with this door."))
 		return FALSE
-
-	return ..()
-
+	return TRUE
 
 /obj/structure/alien/resin/door/attack_ghost(mob/user)
 	if(user.can_advanced_admin_interact())
 		switch_state()
 
-
 /obj/structure/alien/resin/door/attack_tk(mob/user)
 	return
-
 
 /obj/structure/alien/resin/door/Bumped(atom/movable/moving_atom)
 	. = ..()
@@ -203,22 +203,23 @@
 
 	try_switch_state(moving_atom)
 
-
 /obj/structure/alien/resin/door/proc/try_switch_state(atom/movable/user)
 	if(operating)
-		return
+		return FALSE
 
 	add_fingerprint(user)
-
-	if(!isalien(user))
-		return
+	if(!isliving(user))
+		return FALSE
+	var/mob/living/mob = user
+	if(!isalien(user) && !("alien" in mob.faction))
+		return FALSE
 
 	var/mob/living/carbon/alien/alien = user
 	if(alien.incapacitated())
-		return
+		return FALSE
 
 	switch_state()
-
+	return TRUE
 
 /obj/structure/alien/resin/door/proc/switch_state()
 	switch(state)
@@ -226,7 +227,6 @@
 			open()
 		if(RESIN_DOOR_OPENED)
 			close()
-
 
 /obj/structure/alien/resin/door/proc/open()
 
@@ -236,8 +236,8 @@
 	if(autoclose)
 		autoclose_in(autoclose_delay)
 
-	flick("resin_door_opening", src)
-	playsound(loc, 'sound/creatures/alien/xeno_door_open.ogg', 100, TRUE)
+	flick(icon_opening, src)
+	playsound(loc, open_sound, 100, TRUE)
 	operating = TRUE
 
 	sleep(0.1 SECONDS)
@@ -253,7 +253,6 @@
 	state = RESIN_DOOR_OPENED
 	update_icon()
 
-
 /obj/structure/alien/resin/door/proc/close()
 
 	if(operating || density)
@@ -266,8 +265,8 @@
 				autoclose_in(autoclose_delay * 0.5)
 			return
 
-	flick("resin_door_closing", src)
-	playsound(loc, 'sound/creatures/alien/xeno_door_close.ogg', 100, TRUE)
+	flick(icon_closing, src)
+	playsound(loc, close_sound, 100, TRUE)
 	operating = TRUE
 
 	sleep(0.1 SECONDS)
@@ -284,30 +283,24 @@
 	update_icon()
 	check_mobs()
 
-
 /obj/structure/alien/resin/door/proc/check_mobs()
 	if(locate(/mob/living) in get_turf(src))
 		sleep(0.1 SECONDS)
 		open()
 
-
 /obj/structure/alien/resin/door/proc/autoclose()
 	if(!QDELETED(src) && !density && !operating && autoclose)
 		close()
 
-
 /obj/structure/alien/resin/door/proc/autoclose_in(wait)
 	addtimer(CALLBACK(src, PROC_REF(autoclose)), wait, TIMER_UNIQUE | TIMER_NO_HASH_WAIT | TIMER_OVERRIDE)
-
 
 /obj/structure/alien/resin/door/proc/update_freelook_sight()
 	if(GLOB.cameranet)
 		GLOB.cameranet.updateVisibility(src, opacity_check = FALSE)
 
-
 #undef RESIN_DOOR_CLOSED
 #undef RESIN_DOOR_OPENED
-
 
 /*
  * Weeds
@@ -320,7 +313,6 @@
 	name = "resin floor"
 	desc = "A thick resin surface covers the floor."
 	anchored = TRUE
-	density = FALSE
 	layer = ABOVE_ICYOVERLAY_LAYER
 	plane = FLOOR_PLANE
 	icon_state = "weeds"
@@ -381,7 +373,7 @@
 
 	cut_overlays()
 
-	if(!weedImageCache || !weedImageCache.len)
+	if(!weedImageCache || !length(weedImageCache))
 		weedImageCache = list()
 		weedImageCache.len = 4
 		weedImageCache[WEED_NORTH_EDGING] = image('icons/mob/alien.dmi', "weeds_side_n", layer=2.11, pixel_y = -32)
@@ -406,7 +398,6 @@
 		if(isfloorturf(W))
 			add_overlay(weedImageCache[WEED_EAST_EDGING])
 
-
 /obj/structure/alien/weeds/proc/fullUpdateWeedOverlays()
 	for(var/obj/structure/alien/weeds/W in range(1,src))
 		W.updateWeedOverlays()
@@ -420,16 +411,14 @@
 	layer = MID_TURF_LAYER
 	var/node_range = NODERANGE
 
-
-/obj/structure/alien/weeds/node/New()
-	..(loc, src)
+/obj/structure/alien/weeds/node/Initialize(mapload)
+	return ..(loc, src)
 
 /obj/structure/alien/weeds/attack_alien(mob/living/carbon/alien/humanoid/A)
 	if(A.a_intent == INTENT_HARM)
 		return ..()
 
 #undef NODERANGE
-
 
 /*
  * Egg
@@ -442,14 +431,13 @@
 #define GROWN 3
 #define MIN_GROWTH_TIME 1200	//time it takes to grow a hugger
 #define MAX_GROWTH_TIME 1800
+#define PROXIMITY_RADIUS 5
 
 /obj/structure/alien/egg
 	name = "egg"
 	desc = "A large mottled egg."
 	icon_state = "egg_growing"
-	density = FALSE
 	anchored = TRUE
-	max_integrity = 100
 	integrity_failure = 5
 	var/status = GROWING	//can be GROWING, GROWN or BURST; all mutually exclusive
 	layer = MOB_LAYER
@@ -462,20 +450,24 @@
 	status = BURST
 	icon_state = "egg_hatched"
 
-
 /obj/structure/alien/egg/Initialize(mapload)
 	. = ..()
 	update_icon(UPDATE_ICON_STATE)
 	switch(status)
 		if(GROWING)
-			new /obj/item/clothing/mask/facehugger(src)
+			var/mob/living/simple_animal/hostile/facehugger/hugger = new(src)
+			hugger.lose_target()
 			addtimer(CALLBACK(src, PROC_REF(Grow)), rand(MIN_GROWTH_TIME, MAX_GROWTH_TIME))
 		if(GROWN)
-			new /obj/item/clothing/mask/facehugger(src)
-			AddComponent(/datum/component/proximity_monitor)
+			var/mob/living/simple_animal/hostile/facehugger/hugger = new(src)
+			hugger.lose_target()
+			proximity_monitor = new(src, PROXIMITY_RADIUS)
 		if(BURST)
-			obj_integrity = integrity_failure
+			update_integrity(integrity_failure)
 
+/obj/structure/alien/egg/Destroy(force)
+	. = ..()
+	QDEL_NULL(proximity_monitor)
 
 /obj/structure/alien/egg/update_icon_state()
 	switch(status)
@@ -486,78 +478,84 @@
 		if(BURST)
 			icon_state = "egg_hatched"
 
-
 /obj/structure/alien/egg/attack_alien(mob/living/carbon/alien/user)
 	return attack_hand(user)
-
 
 /obj/structure/alien/egg/attack_hand(mob/living/user)
 	if(user.get_int_organ(/obj/item/organ/internal/xenos/plasmavessel))
 		switch(status)
 			if(BURST)
-				to_chat(user, "<span class='notice'>You clear the hatched egg.</span>")
-				playsound(loc, 'sound/effects/attackblob.ogg', 100, 1)
+				to_chat(user, span_notice("You clear the hatched egg."))
+				playsound(loc, 'sound/effects/attackblob.ogg', 100, TRUE)
 				qdel(src)
 				return
 			if(GROWING)
-				to_chat(user, "<span class='notice'>The child is not developed yet.</span>")
+				to_chat(user, span_notice("The child is not developed yet."))
 				return
 			if(GROWN)
-				to_chat(user, "<span class='notice'>You retrieve the child.</span>")
+				to_chat(user, span_notice("You retrieve the child."))
 				Burst(kill = FALSE)
 				return
 	else
-		to_chat(user, "<span class='notice'>It feels slimy.</span>")
+		to_chat(user, span_notice("It feels slimy."))
 		user.changeNext_move(CLICK_CD_MELEE)
 
-
 /obj/structure/alien/egg/proc/GetFacehugger()
-	return locate(/obj/item/clothing/mask/facehugger) in contents
-
+	return locate(/mob/living/simple_animal/hostile/facehugger) in contents
 
 /obj/structure/alien/egg/proc/Grow()
 	status = GROWN
 	update_icon(UPDATE_ICON_STATE)
-	AddComponent(/datum/component/proximity_monitor)
-
+	proximity_monitor = new(src, PROXIMITY_RADIUS)
 
 ///Need to carry the kill from Burst() to Hatch(), this section handles the alien opening the egg
-/obj/structure/alien/egg/proc/Burst(kill = TRUE)	//drops and kills the hugger if any is remaining
+/obj/structure/alien/egg/proc/Burst(kill = TRUE, atom/movable/trigger)	//drops and kills the hugger if any is remaining
 	if(status == GROWN || status == GROWING)
 		playsound(get_turf(src), 'sound/creatures/alien/xeno_egg_crack.ogg', 50)
 		flick("egg_opening", src)
 		status = BURSTING
-		qdel(GetComponent(/datum/component/proximity_monitor))
-		addtimer(CALLBACK(src, PROC_REF(Hatch), kill), 1.5 SECONDS)
-
+		QDEL_NULL(proximity_monitor)
+		addtimer(CALLBACK(src, PROC_REF(Hatch), kill, trigger), 1.5 SECONDS)
 
 ///We now check HOW the hugger is hatching, kill carried from Burst() and obj_break()
-/obj/structure/alien/egg/proc/Hatch(kill)
+/obj/structure/alien/egg/proc/Hatch(kill, atom/movable/trigger)
 	status = BURST
 	update_icon(UPDATE_ICON_STATE)
-	var/obj/item/clothing/mask/facehugger/child = GetFacehugger()
+	var/mob/living/simple_animal/hostile/facehugger/child = GetFacehugger()
+
 	if(!child)
 		return
+
 	child.forceMove(get_turf(src))
+	child.AddComponent(\
+		/datum/component/ghost_direct_control,\
+		ban_type = ROLE_ALIEN,\
+		poll_candidates = FALSE,\
+		after_assumed_control = CALLBACK(child, TYPE_PROC_REF(/mob/living/simple_animal/hostile/facehugger, add_datum_if_not_exist)),\
+	)
 	if(kill)
-		child.Die()
+		child.death()
 		return
+
 	for(var/mob/living/victim in range(1, src))
 		if(CanHug(victim))
-			child.Attach(victim)
+			child.try_hug(victim)
 			break
 
+	if(!CanHug(trigger))
+		return
+
+	child.GiveTarget(trigger)
+	child.MoveToTarget(list(trigger))
 
 /obj/structure/alien/egg/obj_break(damage_flag)
 	if(!(obj_flags & NODECONSTRUCT) && status != BURST)
 		Burst(kill = TRUE)
 
-
 /obj/structure/alien/egg/temperature_expose(datum/gas_mixture/air, exposed_temperature, exposed_volume)
 	..()
 	if(exposed_temperature > 500)
 		take_damage(5, BURN, 0, 0)
-
 
 /obj/structure/alien/egg/HasProximity(atom/movable/AM)
 	if(status == GROWN)
@@ -567,9 +565,10 @@
 		var/mob/living/carbon/target = AM
 		if(iscarbon(target) && target.stat == CONSCIOUS && target.get_int_organ(/obj/item/organ/internal/body_egg/alien_embryo))
 			return
+		if(isalien(target))
+			return
 
-		Burst(kill = FALSE)
-
+		Burst(kill = FALSE, trigger = AM)
 
 #undef BURST
 #undef BURSTING
@@ -577,6 +576,7 @@
 #undef GROWN
 #undef MIN_GROWTH_TIME
 #undef MAX_GROWTH_TIME
+#undef PROXIMITY_RADIUS
 
 #undef ALIEN_RESIN_BURN_MOD
 #undef ALIEN_RESIN_BRUTE_MOD

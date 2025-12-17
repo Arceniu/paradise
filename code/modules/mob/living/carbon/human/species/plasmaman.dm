@@ -29,9 +29,8 @@
 
 	breathid = "tox"
 
-	brute_mod = 0.9
-	burn_mod = 1.5
-	heatmod = 1.5
+	burn_mod = 1.2
+	heatmod = 1.2
 
 	//Has default darksight of 2.
 
@@ -48,12 +47,12 @@
 		INTERNAL_ORGAN_KIDNEYS = /obj/item/organ/internal/kidneys/plasmaman,
 		INTERNAL_ORGAN_BRAIN = /obj/item/organ/internal/brain/plasmaman,
 		INTERNAL_ORGAN_EYES = /obj/item/organ/internal/eyes/plasmaman,
-		INTERNAL_ORGAN_EARS = /obj/item/organ/internal/ears,
+		INTERNAL_ORGAN_EARS = /obj/item/organ/internal/ears/plasmaman,
 	)
 
 	meat_type = /obj/item/reagent_containers/food/snacks/meat/humanoid/plasmaman
 
-	speciesbox = /obj/item/storage/box/survival_plasmaman
+	speciesbox = /obj/item/storage/box/survival/species/plasmaman
 	flesh_color = "#8b3fba"
 
 	toxic_food = NONE
@@ -67,12 +66,15 @@
 		JOB_MIN_AGE_COMMAND = 25,
 	)
 
+	autohiss_basic_map = list(
+		"s" = list("ss", "sss", "ssss"),
+		"с" = list("сс", "ссс", "сссс"),
+	)
 
 /datum/species/plasmaman/on_species_gain(mob/living/carbon/human/H)
 	. = ..()
 	add_verb(H, /mob/living/carbon/human/proc/emote_rattle)
 	RegisterSignal(H, COMSIG_CARBON_RECEIVE_FRACTURE, PROC_REF(on_fracture))
-
 
 /datum/species/plasmaman/on_species_loss(mob/living/carbon/human/H)
 	. = ..()
@@ -148,6 +150,9 @@
 
 		if(JOB_TITLE_MINER)
 			O = new /datum/outfit/plasmaman/mining
+
+		if(JOB_TITLE_MINING_MEDIC)
+			O = new /datum/outfit/plasmaman/mining_medic
 
 		if(JOB_TITLE_DOCTOR, JOB_TITLE_INTERN)
 			O = new /datum/outfit/plasmaman/medical
@@ -231,7 +236,7 @@
 				if(environment.oxygen && environment.oxygen >= OXYCONCEN_PLASMEN_IGNITION) //Same threshhold that extinguishes fire
 					H.adjust_fire_stacks(0.5)
 					if(!H.on_fire && H.fire_stacks > 0)
-						H.visible_message("<span class='danger'>Тело [H] вступает в реакцию с атмосферой и загорается!</span>","<span class='userdanger'>Ваше тело вступает в реакцию с атмосферой и загорается!</span>")
+						H.visible_message(span_danger("Тело [H] вступает в реакцию с атмосферой и загорается!"),span_userdanger("Ваше тело вступает в реакцию с атмосферой и загорается!"))
 					H.IgniteMob()
 	else
 		if(H.fire_stacks)
@@ -240,8 +245,6 @@
 				P.Extinguish(H)
 	H.update_fire()
 	..()
-	if(H.stat == DEAD)
-		return
 	if(H.reagents.get_reagent_amount("pure_plasma") < 5) //increasing chock_reduction by 20
 		H.reagents.add_reagent("pure_plasma", 5)
 
@@ -252,7 +255,7 @@
 /datum/species/plasmaman/handle_reagents(mob/living/carbon/human/H, datum/reagent/R)
 	switch(R.id)
 		if("plasma")
-			H.heal_overall_damage(0.25, 0.25)
+			H.heal_overall_damage(0.5, 0.5)
 			H.adjust_alien_plasma(20)
 			H.reagents.remove_reagent(R.id, REAGENTS_METABOLISM)
 			return FALSE //Handling reagent removal on our own. Prevents plasma from dealing toxin damage to Plasmaman

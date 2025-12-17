@@ -30,12 +30,11 @@ proc
 process()
 check_build()
 
-Setup map
-  |EC|
-CC|FC|
-  |PB|
-PE|PE|PE
-
+* Setup map
+*   |EC|
+* CC|FC|
+*   |PB|
+* PE|PE|PE
 
 Icon Addemdum
 Icon system is much more robust, and the icons are all variable based.
@@ -52,22 +51,21 @@ Closed   - [reference]c
 Powered  - [reference]p[strength]
 Strength being set by the computer and a null strength (Computer is powered off or inactive) returns a 'null', counting as empty
 So, hopefully this is helpful if any more icons are to be added/changed/wondering what the hell is going on here
-
 */
-#define ACCELERATOR_UNWRENCHED	0
-#define ACCELERATOR_WRENCHED	1
-#define ACCELERATOR_WIRED		2
-#define ACCELERATOR_READY		3
+
+#define ACCELERATOR_UNWRENCHED 0
+#define ACCELERATOR_WRENCHED 1
+#define ACCELERATOR_WIRED 2
+#define ACCELERATOR_READY 3
 
 /obj/structure/particle_accelerator
 	name = "Particle Accelerator"
 	desc = "Part of a Particle Accelerator."
 	icon = 'icons/obj/engines_and_power/particle_accelerator.dmi'
-	icon_state = "none"
-	anchored = FALSE
+	icon_state = null
 	density = TRUE
 	max_integrity = 500
-	armor = list("melee" = 30, "bullet" = 20, "laser" = 20, "energy" = 0, "bomb" = 0, "bio" = 0, "rad" = 0, "fire" = 90, "acid" = 80)
+	armor = list(MELEE = 30, BULLET = 20, LASER = 20, ENERGY = 0, BOMB = 0, BIO = 0, RAD = 0, FIRE = 90, ACID = 80)
 	var/obj/machinery/particle_accelerator/control_box/master = null
 	var/construction_state = 0
 	var/reference = null
@@ -75,10 +73,14 @@ So, hopefully this is helpful if any more icons are to be added/changed/wonderin
 	var/strength = null
 	var/desc_holder = null
 
+/obj/structure/particle_accelerator/examine(mob/user)
+	. = ..()
+	. += span_notice("<b>Alt-click</b> to rotate.")
+
 /obj/structure/particle_accelerator/Destroy()
 	construction_state = 0
 	if(master)
-		master.part_scan()
+		SStgui.update_uis(master)
 	return ..()
 
 /obj/structure/particle_accelerator/end_cap
@@ -87,25 +89,17 @@ So, hopefully this is helpful if any more icons are to be added/changed/wonderin
 	icon_state = "end_cap"
 	reference = "end_cap"
 
-
-/obj/structure/particle_accelerator/verb/rotate()
-	set name = "Rotate Clockwise"
-	set category = "Object"
-	set src in oview(1)
-
-	rotate_accelerator(usr)
-
-/obj/structure/particle_accelerator/AltClick(mob/user)
+/obj/structure/particle_accelerator/click_alt(mob/user)
 	rotate_accelerator(user)
+	return CLICK_ACTION_SUCCESS
 
 /obj/structure/particle_accelerator/proc/rotate_accelerator(mob/user)
 	if(user.incapacitated() || HAS_TRAIT(user, TRAIT_HANDS_BLOCKED) || !Adjacent(user))
 		return
 	if(anchored)
-		to_chat(user, "<span class='notice'>It is fastened to the floor!</span>")
+		to_chat(user, span_notice("It is fastened to the floor!"))
 		return
 	dir = turn(dir, 270)
-
 
 /obj/structure/particle_accelerator/examine(mob/user)
 	. = ..()
@@ -130,7 +124,7 @@ So, hopefully this is helpful if any more icons are to be added/changed/wonderin
 
 /obj/structure/particle_accelerator/Move(atom/newloc, direct = NONE, glide_size_override = 0, update_dir = TRUE)
 	. = ..()
-	if(master && master.active)
+	if(master?.active)
 		master.toggle_power()
 		investigate_log("was moved whilst active; it <font color='red'>powered down</font>.", INVESTIGATE_ENGINE)
 
@@ -146,33 +140,28 @@ So, hopefully this is helpful if any more icons are to be added/changed/wonderin
 			else
 				icon_state="[reference]c"
 
-
 /obj/structure/particle_accelerator/proc/update_state()
 	if(master)
 		master.update_state()
 		return 0
 
-
-/obj/structure/particle_accelerator/proc/report_ready(var/obj/O)
+/obj/structure/particle_accelerator/proc/report_ready(obj/O)
 	if(O && (O == master))
 		if(construction_state >= 3)
 			return 1
 	return 0
-
 
 /obj/structure/particle_accelerator/proc/report_master()
 	if(master)
 		return master
 	return 0
 
-
-/obj/structure/particle_accelerator/proc/connect_master(var/obj/O)
+/obj/structure/particle_accelerator/proc/connect_master(obj/O)
 	if(O && istype(O,/obj/machinery/particle_accelerator/control_box))
 		if(O.dir == dir)
 			master = O
 			return 1
 	return 0
-
 
 /obj/structure/particle_accelerator/attackby(obj/item/I, mob/user, params)
 	if(user.a_intent == INTENT_HARM)
@@ -195,10 +184,11 @@ So, hopefully this is helpful if any more icons are to be added/changed/wonderin
 		)
 		construction_state = ACCELERATOR_WIRED
 		update_icon(UPDATE_ICON_STATE)
+		if(master)
+			SStgui.update_uis(master)
 		return ATTACK_CHAIN_PROCEED_SUCCESS
 
 	return ..()
-
 
 /obj/structure/particle_accelerator/screwdriver_act(mob/user, obj/item/I)
 	if(construction_state != ACCELERATOR_WIRED && construction_state != ACCELERATOR_READY)
@@ -215,6 +205,8 @@ So, hopefully this is helpful if any more icons are to be added/changed/wonderin
 		SCREWDRIVER_OPEN_PANEL_MESSAGE
 	update_state()
 	update_icon(UPDATE_ICON_STATE)
+	if(master)
+		SStgui.update_uis(master)
 
 /obj/structure/particle_accelerator/wirecutter_act(mob/user, obj/item/I)
 	if(construction_state != ACCELERATOR_WIRED)
@@ -224,6 +216,8 @@ So, hopefully this is helpful if any more icons are to be added/changed/wonderin
 		return
 	WIRECUTTER_SNIP_MESSAGE
 	construction_state = ACCELERATOR_WRENCHED
+	if(master)
+		SStgui.update_uis(master)
 
 /obj/structure/particle_accelerator/wrench_act(mob/user, obj/item/I)
 	if(construction_state != ACCELERATOR_UNWRENCHED && construction_state != ACCELERATOR_WRENCHED)
@@ -240,18 +234,16 @@ So, hopefully this is helpful if any more icons are to be added/changed/wonderin
 		WRENCH_UNANCHOR_MESSAGE
 		construction_state = ACCELERATOR_UNWRENCHED
 	update_icon(UPDATE_ICON_STATE)
-
+	if(master)
+		SStgui.update_uis(master)
 
 /obj/machinery/particle_accelerator
 	name = "Particle Accelerator"
 	desc = "Part of a Particle Accelerator."
 	icon = 'icons/obj/engines_and_power/particle_accelerator.dmi'
-	icon_state = "none"
-	anchored = FALSE
+	icon_state = null
 	density = TRUE
 	use_power = NO_POWER_USE
-	idle_power_usage = 0
-	active_power_usage = 0
 	var/construction_state = 0
 	var/active = 0
 	var/reference = null
@@ -259,31 +251,21 @@ So, hopefully this is helpful if any more icons are to be added/changed/wonderin
 	var/strength = 0
 	var/desc_holder = null
 
-
 /obj/machinery/particle_accelerator/examine(mob/user)
 	. = ..()
-	. += "<span class='info'><b>Alt-Click</b> to rotate it.</span>"
+	. += span_notice("<b>Alt-Click</b> to rotate it.")
 
-
-/obj/machinery/particle_accelerator/verb/rotate()
-	set name = "Rotate Clockwise"
-	set category = "Object"
-	set src in oview(1)
-
-	rotate_accelerator(usr)
-
-/obj/machinery/particle_accelerator/AltClick(mob/user)
+/obj/machinery/particle_accelerator/click_alt(mob/user)
 	rotate_accelerator(user)
-
+	return CLICK_ACTION_SUCCESS
 
 /obj/machinery/particle_accelerator/proc/rotate_accelerator(mob/user)
 	if(user.incapacitated() || HAS_TRAIT(user, TRAIT_HANDS_BLOCKED) || !Adjacent(user))
 		return
 	if(anchored)
-		to_chat(user, "<span class='notice'>It is fastened to the floor!</span>")
+		to_chat(user, span_notice("It is fastened to the floor!"))
 		return
 	dir = turn(dir, 270)
-
 
 /obj/machinery/particle_accelerator/attackby(obj/item/I, mob/user, params)
 	if(user.a_intent == INTENT_HARM)
@@ -309,7 +291,6 @@ So, hopefully this is helpful if any more icons are to be added/changed/wonderin
 		return ATTACK_CHAIN_PROCEED_SUCCESS
 
 	return ..()
-
 
 /obj/machinery/particle_accelerator/screwdriver_act(mob/user, obj/item/I)
 	if(construction_state != ACCELERATOR_WIRED && construction_state != ACCELERATOR_READY)
@@ -353,10 +334,8 @@ So, hopefully this is helpful if any more icons are to be added/changed/wonderin
 		construction_state = ACCELERATOR_UNWRENCHED
 	update_icon()
 
-
 /obj/machinery/particle_accelerator/proc/update_state()
 	return FALSE
-
 
 #undef ACCELERATOR_UNWRENCHED
 #undef ACCELERATOR_WRENCHED

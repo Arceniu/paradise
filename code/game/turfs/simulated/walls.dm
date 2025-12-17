@@ -1,7 +1,3 @@
-#define WALL_DENT_HIT 1
-#define WALL_DENT_SHOT 2
-#define MAX_DENT_DECALS 15
-
 /turf/simulated/wall
 	name = "wall"
 	desc = "A huge chunk of metal used to seperate rooms."
@@ -26,6 +22,8 @@
 	explosion_block = 1
 	explosion_vertical_block = 1
 
+	flags_ricochet = RICOCHET_BALLISTIC
+
 	thermal_conductivity = WALL_HEAT_TRANSFER_COEFFICIENT
 	heat_capacity = 312500 //a little over 5 cm thick , 312500 for 1 m by 2.5 m by 0.25 m plasteel wall
 
@@ -44,6 +42,9 @@
 	smoothing_groups = SMOOTH_GROUP_WALLS
 	canSmoothWith = SMOOTH_GROUP_WALLS
 	smooth = SMOOTH_BITMASK
+
+	/// If we added a leaning component to ourselves
+	var/added_leaning = FALSE
 
 /turf/simulated/wall/get_smooth_underlay_icon(mutable_appearance/underlay_appearance, turf/asking_turf, adjacency_dir)
 	return FALSE
@@ -64,36 +65,43 @@
 			underlay_appearance.icon_state = fixed_underlay["icon_state"]
 		fixed_underlay = string_assoc_list(fixed_underlay)
 		underlays += underlay_appearance
-		
+
+/turf/simulated/wall/add_debris_element()
+	AddElement(/datum/element/debris, DEBRIS_SPARKS, -40, 8, 1)
+
 /turf/simulated/wall/ComponentInitialize()
-	. = ..()
+	if(!is_station_level(z))
+		return
 	AddComponent(/datum/component/blob_turf_consuming, 2)
+
+/turf/simulated/wall/MouseDrop_T(atom/dropping, mob/user, params)
+	//Adds the component only once. We do it here & not in Initialize() because there are tons of walls & we don't want to add to their init times
+	LoadComponent(/datum/component/leanable, dropping)
 
 //Appearance
 /turf/simulated/wall/examine(mob/user) // If you change this, consider changing the examine_status proc of false walls to match
 	. = ..()
 
 	if(!damage)
-		. += span_notice("It looks fully intact.")
+		. += span_notice("Выглядит полностью целой.")
 	else
 		var/dam = damage / damage_cap
 		if(dam <= 0.3)
-			. += span_warning("It looks slightly damaged.")
+			. += span_warning("Выглядит слегка повреждённой.")
 		else if(dam <= 0.6)
-			. += span_warning("It looks moderately damaged.")
+			. += span_warning("Выглядит умеренно повреждённой.")
 		else
-			. += span_danger("It looks heavily damaged.")
+			. += span_danger("Выглядит сильно повреждённой.")
 
 	if(rotting)
-		. += span_warning("There is fungus growing on [src].")
-
+		. += span_warning("На [declent_ru(PREPOSITIONAL)] растет грибок.")
 
 /turf/simulated/wall/update_overlays()
 	. = ..()
 	if(!damage_overlays[1]) //list hasn't been populated
 		generate_overlays()
 
-	queue_smooth(src)
+	QUEUE_SMOOTH(src)
 	if(!damage)
 		return
 
@@ -106,11 +114,10 @@
 
 	. += damage_overlays[overlay]
 
-
 /turf/simulated/wall/proc/generate_overlays()
 	var/alpha_inc = 256 / damage_overlays.len
 
-	for(var/i = 1; i <= damage_overlays.len; i++)
+	for(var/i = 1; i <= length(damage_overlays); i++)
 		var/image/img = image(icon = 'icons/turf/walls.dmi', icon_state = "overlay_damage")
 		img.blend_mode = BLEND_MULTIPLY
 		img.alpha = (i * alpha_inc) - 1
@@ -140,12 +147,11 @@
 	if(radiated_temperature > max_temperature)
 		take_damage(rand(10, 20) * (radiated_temperature / max_temperature))
 
-
 /turf/simulated/wall/dismantle_wall(devastated = FALSE, explode = FALSE)
 	if(devastated)
 		devastate_wall()
 	else
-		playsound(src, 'sound/items/welder.ogg', 100, 1)
+		playsound(src, 'sound/items/welder.ogg', 100, TRUE)
 		var/newgirder = break_wall()
 		if(newgirder) //maybe we don't /want/ a girder!
 			transfer_fingerprints_to(newgirder)
@@ -161,32 +167,39 @@
 	new sheet_type(src, sheet_amount)
 	new /obj/item/stack/sheet/metal(src)
 
-/turf/simulated/wall/ex_act(severity)
+/turf/simulated/wall/ex_act(severity, target)
+	if(target == src)
+		dismantle_wall(1, TRUE)
+		return TRUE
+
 	switch(severity)
-		if(1.0)
+		if(EXPLODE_DEVASTATE)
 			ChangeTurf(baseturf)
-			return
-		if(2.0)
-			if(prob(50))
-				take_damage(rand(150, 250))
-			else
-				dismantle_wall(1, 1)
-		if(3.0)
-			take_damage(rand(0, 250))
-		else
-	return
+			return TRUE
+		if(EXPLODE_HEAVY)
+			dismantle_wall(prob(50), TRUE)
+		if(EXPLODE_LIGHT)
+			if(prob(hardness))
+				dismantle_wall(0, TRUE)
+
+	if(!density)
+		return ..()
+
+	return TRUE
 
 /turf/simulated/wall/blob_act(obj/structure/blob/B)
 	add_dent(WALL_DENT_HIT)
-		
+
 /turf/simulated/wall/blob_consume()
 	dismantle_wall()
 
 /turf/simulated/wall/rpd_act(mob/user, obj/item/rpd/our_rpd)
 	if(our_rpd.mode == RPD_ATMOS_MODE)
 		if(!our_rpd.ranged)
-			playsound(src, "sound/weapons/circsawhit.ogg", 50, 1)
-			user.visible_message(span_notice("[user] starts drilling a hole in [src]..."), span_notice("You start drilling a hole in [src]..."), span_italics("You hear drilling."))
+			playsound(src, 'sound/weapons/circsawhit.ogg', 50, TRUE)
+			user.visible_message(span_notice("[user] начина[PLUR_ET_YUT(user)] сверлить отверстие в [declent_ru(PREPOSITIONAL)]..."),
+				span_notice("Вы начинаете сверлить отверстие в [declent_ru(PREPOSITIONAL)]..."),
+				span_italics("Вы слышите звук сверления."))
 			if(!do_after(user, our_rpd.walldelay, src)) //Drilling into walls takes time
 				return
 		our_rpd.create_atmos_pipe(user, src)
@@ -198,19 +211,19 @@
 /turf/simulated/wall/rcd_deconstruct_act(mob/user, obj/item/rcd/our_rcd)
 	. = ..()
 	if(our_rcd.checkResource(5, user))
-		to_chat(user, "Deconstructing wall...")
-		playsound(get_turf(our_rcd), 'sound/machines/click.ogg', 50, 1)
+		to_chat(user, "Разборка стены...")
+		playsound(get_turf(our_rcd), 'sound/machines/click.ogg', 50, TRUE)
 		if(do_after(user, 4 SECONDS * our_rcd.toolspeed, src, category = DA_CAT_TOOL))
 			if(!our_rcd.useResource(5, user))
 				return RCD_ACT_FAILED
-			playsound(get_turf(our_rcd), our_rcd.usesound, 50, 1)
+			playsound(get_turf(our_rcd), our_rcd.usesound, 50, TRUE)
 			add_attack_logs(user, src, "Deconstructed wall with RCD")
 			src.ChangeTurf(our_rcd.floor_type)
 			return RCD_ACT_SUCCESSFULL
-		to_chat(user, span_warning("ERROR! Deconstruction interrupted!"))
+		to_chat(user, span_warning("ОШИБКА! Прервана разборка!"))
 		return RCD_ACT_FAILED
-	to_chat(user, span_warning("ERROR! Not enough matter in unit to deconstruct this wall!"))
-	playsound(get_turf(our_rcd), 'sound/machines/click.ogg', 50, 1)
+	to_chat(user, span_warning("ОШИБКА! Недостаточно вещества в устройстве для разборки этой стены!"))
+	playsound(get_turf(our_rcd), 'sound/machines/click.ogg', 50, TRUE)
 	return RCD_ACT_FAILED
 
 /turf/simulated/wall/mech_melee_attack(obj/mecha/M)
@@ -218,7 +231,7 @@
 	switch(M.damtype)
 		if(BRUTE)
 			playsound(src, 'sound/weapons/punch4.ogg', 50, TRUE)
-			M.visible_message(span_danger("[M.name] hits [src]!"), span_danger("You hit [src]!"))
+			M.visible_message(span_danger("[capitalize(M.declent_ru(NOMINATIVE))] бьет [declent_ru(ACCUSATIVE)]!"), span_danger("Вы бьете [declent_ru(ACCUSATIVE)]!"))
 			if(prob(hardness + M.force) && M.force > 20)
 				dismantle_wall(1)
 				playsound(src, 'sound/effects/meteorimpact.ogg', 100, TRUE)
@@ -243,7 +256,6 @@
 	if(istype(sheet_type, /obj/item/stack/sheet/mineral/diamond))
 		return
 	return ChangeTurf(/turf/simulated/floor/plating)
-
 
 #define THERMITE_PER_SECOND 2.5
 #define DAMAGE_PER_SECOND 60
@@ -273,7 +285,7 @@
 	visuals.layer = FLY_LAYER
 
 	if(user)
-		to_chat(user, span_warning("The thermite starts melting through [src]."))
+		to_chat(user, span_warning("Термит начинает прожигать [declent_ru(ACCUSATIVE)]."))
 
 	if(time)
 		melting = TRUE
@@ -323,7 +335,6 @@
 #undef THERMITE_PER_SECOND
 #undef DAMAGE_PER_SECOND
 
-
 //Interactions
 
 /turf/simulated/wall/attack_animal(mob/living/simple_animal/M)
@@ -332,13 +343,13 @@
 	if((M.environment_smash & ENVIRONMENT_SMASH_WALLS) || (M.environment_smash & ENVIRONMENT_SMASH_RWALLS))
 		if(M.environment_smash & ENVIRONMENT_SMASH_RWALLS)
 			dismantle_wall(1)
-			to_chat(M, span_info("You smash through the wall."))
+			to_chat(M, span_notice("Вы проламываете стену."))
 		else
-			to_chat(M, span_notice("You smash against the wall."))
+			to_chat(M, span_notice("Вы ударяетесь о стену."))
 			take_damage(rand(25, 75))
 			return
 
-	to_chat(M, span_notice("You push the wall but nothing happens!"))
+	to_chat(M, span_notice("Вы толкаете стену, но ничего не происходит"))
 	return
 
 /turf/simulated/wall/attack_hand(mob/user)
@@ -350,29 +361,28 @@
 
 		if(A.environment_smash & ENVIRONMENT_SMASH_RWALLS)
 			dismantle_wall(1)
-			to_chat(A, span_info("You smash through the wall."))
+			to_chat(A, span_notice("Вы проламываете стену."))
 			return
 		if(A.environment_smash & ENVIRONMENT_SMASH_WALLS)
-			to_chat(A, span_notice("You smash against the wall."))
+			to_chat(A, span_notice("Вы ударяетесь о стену."))
 			take_damage(A.obj_damage)
 			return
 
-		to_chat(A, span_notice("You push the wall but nothing happens!"))
+		to_chat(A, span_notice("Вы толкаете стену, но ничего не происходит"))
 		return
 	if(rotting)
 		if(hardness <= 10)
-			to_chat(user, span_notice("This wall feels rather unstable."))
+			to_chat(user, span_notice("Эта стена кажется довольно ненадёжной."))
 			return
 		else
-			to_chat(user, span_notice("The wall crumbles under your touch."))
+			to_chat(user, span_notice("Стена рассыпается от вашего прикосновения."))
 			dismantle_wall()
 			return
 
-	to_chat(user, span_notice("You push the wall but nothing happens!"))
-	playsound(src, 'sound/weapons/genhit.ogg', 25, 1)
+	to_chat(user, span_notice("Вы толкаете стену, но ничего не происходит"))
+	playsound(src, 'sound/weapons/genhit.ogg', 25, TRUE)
 	add_fingerprint(user)
 	return ..()
-
 
 /turf/simulated/wall/attackby(obj/item/I, mob/user, params)
 	. = ..()
@@ -400,7 +410,6 @@
 		user.changeNext_move(I.attack_speed)
 		return .|ATTACK_CHAIN_BLOCKED_ALL
 
-
 /turf/simulated/wall/welder_act(mob/user, obj/item/I)
 	. = TRUE
 	if(reagents?.get_reagent_amount("thermite") && I.use_tool(src, user, volume = I.tool_volume))
@@ -411,7 +420,7 @@
 			for(var/obj/effect/overlay/wall_rot/WR in src)
 				qdel(WR)
 			rotting = FALSE
-			to_chat(user, span_notice("You burn off the fungi with [I]."))
+			to_chat(user, span_notice("Вы выжигаете грибок с помощью [I.declent_ru(GENITIVE)]."))
 		return
 
 	if(!I.tool_use_check(user, 0)) //Wall repair stuff
@@ -420,25 +429,25 @@
 	var/time_required = slicing_duration
 	var/intention
 	if(can_dismantle_with_welder)
-		intention = "Dismantle"
+		intention = "Разобрать"
 	if(damage || LAZYLEN(dent_decals))
-		intention = "Repair"
+		intention = "Починить"
 		if(can_dismantle_with_welder)
 			var/moved_away = user.loc
-			intention = alert(user, "Would you like to repair or dismantle [src]?", "[src]", "Repair", "Dismantle")
+			intention = tgui_alert(user, "Вы хотите починить или разобрать [declent_ru(ACCUSATIVE)]?", "[declent_ru(ACCUSATIVE)]", list("Починить", "Разобрать"))
 			if(user.loc != moved_away)
-				to_chat(user, span_notice("Stay still while doing this!"))
+				to_chat(user, span_notice("Не двигайтесь во время этого действия!"))
 				return
-			if(intention == "Repair")
+			if(intention == "Починить")
 				time_required = max(5, damage / 5)
 	if(!intention)
 		return
-	if(intention == "Dismantle")
+	if(intention == "Разобрать")
 		WELDER_ATTEMPT_SLICING_MESSAGE
 	else
 		WELDER_ATTEMPT_REPAIR_MESSAGE
 	if(I.use_tool(src, user, time_required, volume = I.tool_volume))
-		if(intention == "Dismantle")
+		if(intention == "Разобрать")
 			WELDER_SLICING_SUCCESS_MESSAGE
 			dismantle_wall()
 		else
@@ -448,22 +457,22 @@
 			take_damage(-damage)
 
 /turf/simulated/wall/proc/try_rot(obj/item/I, mob/user, params)
-	if((!is_sharp(I) && I.force >= 10) || I.force >= 20)
-		to_chat(user, span_notice("[src] crumbles away under the force of your [I.name]."))
+	if((!I.sharp && I.force >= 10) || I.force >= 20)
+		to_chat(user, span_notice("[capitalize(declent_ru(NOMINATIVE))] рассыпается под воздействием вашего [I.declent_ru(GENITIVE)]."))
 		dismantle_wall(1)
 		return TRUE
 	return FALSE
 
 /turf/simulated/wall/proc/try_decon(obj/item/I, mob/user, params)
 	if(istype(I, /obj/item/gun/energy/plasmacutter))
-		to_chat(user, span_notice("You begin slicing through the outer plating."))
-		playsound(src, I.usesound, 100, 1)
+		to_chat(user, span_notice("Вы начинаете прорезать внешнюю обшивку."))
+		playsound(src, I.usesound, 100, TRUE)
 
 		var/delay = istype(sheet_type, /obj/item/stack/sheet/mineral/diamond) ? 12 SECONDS : 6 SECONDS
 		if(do_after(user, delay * I.toolspeed, src, category = DA_CAT_TOOL))
-			to_chat(user, span_notice("You remove the outer plating."))
+			to_chat(user, span_notice("Вы удаляете внешнюю обшивку."))
 			dismantle_wall()
-			visible_message(span_warning("[user] slices apart [src]!"), span_warning("You hear metal being sliced apart."))
+			visible_message(span_warning("[user] разреза[PLUR_ET_YUT(user)] [declent_ru(ACCUSATIVE)]!"), span_warning("Слышен звук разрезаемого металла."))
 			return TRUE
 
 	return FALSE
@@ -472,32 +481,32 @@
 	var/isdiamond = istype(sheet_type, /obj/item/stack/sheet/mineral/diamond) // snowflake bullshit
 
 	if(istype(I, /obj/item/pickaxe/drill/diamonddrill))
-		to_chat(user, span_notice("You begin to drill though the wall."))
+		to_chat(user, span_notice("Вы начинаете сверлить стену."))
 
 		var/delay = isdiamond ? 48 SECONDS : 24 SECONDS
 		if(do_after(user, delay * I.toolspeed, src, category = DA_CAT_TOOL)) // Diamond pickaxe has 0.25 toolspeed, so 12s./6s.
-			to_chat(user, span_notice("Your [I.name] tears though the last of the reinforced plating."))
+			to_chat(user, span_notice("Ваш [I.declent_ru(NOMINATIVE)] пробива[PLUR_ET_YUT(user)] последний слой укреплённой обшивки."))
 			dismantle_wall()
-			visible_message(span_warning("[user] drills through [src]!"), span_italics("You hear the grinding of metal."))
+			visible_message(span_warning("[user] просверлива[PLUR_ET_YUT(user)] [declent_ru(ACCUSATIVE)]!"), span_italics("Слышен скрежет металла."))
 			return TRUE
 
 	else if(istype(I, /obj/item/pickaxe/drill/jackhammer))
-		to_chat(user, span_notice("You begin to disintegrates the wall."))
+		to_chat(user, span_notice("Вы начинаете дезинтегрировать стену."))
 		var/obj/item/pickaxe/drill/jackhammer/jh = I
 		var/delay = isdiamond ? 60 SECONDS : 30 SECONDS
 		if(do_after(user, delay * jh.wall_toolspeed, src, category = DA_CAT_TOOL)) // Jackhammer has 0.1 toolspeed, so 6s./3s.
-			to_chat(user, span_notice("Your [I.name] disintegrates the reinforced plating."))
+			to_chat(user, span_notice("Ваш [I.declent_ru(NOMINATIVE)] дезинтегрирует укреплённую обшивку."))
 			dismantle_wall()
-			visible_message(span_warning("[user] disintegrates [src]!"),span_warning("You hear the grinding of metal."))
+			visible_message(span_warning("[user] дезинтегриру[PLUR_ET_YUT(user)] [declent_ru(ACCUSATIVE)]!"), span_warning("Слышен скрежет металла."))
 			return TRUE
 
 	else if(istype(I, /obj/item/twohanded/required/pyro_claws))
-		to_chat(user, span_notice("You begin to melt the wall."))
+		to_chat(user, span_notice("Вы начинаете плавить стену."))
 		var/delay = isdiamond ? 6 SECONDS : 3 SECONDS
 		if(do_after(user, delay * I.toolspeed, src, category = DA_CAT_TOOL)) // claws has 0.5 toolspeed, so 3/1.5 seconds
-			to_chat(user, span_notice("Your [I.name] melts the reinforced plating."))
+			to_chat(user, span_notice("Ваш [I.declent_ru(NOMINATIVE)] плавит укреплённую обшивку."))
 			dismantle_wall()
-			visible_message(span_warning("[user] melts [src]!"),span_italics("You hear the hissing of steam."))
+			visible_message(span_warning("[user] плавит [declent_ru(ACCUSATIVE)]!"), span_italics("Слышно шипение пара."))
 			return TRUE
 
 	return FALSE
@@ -514,17 +523,11 @@
 	if(istype(I, /obj/item/pipe))
 		var/obj/item/pipe/P = I
 		if(P.pipe_type != -1) // ANY PIPE
-			playsound(get_turf(src), 'sound/weapons/circsawhit.ogg', 50, 1)
-			user.visible_message(
-				span_notice("[user] starts drilling a hole in [src]."),
-				span_notice("You start drilling a hole in [src]."),
-				span_italics("You hear a drill."))
+			playsound(get_turf(src), 'sound/weapons/circsawhit.ogg', 50, TRUE)
+			user.visible_message(span_notice("[user] начина[PLUR_ET_YUT(user)] сверлить отверстие в [declent_ru(PREPOSITIONAL)]."), span_notice("Вы начинаете сверлить отверстие в [declent_ru(PREPOSITIONAL)]."), span_italics("Слышен звук дрели."))
 
 			if(do_after(user, 8 SECONDS * P.toolspeed, src, category = DA_CAT_TOOL))
-				user.visible_message(
-					span_notice("[user] drills a hole in [src] and pushes [P] into the void."),
-					span_notice("You finish drilling [src] and push [P] into the void."),
-					span_italics("You hear a ratchet."))
+				user.visible_message(span_notice("[user] просверлива[PLUR_ET_YUT(user)] отверстие в [declent_ru(PREPOSITIONAL)] и проталкива[PLUR_ET_YUT(user)] [P.declent_ru(ACCUSATIVE)] в пустоту."), span_notice("Вы заканчиваете сверление [declent_ru(PREPOSITIONAL)] и проталкиваете [P.declent_ru(ACCUSATIVE)] в пустоту."), span_italics("Слышен звук трещотки."))
 
 				user.drop_from_active_hand()
 				if(P.is_bent_pipe())  // bent pipe rotation fix see construction.dm
@@ -547,7 +550,7 @@
 		I.deplete_spell()
 		ChangeTurf(/turf/simulated/floor/plating)
 		new /obj/structure/falsewall/clockwork(src) //special falsewalls
-		playsound(src, 'sound/magic/cult_spell.ogg', 100, 1)
+		playsound(src, 'sound/magic/cult_spell.ogg', 100, TRUE)
 		return TRUE
 	return FALSE
 
@@ -571,7 +574,6 @@
 /turf/simulated/wall/ratvar_act()
 	if(prob(20))
 		ChangeTurf(/turf/simulated/wall/clockwork)
-
 
 /turf/simulated/wall/acid_act(acidpwr, acid_volume)
 	if(explosion_block >= 2)
@@ -603,4 +605,5 @@
 
 	add_overlay(dent_decals)
 
-#undef MAX_DENT_DECALS
+/turf/simulated/wall/flamer_fire_act(damage)
+	take_damage(damage)

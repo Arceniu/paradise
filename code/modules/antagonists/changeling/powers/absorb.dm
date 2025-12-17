@@ -3,9 +3,7 @@
 	desc = "Absorb the DNA of our victim. Requires us to strangle them."
 	button_icon_state = "absorb_dna"
 	power_type = CHANGELING_INNATE_POWER
-	chemical_cost = 0
 	req_human = TRUE
-
 
 /datum/action/changeling/absorbDNA/can_sting(mob/living/carbon/user, ignore_absorbing = FALSE)
 	if(!..())
@@ -24,7 +22,6 @@
 		return FALSE
 
 	return cling.can_absorb_dna(user.pulling)
-
 
 /datum/action/changeling/absorbDNA/sting_action(mob/user)
 	var/mob/living/carbon/human/target = user.pulling
@@ -73,12 +70,12 @@
 			recent_speech = target.say_log.Copy()
 
 		if(recent_speech)
-			user.mind.store_memory("<B>Some of [target]'s speech patterns. We should study these to better impersonate [target.p_them()]!</B>")
+			user.mind.store_memory("<b>Some of [target]'s speech patterns. We should study these to better impersonate [target.p_them()]!</b>")
 			to_chat(user, span_boldnotice("Some of [target]'s speech patterns. We should study these to better impersonate [target.p_them()]!"))
 			for(var/spoken_memory in recent_speech)
 				user.mind.store_memory("\"[spoken_memory]\"")
 				to_chat(user, span_notice("\"[spoken_memory]\""))
-			user.mind.store_memory("<B>We have no more knowledge of [target]'s speech patterns.</B>")
+			user.mind.store_memory("<b>We have no more knowledge of [target]'s speech patterns.</b>")
 			to_chat(user, span_boldnotice("We have no more knowledge of [target]'s speech patterns."))
 
 		var/datum/antagonist/changeling/target_cling = target?.mind?.has_antag_datum(/datum/antagonist/changeling)
@@ -99,7 +96,6 @@
 	target.death(FALSE)
 	target.Drain()
 	return TRUE
-
 
 #undef LING_ABSORB_RECENT_SPEECH
 

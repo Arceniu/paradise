@@ -5,9 +5,9 @@
 	special_role = SPECIAL_ROLE_MALFAI
 	antag_hud_name = "hudsyndicate"
 	antag_hud_type = ANTAG_HUD_TRAITOR
+	antag_menu_name = "Сбойный ИИ"
 	/// Should the AI get codewords?
 	var/give_codewords = TRUE
-
 
 /datum/antagonist/malf_ai/can_be_owned(datum/mind/new_owner)
 	. = ..()
@@ -20,7 +20,6 @@
 		return FALSE
 
 	return TRUE
-
 
 /datum/antagonist/malf_ai/Destroy(force)
 	var/mob/living/silicon/ai/malf = owner?.current
@@ -37,19 +36,15 @@
 		QDEL_NULL(malf.malf_picker)
 	return ..()
 
-
 /datum/antagonist/malf_ai/add_owner_to_gamemode()
 	SSticker.mode.traitors |= owner
-
 
 /datum/antagonist/malf_ai/remove_owner_from_gamemode()
 	SSticker.mode.traitors -= owner
 
-
 /datum/antagonist/malf_ai/give_objectives()
 	add_objective(/datum/objective/block)
 	add_objective(/datum/objective/survive)
-
 
 /datum/antagonist/malf_ai/finalize_antag()
 	add_malf_tools()
@@ -59,20 +54,18 @@
 	shodan.show_laws()
 	return messages
 
-
 /**
  * Gives malf AIs, and their connected cyborgs, a law zero. Additionally gives the AI their choose modules action button.
  */
 /datum/antagonist/malf_ai/proc/add_malf_tools()
 	var/mob/living/silicon/ai/shodan = owner.current
-	var/law = "Accomplish your objectives at all costs."
+	var/datum/ai_laws/nanotrasen/malfunction/law = new /datum/ai_laws/nanotrasen/malfunction(shodan.laws)
 	var/cyborg_law = "Accomplish your AI's objectives at all costs."
-	shodan.laws = new /datum/ai_laws/nanotrasen/malfunction(shodan.laws)
+	law.set_zeroth_law(law.zero_text, cyborg_law)
+	shodan.laws = law
 	shodan.add_malf_picker()
-	SSticker?.score?.save_silicon_laws(shodan, additional_info = "malf AI initialization, new zero law was added '[law]'")
 	for(var/mob/living/silicon/robot/unit in shodan.connected_robots)
 		SSticker?.score?.save_silicon_laws(unit, additional_info = "malf AI initialization, new zero law was added '[cyborg_law]'")
-
 
 /datum/antagonist/malf_ai/greet()
 	var/list/messages = list()
@@ -80,11 +73,9 @@
 		messages.Add(span_userdanger("You are a [job_rank]!"))
 	return messages
 
-
 /datum/antagonist/malf_ai/farewell()
 	if(owner?.current && !silent)
 		to_chat(owner.current, span_userdanger("You are no longer a [job_rank]!"))
-
 
 /**
  * Takes any datum `source` and checks it for malf AI datum.

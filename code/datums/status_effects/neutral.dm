@@ -2,8 +2,6 @@
 
 /datum/status_effect/crusher_damage //tracks the damage dealt to this mob by kinetic crushers
 	id = "crusher_damage"
-	duration = -1
-	status_type = STATUS_EFFECT_UNIQUE
 	alert_type = null
 	var/total_damage = 0
 
@@ -15,29 +13,24 @@
 	on_remove_on_mob_delete = TRUE
 	var/obj/item/borg/upgrade/modkit/bounty/reward_target
 
-
 /datum/status_effect/syphon_mark/on_creation(mob/living/new_owner, obj/item/borg/upgrade/modkit/bounty/new_reward_target)
 	. = ..()
 	if(.)
 		reward_target = new_reward_target
-
 
 /datum/status_effect/syphon_mark/on_apply()
 	if(owner.stat == DEAD)
 		return FALSE
 	return ..()
 
-
 /datum/status_effect/syphon_mark/proc/get_kill()
 	if(!QDELETED(reward_target))
 		reward_target.get_kill(owner)
-
 
 /datum/status_effect/syphon_mark/tick(seconds_between_ticks)
 	if(owner.stat == DEAD)
 		get_kill()
 		qdel(src)
-
 
 /datum/status_effect/syphon_mark/on_remove()
 	get_kill()
@@ -46,7 +39,6 @@
 /datum/status_effect/staring
 	id = "staring"
 	alert_type = null
-	status_type = STATUS_EFFECT_UNIQUE
 	var/mob/living/target
 	var/target_gender
 	var/target_species
@@ -63,16 +55,15 @@
 
 /datum/status_effect/staring/proc/catch_look(mob/living/opponent)
 	if(target == opponent)
-		to_chat(owner, span_notice("[opponent.name] catch your look!"))
-		to_chat(opponent, span_notice("[owner.name] catch your look!"))
+		to_chat(owner, span_notice("[opponent.name] лов[PLUR_IT_YAT(owner)] ваш взгляд!"))
+		to_chat(opponent, span_notice("[owner.name] лов[PLUR_IT_YAT(owner)] ваш взгляд!"))
 		var/list/loved_ones = list(MALE, FEMALE)
 		if(!ishuman(owner) || !(target_gender in loved_ones) || !(owner.gender in loved_ones))
 			return
 		var/mob/living/carbon/human/human_owner = owner
 		if(target_gender != human_owner.gender && target_species == human_owner.dna.species.name && prob(5))
 			owner.emote("blush")
-			to_chat(owner, span_danger("You feel something burning in your chest..."))
-
+			to_chat(owner, span_danger("Вы чувствуете что-то жгучее в груди..."))
 
 /datum/status_effect/high_five
 	id = "high_five"
@@ -80,9 +71,9 @@
 	alert_type = null
 	status_type = STATUS_EFFECT_REFRESH
 	/// Message displayed when wizards perform this together
-	var/critical_success = "high-five EPICALLY!"
+	var/critical_success = "дают друг другу ЭПИЧНУЮ пятюню!"
 	/// Message displayed when normal people perform this together
-	var/success = "high-five!"
+	var/success = "дают друг другу пятюню!"
 	/// Message displayed when this status effect is applied.
 	var/request = "ищ%(ет,ут)% кому бы дать пятюню..."
 	/// Item to be shown in the pop-up balloon.
@@ -90,14 +81,12 @@
 	/// Sound effect played when this emote is completed.
 	var/sound_effect = 'sound/weapons/slap.ogg'
 
-
 /// So we don't leave folks with god-mode
 /datum/status_effect/high_five/proc/wiz_cleanup(mob/living/carbon/user, mob/living/carbon/highfived)
 	REMOVE_TRAIT(user, TRAIT_GODMODE, UNIQUE_TRAIT_SOURCE(src))
 	REMOVE_TRAIT(highfived, TRAIT_GODMODE, UNIQUE_TRAIT_SOURCE(src))
 	user.remove_status_effect(type)
 	highfived.remove_status_effect(type)
-
 
 /datum/status_effect/high_five/on_apply()
 	if(!iscarbon(owner))
@@ -111,10 +100,10 @@
 		if(!check.has_status_effect(type))
 			continue
 		if(is_wiz && iswizard(check))
-			user.visible_message(span_dangerbigger("<b>[user.name]</b> and <b>[check.name]</b> [critical_success]"))
+			user.visible_message(span_biggerdanger("<b>[user.name]</b> и <b>[check.name]</b> [critical_success]"))
 			ADD_TRAIT(user, TRAIT_GODMODE, UNIQUE_TRAIT_SOURCE(src))
 			ADD_TRAIT(check, TRAIT_GODMODE, UNIQUE_TRAIT_SOURCE(src))
-			explosion(get_turf(user), 5, 2, 1, 3, cause = id)
+			explosion(get_turf(user), devastation_range = 5, heavy_impact_range = 2, light_impact_range = 1, flash_range = 3, cause = id)
 			// explosions have a spawn so this makes sure that we don't get gibbed
 			addtimer(CALLBACK(src, PROC_REF(wiz_cleanup), user, check), 0.3 SECONDS) //I want to be sure this lasts long enough, with lag.
 			add_attack_logs(user, check, "caused a wizard [id] explosion")
@@ -123,7 +112,7 @@
 		check.do_attack_animation(user, no_effect = TRUE)
 		playsound(user, sound_effect, 80)
 		if(!both_wiz)
-			user.visible_message(span_notice("<b>[user.name]</b> and <b>[check.name]</b> [success]"))
+			user.visible_message(span_notice("<b>[user.name]</b> и <b>[check.name]</b> [success]"))
 			user.remove_status_effect(type)
 			check.remove_status_effect(type)
 			return FALSE
@@ -132,52 +121,44 @@
 	owner.custom_emote(EMOTE_VISIBLE, request)
 	//owner.create_point_bubble_from_path(item_path, FALSE)	// later
 
-
 /datum/status_effect/high_five/on_timeout()
 	owner.visible_message("[owner] [get_missed_message()]")
 
-
 /datum/status_effect/high_five/proc/get_missed_message()
 	var/list/missed_highfive_messages = list(
-		"lowers [owner.p_their()] hand, it looks like [owner.p_they()] [owner.p_were()] left hanging...",
-		"seems to awkwardly wave at nobody in particular.",
-		"moves [owner.p_their()] hand directly to [owner.p_their()] forehead in shame.",
-		"fully commits and high-fives empty space.",
-		"high-fives [owner.p_their()] other hand shamefully before wiping away a tear.",
-		"goes for a handshake, then a fistbump, before pulling [owner.p_their()] hand back...? <i>What [owner.p_are()] [owner.p_they()] doing?</i>"
+		"кажется, неловко машет в никуда.",
+		"перемещает свою руку прямо ко лбу от стыда.",
+		"даёт пять в воздух.",
+		"стыдливо хлопает себя по другой руке, прежде чем смахнуть слезу.",
+		"пытается пожать руку, затем ударить кулаками, прежде чем отдернуть руку...? <i>Что [GEND_HE_SHE(owner)] дела[PLUR_ET_YUT(owner)]?</i>"
 	)
 	return pick(missed_highfive_messages)
 
-
 /datum/status_effect/high_five/dap
 	id = "dap"
-	critical_success = "dap each other up EPICALLY!"
-	success = "dap each other up!"
+	critical_success = "ЭПИЧНО побратались!"
+	success = "побратались!"
 	request = "ищ%(ет,ут)% с кем бы побрататься..."
 	sound_effect = 'sound/effects/snap.ogg'
 	item_path = /obj/item/melee/touch_attack/fake_disintegrate  // EI-NATH!
 
-
 /datum/status_effect/high_five/dap/get_missed_message()
-	return "sadly can't find anybody to give daps to, and daps [owner.p_themselves()]. Shameful."
-
+	return "печально, вы не может найти никого, кому можно дать пятюню, и с кем бы побрататься. Стыдно."
 
 /datum/status_effect/high_five/handshake
 	id = "handshake"
-	critical_success = "give each other an EPIC handshake!"
-	success = "give each other a handshake!"
+	critical_success = "делают ЭПИЧЕСКОЕ рукопожатие!"
+	success = "делают рукопожатие!"
 	request = "ищ%(ет,ут)% кому бы пожать руку..."
 	sound_effect = 'sound/weapons/thudswoosh.ogg'
 
-
 /datum/status_effect/high_five/handshake/get_missed_message()
 	var/list/missed_messages = list(
-		"drops [owner.p_their()] hand, shamefully.",
-		"grabs [owner.p_their()] outstretched hand with [owner.p_their()] other hand and gives [owner.p_themselves()] a handshake.",
-		"balls [owner.p_their()] hand into a fist, slowly bringing it back in."
+		"стыдливо опуска[PLUR_ET_YUT(owner)] руку.",
+		"хвата[PLUR_ET_YUT(owner)] свою протянутую руку другой рукой и пожима[PLUR_ET_YUT(owner)] её, будто здорова[PLUR_ET_YUT(owner)]ся сам[GEND_A_O_I(owner)] с собой.",
+		"сжима[PLUR_ET_YUT(owner)] руку в кулак, медленно убирая её."
 	)
 	return pick(missed_messages)
-
 
 /datum/status_effect/adaptive_learning
 	id = "adaptive_learning"
@@ -186,9 +167,12 @@
 	alert_type = null
 	var/bonus_damage = 0
 
-
 /datum/status_effect/charging
 	id = "charging"
+	alert_type = null
+
+/datum/status_effect/lunging
+	id = "lunging"
 	alert_type = null
 
 /datum/status_effect/delayed
@@ -222,12 +206,10 @@
 	. = ..()
 	expire_proc.Invoke()
 
-
 /datum/status_effect/stop_drop_roll
 	id = "stop_drop_roll"
 	alert_type = null
 	tick_interval = 0.8 SECONDS
-
 
 /datum/status_effect/stop_drop_roll/on_apply()
 	if(!iscarbon(owner))
@@ -235,7 +217,7 @@
 
 	var/actual_interval = initial(tick_interval)
 	if(!owner.Knockdown(actual_interval * 2, ignore_canknockdown = TRUE) || owner.body_position != LYING_DOWN)
-		to_chat(owner, span_warning("You try to stop, drop, and roll - but you can't get on the ground!"))
+		to_chat(owner, span_warning("Вы пытаетесь остановиться, упасть и кататься, но не можете лечь на землю!"))
 		return FALSE
 
 	RegisterSignal(owner, COMSIG_MOVABLE_MOVED, PROC_REF(stop_rolling))
@@ -243,19 +225,17 @@
 	ADD_TRAIT(owner, TRAIT_HANDS_BLOCKED, TRAIT_STATUS_EFFECT(id)) // they're kinda busy!
 
 	owner.visible_message(
-		span_danger("[owner] rolls on the floor, trying to put [owner.p_them()]self out!"),
-		span_notice("You stop, drop, and roll!"),
+		span_danger("[owner] ката[PLUR_ET_YUT(owner)]ся по полу, пытаясь потушить себя!"),
+		span_notice("Вы останавливаетесь, падаете и катаетесь!"),
 	)
 	// Start with one weaker roll
 	owner.spin(spintime = actual_interval, speed = actual_interval / 4)
 	owner.adjust_fire_stacks(-0.25)
 	return TRUE
 
-
 /datum/status_effect/stop_drop_roll/on_remove()
 	UnregisterSignal(owner, list(COMSIG_MOVABLE_MOVED, COMSIG_LIVING_SET_BODY_POSITION))
 	REMOVE_TRAIT(owner, TRAIT_HANDS_BLOCKED, TRAIT_STATUS_EFFECT(id))
-
 
 /datum/status_effect/stop_drop_roll/tick(seconds_between_ticks)
 	if(HAS_TRAIT(owner, TRAIT_IMMOBILIZED) || HAS_TRAIT(owner, TRAIT_INCAPACITATED))
@@ -274,19 +254,17 @@
 		return
 
 	owner.visible_message(
-		span_danger("[owner] successfully extinguishes [owner.p_them()]self!"),
-		span_notice("You extinguish yourself."),
+		span_danger("[owner] успешно туш[PLUR_IT_AT(owner)] себя!"),
+		span_notice("Вы тушите себя."),
 	)
 	qdel(src)
-
 
 /datum/status_effect/stop_drop_roll/proc/stop_rolling(datum/source, ...)
 	SIGNAL_HANDLER
 
 	if(!QDELING(owner))
-		to_chat(owner, span_notice("You stop rolling around."))
+		to_chat(owner, span_notice("Вы перестаёте кататься."))
 	qdel(src)
-
 
 /datum/status_effect/stop_drop_roll/proc/body_position_changed(datum/source, new_value, old_value)
 	SIGNAL_HANDLER
@@ -294,9 +272,97 @@
 	if(new_value != LYING_DOWN)
 		stop_rolling()
 
-
 /datum/status_effect/recently_succumbed
 	id = "recently_succumbed"
 	alert_type = null
 	duration = 1 MINUTES
 	status_type = STATUS_EFFECT_REFRESH
+
+/datum/status_effect/forced_rumble
+	id = "forced_rumble"
+	alert_type = null
+	duration = 30 SECONDS
+	status_type = STATUS_EFFECT_REFRESH
+
+/datum/status_effect/forced_rumble/tick(seconds_between_ticks)
+	if(prob(20) && isunathi(owner))
+		owner.emote("rumble")
+
+/datum/status_effect/forced_sneeze
+	id = "forced_sneeze"
+	alert_type = null
+	duration = 1 MINUTES
+	status_type = STATUS_EFFECT_REFRESH
+
+/datum/status_effect/forced_sneeze/tick(seconds_between_ticks)
+	if(prob(30))
+		owner.emote("sneeze")
+
+/atom/movable/screen/alert/status_effect/lavaland_tail_o_dead
+	name = "Хвост мертвеца"
+	desc = "Поедание человеческих конечностей себя оправдало!"
+	icon_state = "tail_o_dead"
+
+/datum/status_effect/lavaland_vision
+	id = "lavaland vision"
+	duration = 5 MINUTES
+	status_type = STATUS_EFFECT_REFRESH
+	alert_type = /atom/movable/screen/alert/status_effect/lavaland_tail_o_dead
+
+/datum/status_effect/lavaland_vision/on_apply()
+	if(ishuman(owner))
+		var/mob/living/carbon/human/human = owner
+		human.force_gene_block(GLOB.colourblindblock, TRUE)
+		human.set_vision_override(/datum/vision_override/nightvision)
+	return TRUE
+
+/datum/status_effect/lavaland_vision/on_remove()
+	if(ishuman(owner))
+		var/mob/living/carbon/human/human = owner
+		human.force_gene_block(GLOB.colourblindblock, FALSE)
+		human.set_vision_override(null)
+
+/atom/movable/screen/alert/status_effect/temperature_stabilize
+	name = "Тушёный пивной червь"
+	desc = "Температура вашего тела стабилизируется в разы быстрее."
+	icon_state = "beer_grub_stew"
+
+/datum/status_effect/temperature_stabilize
+	id = "temperature stabilisation"
+	duration = 5 MINUTES
+	status_type = STATUS_EFFECT_REFRESH
+	alert_type = /atom/movable/screen/alert/status_effect/temperature_stabilize
+	var/temp_effect
+
+/datum/status_effect/temperature_stabilize/tick(seconds_between_ticks)
+	var/normal_temperature = owner?.dna?.species.body_temperature
+	if(!normal_temperature)
+		normal_temperature = BODYTEMP_NORMAL
+	var/difference = owner.bodytemperature - normal_temperature
+	if(abs(difference) > temp_effect)
+		var/current_effect = difference > 0 ? -temp_effect : temp_effect
+		owner.adjust_bodytemperature(current_effect * TEMPERATURE_DAMAGE_COEFFICIENT)
+
+/atom/movable/screen/alert/status_effect/leaning
+	name = "Прислонившись"
+	desc = "Вы прислонились к чему-то."
+	icon_state = "buckled"
+
+/atom/movable/screen/alert/status_effect/leaning/Click()
+	var/mob/living/L = usr
+	if(!istype(L))
+		return
+	L.changeNext_move(CLICK_CD_RESIST)
+	if(L.last_special <= world.time)
+		return L.stop_leaning()
+
+/datum/status_effect/leaning
+	id = "leaning"
+	tick_interval = -1
+	alert_type = /atom/movable/screen/alert/status_effect/leaning
+
+/datum/status_effect/leaning/on_creation(mob/living/carbon/new_owner, atom/object, leaning_offset = 11)
+	. = ..()
+	if(!.)
+		return
+	new_owner.start_leaning(object, leaning_offset)

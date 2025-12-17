@@ -14,15 +14,14 @@
 
 /obj/machinery/disposal
 	name = "disposal unit"
-	desc = "A pneumatic waste disposal unit."
+	desc = "Пневматическая система утилизации отходов."
 	icon = 'icons/obj/pipes_and_stuff/not_atmos/disposal.dmi'
 	icon_state = "disposal"
 	base_icon_state = "disposal"
 	anchored = TRUE
 	density = TRUE
 	on_blueprints = TRUE
-	armor = list("melee" = 25, "bullet" = 10, "laser" = 10, "energy" = 100, "bomb" = 0, "bio" = 100, "rad" = 100, "fire" = 90, "acid" = 30)
-	max_integrity = 200
+	armor = list(MELEE = 25, BULLET = 10, LASER = 10, ENERGY = 100, BOMB = 0, BIO = 100, RAD = 100, FIRE = 90, ACID = 30)
 	resistance_flags = FIRE_PROOF
 	active_power_usage = 600
 	idle_power_usage = 100
@@ -46,6 +45,15 @@
 	var/max_combined_w_class = 50
 	COOLDOWN_DECLARE(eject_effects_cd)
 
+/obj/machinery/disposal/get_ru_names()
+	return list(
+		NOMINATIVE = "мусоропровод",
+		GENITIVE = "мусоропровода",
+		DATIVE = "мусоропроводу",
+		ACCUSATIVE = "мусоропровод",
+		INSTRUMENTAL = "мусоропроводом",
+		PREPOSITIONAL = "мусоропроводе",
+	)
 
 /obj/machinery/disposal/Initialize(mapload, obj/structure/disposalconstruct/made_from)
 	// this will get a copy of the air turf and take a SEND PRESSURE amount of air from it
@@ -55,7 +63,6 @@
 		setDir(made_from.dir)
 	return INITIALIZE_HINT_LATELOAD
 
-
 /obj/machinery/disposal/LateInitialize()
 	. = ..()
 	var/datum/gas_mixture/env = new
@@ -64,7 +71,6 @@
 	air_contents.merge(removed)
 	trunk_check()
 	update()
-
 
 /obj/machinery/disposal/proc/trunk_check()
 	var/obj/structure/disposalpipe/trunk/found_trunk = locate() in loc
@@ -77,7 +83,6 @@
 		found_trunk.set_linked(src) // link the pipe trunk to self
 		trunk = found_trunk
 
-
 //When the disposalsoutlet is forcefully moved. Due to meteorshot (not the recall spell)
 /obj/machinery/disposal/Moved(atom/old_loc, movement_dir, forced, list/old_locs, momentum_change = TRUE)
 	. = ..()
@@ -87,13 +92,12 @@
 	if(isfloorturf(floor) && floor.intact)
 		floor.remove_tile(null, TRUE, TRUE)
 		floor.visible_message(
-			span_warning("The floortile is ripped from the floor!"),
-			span_warning("You hear a loud bang!"),
+			span_warning("Плитка вырывается из пола!"),
+			span_warning("Слышен громкий хлопок!")
 		)
 	var/obj/structure/disposalconstruct/construct = new(loc, null, null, src)
 	transfer_fingerprints_to(construct)
 	qdel(src)
-
 
 /obj/machinery/disposal/Destroy()
 	eject()
@@ -102,12 +106,10 @@
 		trunk = null
 	return ..()
 
-
 /obj/machinery/disposal/singularity_pull(S, current_size)
 	..()
 	if(current_size >= STAGE_FIVE)
 		deconstruct()
-
 
 //This proc returns TRUE if the item can be picked up and FALSE if it can't.
 //Set the stop_messages to stop it from printing messages
@@ -117,9 +119,9 @@
 
 	if(loc == W)
 		return FALSE //Means the item is already in the storage item
-	if(contents.len >= storage_slots)
+	if(length(contents) >= storage_slots)
 		if(!stop_messages)
-			to_chat(usr, "<span class='warning'>[W] won't fit in [src], make some space!</span>")
+			to_chat(usr, span_warning("[capitalize(W.declent_ru(NOMINATIVE))] не помещается в [declent_ru(ACCUSATIVE)], освободите место!"))
 		return FALSE //Storage item is full
 
 	var/sum_w_class = W.w_class
@@ -128,15 +130,14 @@
 
 	if(sum_w_class > max_combined_w_class)
 		if(!stop_messages)
-			to_chat(usr, "<span class='notice'>[src] is full, make some space.</span>")
+			to_chat(usr, span_notice("[capitalize(declent_ru(NOMINATIVE))] переполнен, освободите место."))
 		return FALSE
 
 	if(HAS_TRAIT(W, TRAIT_NODROP)) //SHOULD be handled in unEquip, but better safe than sorry.
-		to_chat(usr, "<span class='notice'>\the [W] is stuck to your hand, you can't put it in \the [src]</span>")
+		to_chat(usr, span_notice("[capitalize(W.declent_ru(NOMINATIVE))] прилип к вашей руке, вы не можете выкинуть его в [declent_ru(ACCUSATIVE)]."))
 		return FALSE
 
 	return TRUE
-
 
 /obj/machinery/disposal/attackby(obj/item/I, mob/user, params)
 	if(user.a_intent == INTENT_HARM || (stat & BROKEN))
@@ -144,7 +145,7 @@
 
 	add_fingerprint(user)
 	if(istype(I, /obj/item/melee/energy/blade))	// why???
-		to_chat(user, span_warning("You cannot place that item inside the disposal unit."))
+		to_chat(user, span_warning("Вы не можете поместить этот предмет в мусоропровод."))
 		return ATTACK_CHAIN_PROCEED
 
 	if(isstorage(I))
@@ -158,13 +159,13 @@
 				item.add_fingerprint(user)
 			if(length(storage))
 				user.visible_message(
-					span_notice("[user] has dumped some items from [storage] into [src]."),
-					span_notice("You have dumped some items from [storage] into [src]."),
+					span_notice("[capitalize(user.declent_ru(NOMINATIVE))] выгружа[PLUR_ET_YUT(user)] предметы из [storage.declent_ru(GENITIVE)] в [declent_ru(ACCUSATIVE)]."),
+					span_notice("Вы выгружаете предметы из [storage.declent_ru(GENITIVE)] в [declent_ru(ACCUSATIVE)].")
 				)
 			else
 				user.visible_message(
-					span_notice("[user] has emptied [storage] into [src]."),
-					span_notice("You have emptied [storage] into [src]."),
+					span_notice("[capitalize(user.declent_ru(NOMINATIVE))] опустоша[PLUR_ET_YUT(user)] [storage.declent_ru(GENITIVE)] в [declent_ru(ACCUSATIVE)]."),
+					span_notice("Вы опустошаете [storage.declent_ru(GENITIVE)] в [declent_ru(ACCUSATIVE)].")
 				)
 			update()
 			return ATTACK_CHAIN_PROCEED_SUCCESS
@@ -172,29 +173,29 @@
 	if(!can_be_inserted(I) || !user.drop_transfer_item_to_loc(I, src))
 		return ..()
 
+	SEND_SIGNAL(I, COMSIG_DISPOSAL_INJECT, src)
+
 	user.visible_message(
-		span_notice("[user] has placed [I] into [src]."),
-		span_notice("You have placed [I] into [src]."),
+		span_notice("[capitalize(user.declent_ru(NOMINATIVE))] помеща[PLUR_ET_YUT(user)] [I.declent_ru(ACCUSATIVE)] в [declent_ru(ACCUSATIVE)]."),
+		span_notice("Вы помещаете [I.declent_ru(ACCUSATIVE)] в [declent_ru(ACCUSATIVE)].")
 	)
 	update()
 	return ATTACK_CHAIN_BLOCKED_ALL
-
 
 /obj/machinery/disposal/grab_attack(mob/living/grabber, atom/movable/grabbed_thing)
 	. = TRUE
 	if(grabber.grab_state < GRAB_AGGRESSIVE || !isliving(grabbed_thing))
 		return .
 
-	grabber.visible_message(span_notice("[grabber] starts putting [grabbed_thing.name] into the disposal."), ignored_mobs = grabber)
+	grabber.visible_message(span_notice("[capitalize(grabber.declent_ru(NOMINATIVE))] начинает помещать [grabbed_thing.declent_ru(ACCUSATIVE)] в мусоропровод."), ignored_mobs = grabber)
 	if(!do_after(grabber, 2 SECONDS, src, NONE) || !grabbed_thing || grabber.pulling != grabbed_thing)
 		return .
 
 	add_fingerprint(grabber)
 	grabbed_thing.forceMove(src)
-	grabber.visible_message(span_warning("[grabbed_thing.name] has been placed in [src] by [grabber]."))
+	grabber.visible_message(span_warning("[capitalize(grabber.declent_ru(NOMINATIVE))] поместил [grabbed_thing.declent_ru(ACCUSATIVE)] в [declent_ru(ACCUSATIVE)]."))
 	add_attack_logs(grabber, grabbed_thing, "Disposal'ed")
 	update()
-
 
 /obj/machinery/disposal/screwdriver_act(mob/user, obj/item/I)
 	if(mode > OFF) // It's on
@@ -202,23 +203,22 @@
 	. = TRUE
 	if(!I.use_tool(src, user, 0, volume = I.tool_volume))
 		return
-	if(contents.len > 0)
-		to_chat(user, "Eject the items first!")
+	if(length(contents) > 0)
+		to_chat(user, "Сначала извлеките предметы!")
 		return
 	if(mode == OFF) // It's off but still not unscrewed
 		mode = UNSCREWED // Set it to doubleoff l0l
 	else if(mode == UNSCREWED)
 		mode = OFF
-	to_chat(user, "You [mode ? "unfasten": "fasten"] the screws around the power connection.")
+	to_chat(user, "Вы [mode ? "ослабляете" : "затягиваете"] винты питания.")
 	update()
-
 
 /obj/machinery/disposal/welder_act(mob/user, obj/item/I)
 	. = TRUE
 	if(mode != UNSCREWED)
 		return .
 	if(length(contents))
-		to_chat(user, "Eject the items first!")
+		to_chat(user, "Сначала извлеките предметы!")
 		return .
 	if(!I.tool_use_check(user, 0))
 		return .
@@ -231,24 +231,24 @@
 	construct.set_anchored(TRUE)
 	qdel(src)
 
-
 /obj/machinery/disposal/shove_impact(mob/living/target, mob/living/attacker)
 	target.visible_message(
-		span_warning("[attacker] shoves [target] inside of [src]!"),
-		span_userdanger("[attacker] shoves you inside of [src]!"),
-		span_warning("You hear the sound of something being thrown in the trash.")
+		span_warning("[capitalize(attacker.declent_ru(NOMINATIVE))] заталкива[PLUR_ET_YUT(attacker)] [target.declent_ru(ACCUSATIVE)] в [declent_ru(ACCUSATIVE)]!"),
+		span_userdanger("[capitalize(attacker.declent_ru(NOMINATIVE))] заталкива[PLUR_ET_YUT(attacker)] вас в [declent_ru(ACCUSATIVE)]!"),
+		span_warning("Слышен звук чего-то, брошенного в мусорку.")
 	)
 	target.forceMove(src)
 	add_attack_logs(attacker, target, "Shoved into disposals")
-	playsound(src, "sound/effects/bang.ogg")
+	playsound(src, 'sound/effects/bang.ogg', 30)
 	update()
 	return TRUE
-
 
 // mouse drop another mob or self
 //
 /obj/machinery/disposal/MouseDrop_T(mob/living/target, mob/living/user, params)
 	if(!istype(target) || target.buckled || target.has_buckled_mobs() || !in_range(user, src) || !in_range(user, target) || user.incapacitated() || HAS_TRAIT(user, TRAIT_HANDS_BLOCKED) || isAI(user))
+		return
+	if(user.has_status_effect(STATUS_EFFECT_LEANING) || target.has_status_effect(STATUS_EFFECT_LEANING))
 		return
 	if(isanimal(user) && target != user)
 		return //animals cannot put mobs other than themselves into disposal
@@ -257,12 +257,11 @@
 	add_fingerprint(user)
 	for(var/mob/viewer in viewers(user))
 		if(target == user)
-			viewer.show_message("[user] starts climbing into the disposal.", 3)
+			viewer.show_message("[capitalize(user.declent_ru(NOMINATIVE))] начина[PLUR_ET_YUT(user)] залезать в мусоропровод.", 3)
 		else
-			viewer.show_message("[user] starts stuffing [target.name] into the disposal.", 3)
+			viewer.show_message("[capitalize(user.declent_ru(NOMINATIVE))] начина[PLUR_ET_YUT(user)] заталкивать [target.declent_ru(ACCUSATIVE)] в мусоропровод.", 3)
 	INVOKE_ASYNC(src, TYPE_PROC_REF(/obj/machinery/disposal, put_in), target, user)
 	return TRUE
-
 
 /obj/machinery/disposal/proc/put_in(mob/living/target, mob/living/user) // need this proc to use INVOKE_ASYNC in other proc. You're not recommended to use that one
 	var/msg
@@ -273,11 +272,11 @@
 		return
 	if(target == user && !user.incapacitated())	// if drop self, then climbed in
 											// must be awake, not stunned or whatever
-		msg = "[user.name] climbs into [src]."
-		to_chat(user, "You climb into [src].")
+		msg = "[capitalize(user.declent_ru(NOMINATIVE))] залеза[PLUR_ET_YUT(user)] в [declent_ru(ACCUSATIVE)]."
+		to_chat(user, "Вы залезаете в [declent_ru(ACCUSATIVE)].")
 	else if(target != user && !user.incapacitated() && !HAS_TRAIT(user, TRAIT_HANDS_BLOCKED))
-		msg = "[user.name] stuffs [target.name] into [src]!"
-		to_chat(user, "You stuff [target.name] into [src]!")
+		msg = "[capitalize(user.declent_ru(NOMINATIVE))] заталкива[PLUR_ET_YUT(user)] [target.name] в [declent_ru(ACCUSATIVE)]!"
+		to_chat(user, "Вы заталкиваете [target.declent_ru(ACCUSATIVE)] в [declent_ru(ACCUSATIVE)]!")
 		if(!iscarbon(user))
 			target.LAssailant = null
 		else
@@ -292,13 +291,44 @@
 
 	update()
 
+/// Alternative tg proc, used in monkey AI
+/obj/machinery/disposal/proc/monkey_stuff_mob(mob/living/target, mob/living/user)
+	var/ventcrawler = HAS_TRAIT(user, TRAIT_VENTCRAWLER_ALWAYS) || HAS_TRAIT(user, TRAIT_VENTCRAWLER_NUDE)
+	var/target_loc = target.loc
+	if(!iscarbon(user) && !ventcrawler) //only carbon and ventcrawlers can climb into disposal by themselves.
+		return
+	if(!isturf(user.loc)) //No magically doing it from inside closets
+		return
+	if(QDELETED(src) || target_loc != target.loc)
+		return
+	if(target.buckled || target.has_buckled_mobs())
+		return
+	if(target.mob_size > MOB_SIZE_HUMAN)
+		to_chat(user, span_warning("[capitalize(target.declent_ru(NOMINATIVE))] не помещается в [declent_ru(ACCUSATIVE)]!"))
+		return
+	add_fingerprint(user)
+	if(user == target)
+		user.visible_message(span_warning("[capitalize(user.declent_ru(NOMINATIVE))] начина[PLUR_ET_YUT(user)] забираться в [declent_ru(ACCUSATIVE)]."), span_notice("Вы начинаете забираться в [declent_ru(ACCUSATIVE)]..."))
+	else
+		target.visible_message(span_danger("[capitalize(user.declent_ru(NOMINATIVE))] начина[PLUR_ET_YUT(user)] запихивать [target] в [declent_ru(ACCUSATIVE)]."), span_userdanger("[capitalize(user.declent_ru(NOMINATIVE))] начинает запихивать вас в [declent_ru(ACCUSATIVE)]!"))
+	if(do_after(user, 2 SECONDS, target))
+		if(!loc)
+			return
+		target.forceMove(src)
+	if(user == target)
+		user.visible_message(span_warning("[capitalize(user.declent_ru(NOMINATIVE))] забира[PLUR_ET_YUT(user)]ся в [declent_ru(ACCUSATIVE)]."), span_notice("Вы забираетесь [declent_ru(ACCUSATIVE)]."))
+		. = TRUE
+	else
+		target.visible_message(span_danger("[capitalize(user.declent_ru(NOMINATIVE))] запихива[PLUR_ET_YUT(user)] [target] в [declent_ru(ACCUSATIVE)]."), span_userdanger("[capitalize(user.declent_ru(NOMINATIVE))] запихивает вас в [declent_ru(ACCUSATIVE)]."))
+		add_attack_logs(user, target, "Disposal'ed")
+		. = TRUE
+	update()
 
 // attempt to move while inside
 /obj/machinery/disposal/relaymove(mob/user)
 	if(user.stat || src.flushing)
 		return
 	go_out(user)
-
 
 // leave the disposal
 /obj/machinery/disposal/proc/go_out(mob/user)
@@ -314,7 +344,6 @@
 /obj/machinery/disposal/attack_ghost(mob/user)
 	ui_interact(user)
 
-
 // human interact with machine
 /obj/machinery/disposal/attack_hand(mob/user)
 	if(..())
@@ -324,7 +353,7 @@
 		return
 
 	if(user && user.loc == src)
-		to_chat(usr, "<span class='warning'>You cannot reach the controls from inside.</span>")
+		to_chat(usr, span_warning("Вы не можете дотянуться до управления изнутри."))
 		return
 
 	// Clumsy folks can only flush it.
@@ -334,13 +363,11 @@
 		flush = !flush
 		update()
 
-
 /obj/machinery/disposal/ui_interact(mob/user, datum/tgui/ui = null)
 	ui = SStgui.try_update_ui(user, src, ui)
 	if(!ui)
 		ui = new(user, src, "DisposalBin", name)
 		ui.open()
-
 
 /obj/machinery/disposal/ui_data(mob/user)
 	var/list/data = list()
@@ -356,11 +383,11 @@
 	if(..())
 		return
 	if(usr.loc == src)
-		to_chat(usr, "<span class='warning'>You cannot reach the controls from inside.</span>")
+		to_chat(usr, span_warning("Вы не можете дотянуться до управления изнутри."))
 		return
 
 	if(mode == UNSCREWED && action != "eject") // If the mode is -1, only allow ejection
-		to_chat(usr, "<span class='warning'>The disposal units power is disabled.</span>")
+		to_chat(usr, span_warning("Питание мусоропровода отключено."))
 		return
 
 	if(stat & BROKEN)
@@ -391,29 +418,25 @@
 				eject()
 	return TRUE
 
-
 // eject the contents of the disposal unit
 /obj/machinery/disposal/proc/eject()
 	pipe_eject(src, FALSE, FALSE)
 	update()
 
-
-/obj/machinery/disposal/AltClick(mob/user)
-	if(!Adjacent(user) || !ishuman(user) || user.incapacitated() || HAS_TRAIT(user, TRAIT_HANDS_BLOCKED))
-		return ..()
+/obj/machinery/disposal/click_alt(mob/user)
 	user.visible_message(
-		"<span class='notice'>[user] tries to eject the contents of [src] manually.</span>",
-		"<span class='notice'>You operate the manual ejection lever on [src].</span>"
+		span_notice("[capitalize(user.declent_ru(NOMINATIVE))] пыта[PLUR_ET_YUT(user)]ся вручную извлечь содержимое [declent_ru(GENITIVE)]."),
+		span_notice("Вы активируете ручной рычаг извлечения [src].")
 	)
 	if(!do_after(user, 5 SECONDS, src))
-		return ..()
+		return CLICK_ACTION_BLOCKING
 
 	user.visible_message(
-		"<span class='notice'>[user] ejects the contents of [src].</span>",
-		"<span class='notice'>You eject the contents of [src].</span>",
+		span_notice("[capitalize(user.declent_ru(NOMINATIVE))] извлека[PLUR_ET_YUT(user)] содержимое [declent_ru(GENITIVE)]."),
+		span_notice("Вы извлекаете содержимое [src].")
 	)
 	eject()
-
+	return CLICK_ACTION_SUCCESS
 
 // update the icon & overlays to reflect mode & status
 /obj/machinery/disposal/proc/update()
@@ -423,13 +446,11 @@
 
 	update_icon()
 
-
 /obj/machinery/disposal/update_icon_state()
 	if(stat & BROKEN)
 		icon_state = "disposal-broken"
 		return
 	icon_state = initial(icon_state)
-
 
 /obj/machinery/disposal/update_overlays()
 	. = ..()
@@ -443,7 +464,7 @@
 	if((stat & (NOPOWER|BROKEN)) || mode == UNSCREWED)
 		return
 
-	// 	check for items in disposal - occupied light
+	//	check for items in disposal - occupied light
 	if(length(contents))
 		. += "dispover-full"
 		underlays += emissive_appearance(icon, "dispover-full", src)
@@ -457,7 +478,6 @@
 		if(CHARGED)
 			. += "dispover-ready"
 			underlays += emissive_appearance(icon, "dispover-lightmask", src)
-
 
 // timed process
 // charge the gas reservoir and perform flush if ready
@@ -506,7 +526,6 @@
 		mode = CHARGED
 		update()
 
-
 // perform a flush
 /obj/machinery/disposal/proc/flush()
 	flushing = TRUE
@@ -531,10 +550,8 @@
 		mode = CHARGING	// switch to charging
 	update()
 
-
 /obj/machinery/disposal/proc/flush_animation()
 	flick("[icon_state]-flush", src)
-
 
 /obj/machinery/disposal/proc/manage_wrapping(obj/structure/disposalholder/holder)
 	for(var/atom/movable/thing as anything in contents)
@@ -542,13 +559,11 @@
 			holder.tomail = TRUE
 			return
 
-
 // called when area power changes
 /obj/machinery/disposal/power_change(forced = FALSE)
 	. = ..()
 	if(.)
 		update()	// do default setting/reset of stat NOPOWER bit
-
 
 // called when holder is expelled from a disposal
 // should usually only occur if the pipe network is modified
@@ -564,37 +579,42 @@
 	holder.vent_gas(loc)
 	qdel(holder)
 
-
 /obj/machinery/disposal/CanAllowThrough(atom/movable/mover, border_dir)
 	. = ..()
 	if((isitem(mover) && !isprojectile(mover)) && mover.throwing && mover.pass_flags != PASSEVERYTHING)
 		if((prob(75)  || mover.throwing.thrower && HAS_TRAIT(mover.throwing.thrower, TRAIT_BADASS)) && can_be_inserted(mover, TRUE))
 			mover.forceMove(src)
-			visible_message("[mover] lands in [src].")
+			SEND_SIGNAL(mover, COMSIG_DISPOSAL_INJECT, src)
+			visible_message("[capitalize(mover.declent_ru(NOMINATIVE))] приземляется в [declent_ru(ACCUSATIVE)].")
 			update()
 		else
-			visible_message("[mover] bounces off of [src]'s rim!")
+			visible_message("[capitalize(mover.declent_ru(NOMINATIVE))] отскакивает от края [declent_ru(GENITIVE)]!")
 		return FALSE
-
 
 /obj/machinery/disposal/get_remote_view_fullscreens(mob/user)
 	if(user.stat == DEAD || !(user.sight & (SEEOBJS|SEEMOBS)))
 		user.overlay_fullscreen("remote_view", /atom/movable/screen/fullscreen/impaired, 2)
 
-
 /obj/machinery/disposal/force_eject_occupant(mob/target)
 	target.forceMove(get_turf(src))
 
-
 /obj/machinery/disposal/deliveryChute
 	name = "Delivery chute"
-	desc = "A chute for big and small packages alike!"
-	density = TRUE
+	desc = "Люк для транспортировки как больших, так и маленьких грузов!"
 	icon_state = "intake"
 	base_icon_state = "intake"
 	/// Whether this chute directs all items into the cargo waste sorting area
 	var/to_waste = TRUE
 
+/obj/machinery/disposal/deliveryChute/get_ru_names()
+	return list(
+		NOMINATIVE = "грузовой люк",
+		GENITIVE = "грузового люка",
+		DATIVE = "грузовому люку",
+		ACCUSATIVE = "грузовой люк",
+		INSTRUMENTAL = "грузовым люком",
+		PREPOSITIONAL = "грузовом люке",
+	)
 
 /obj/machinery/disposal/deliveryChute/attackby(obj/item/I, mob/user, params)
 	if(user.a_intent == INTENT_HARM)
@@ -603,7 +623,7 @@
 	if(istype(I, /obj/item/destTagger))
 		add_fingerprint(user)
 		to_waste = !to_waste
-		to_chat(user, span_notice("The chute is now set to [to_waste ? "waste" : "cargo"] disposals."))
+		to_chat(user, span_notice("Люк переключен на [to_waste ? "мусорную" : "грузовую"] систему."))
 		if(COOLDOWN_FINISHED(src, eject_effects_cd))
 			COOLDOWN_START(src, eject_effects_cd, DISPOSAL_SOUND_COOLDOWN)
 			playsound(loc, 'sound/machines/twobeep.ogg', 100, TRUE)
@@ -611,12 +631,10 @@
 
 	return  ..()
 
-
 /obj/machinery/disposal/deliveryChute/examine(mob/user)
 	. = ..()
-	. += "<span class='notice'>The chute is set to [to_waste ? "waste" : "cargo"] disposals.</span>"
-	. += "<span class='info'>Use a destination tagger to change the disposal destination.</span>"
-
+	. += span_notice("Люк настроен на [to_waste ? "мусорную" : "грузовую"] систему.")
+	. += span_notice("Используйте маркировщик для изменения пункта назначения.")
 
 /obj/machinery/disposal/deliveryChute/interact()
 	return
@@ -649,7 +667,6 @@
 	if(mode != OFF)
 		flush()
 
-
 /obj/machinery/disposal/deliveryChute/hitby(atom/movable/AM, skipcatch, hitpush, blocked, datum/thrownthing/throwingdatum)
 	if(isprojectile(AM))
 		return ..() //chutes won't eat bullets
@@ -659,7 +676,6 @@
 
 /obj/machinery/disposal/deliveryChute/flush_animation()
 	flick("intake-closing", src)
-
 
 /obj/machinery/disposal/deliveryChute/manage_wrapping(obj/structure/disposalholder/holder)
 	var/wrap_check = FALSE
@@ -686,7 +702,6 @@
 		holder.tomail = TRUE
 	else if(!wrap_check && to_waste)
 		holder.destinationTag = 1
-
 
 #undef SEND_PRESSURE
 #undef UNSCREWED

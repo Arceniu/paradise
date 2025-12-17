@@ -1,21 +1,16 @@
 /obj/item/decorations
 	icon = 'icons/obj/decorations.dmi'
 
-
 //duct tape decorations
 /obj/item/decorations/sticky_decorations
 	w_class = WEIGHT_CLASS_TINY
 
-
-/obj/item/decorations/sticky_decorations/New()
+/obj/item/decorations/sticky_decorations/Initialize(mapload)
 	. = ..()
 	AddComponent(/datum/component/ducttape, 0, 0, TRUE)//add this to something to make it sticky but without the tape overlay
 
-
-
 /obj/item/decorations/sticky_decorations/flammable
 	resistance_flags = FLAMMABLE
-
 
 //Non-holiday decorations
 
@@ -43,7 +38,6 @@
 	name = "paper clock"
 	desc = "A paper clock. Right at least twice a day."
 	icon_state = "paper_clock"
-
 
 /obj/item/decorations/flag/soviet
 	name = "An old Soviet flag"
@@ -162,8 +156,6 @@
 
 //Valentines decorations
 
-
-
 /obj/item/decorations/sticky_decorations/flammable/arrowed_heart
 	name = "paper heart"
 	desc = "A paper heart. It's been shot through and Cupid is to blame!"
@@ -215,19 +207,14 @@
 /obj/item/decorations/sticky_decorations/flammable/easter_egg/orange
 	icon_state = "decoration_easter_egg_orange"
 
-
-
-
 ///////
 //Decorative structures
 ///////
-
 
 /obj/structure/decorative_structures
 	icon = 'icons/obj/decorations.dmi'
 	icon_state = ""
 	density = TRUE
-	anchored = FALSE
 	max_integrity = 100
 
 /obj/structure/decorative_structures/fireplace
@@ -248,7 +235,6 @@
 /obj/structure/decorative_structures/garland
 	density = FALSE
 	anchored = TRUE
-	max_integrity = 100
 	icon_state = "xmaslights"
 
 /obj/structure/decorative_structures/garland/Initialize(mapload)
@@ -288,11 +274,9 @@
 	desc = "Praise be to lady Tesla!"
 	icon_state = "tesla_monument"
 
-
 /obj/structure/decorative_structures/flammable
 	resistance_flags = FLAMMABLE
 	max_integrity = 50
-
 
 /obj/structure/decorative_structures/flammable/grandfather_clock
 	name = "grandfather clock"
@@ -304,12 +288,9 @@
 	desc = "The tomb of many a miner and possibly a home for much worse things."
 	icon_state = "lava_land_display"
 
-
-
 ///////
 //Decorative corpses
 ///////
-
 
 /obj/structure/decorative_structures/corpse
 	name = "Bloody body"
@@ -318,14 +299,14 @@
 	max_integrity = 5
 	var/bloodtiles = 8  // number of tiles with blood while pulling
 
-/obj/structure/decorative_structures/corpse/Initialize()
+/obj/structure/decorative_structures/corpse/Initialize(mapload)
 	START_PROCESSING(SSobj, src)
 	. = ..()
 
 /obj/structure/decorative_structures/corpse/Destroy()
-	playsound(src, 'sound/goonstation/effects/gib.ogg', 30, 0)
+	playsound(src, 'sound/goonstation/effects/gib.ogg', 30, FALSE)
 	var/turf/T = get_turf(src)
-	new /obj/effect/particle_effect/smoke/vomiting(T)
+	new /obj/effect/particle_effect/fluid/smoke/vomiting(T)
 	new /obj/item/reagent_containers/food/snacks/monstermeat/rotten/jumping(T)
 	new /obj/item/reagent_containers/food/snacks/monstermeat/rotten/jumping(T)
 	new /obj/item/reagent_containers/food/snacks/monstermeat/rotten/jumping(T)
@@ -335,9 +316,9 @@
 	..()
 
 /obj/structure/decorative_structures/corpse/attack_hand(mob/living/user)
-	take_damage(pick(2,3), BRUTE, "melee")
+	take_damage(pick(2,3), BRUTE, MELEE)
 	playsound(src, (pick('sound/weapons/punch1.ogg','sound/weapons/punch2.ogg','sound/weapons/punch3.ogg','sound/weapons/punch4.ogg')), 20, 0)
-	user.visible_message("<span class='danger'>You punched something viscous! You hear a slimy sound.</span>")
+	user.visible_message(span_danger("You punched something viscous! You hear a slimy sound."))
 
 /obj/structure/decorative_structures/corpse/play_attack_sound()
 	return
@@ -359,38 +340,14 @@
 				continue
 			if(HAS_TRAIT(H, TRAIT_NO_BREATH))
 				continue //no puking if you can't smell!
-			to_chat(H, "<span class='warning'>You smell something foul...</span>")
+			to_chat(H, span_warning("You smell something foul..."))
 			H.fakevomit()
 
 ///// jumping meat for body explotion effect
-
-/obj/item/reagent_containers/food/snacks/monstermeat/rotten/jumping/Initialize(var/turf/T)
-	T = get_offset_target_turf(src.loc, rand(2)-rand(2), rand(2)-rand(2))
-	src.throw_at(T, 2, 1)
-	..()
-
-///// vomit cause gas
-/obj/effect/particle_effect/smoke/vomiting
-	color = "#752424"
-	lifetime = 3
-
-/obj/effect/particle_effect/smoke/vomiting/process()
-	if(..())
-		for(var/mob/living/carbon/M in range(2,src))
-			smoke_mob(M)
-
-
-/obj/effect/particle_effect/smoke/vomiting/smoke_mob(mob/living/carbon/victim)
+/obj/item/reagent_containers/food/snacks/monstermeat/rotten/jumping/Initialize(mapload, turf/T)
 	. = ..()
-	if(!.)
-		return .
-	victim.drop_from_active_hand()
-	victim.vomit()
-	INVOKE_ASYNC(victim, TYPE_PROC_REF(/mob, emote), "cough")
-
-
-/datum/effect_system/smoke_spread/vomiting
-	effect_type = /obj/effect/particle_effect/smoke/vomiting
+	T = get_offset_target_turf(loc, rand(2)-rand(2), rand(2)-rand(2))
+	throw_at(T, 2, 1)
 
 ////// Bouquets
 
@@ -399,7 +356,7 @@
 	desc = "A bouquet of beautiful flowers, looks a little withered."
 	icon = 'icons/obj/weapons/bouquet.dmi'
 	icon_state = "mixedbouquet"
-	attack_verb = list("attacked", "slashed", "torn", "ripped", "cut", "smashed")
+	attack_verb = list("атаковал", "полоснул", "поранил", "порезал")
 	max_integrity = 20
 	force = 2
 	throwforce = 1
@@ -430,7 +387,6 @@
 	. = ..()
 	set_light(2, 1, COLOR_RED)
 
-
 /obj/structure/decorative_structures/cult_crystal/attackby(obj/item/I, mob/user, params)
 	. = ..()
 	if(ATTACK_CHAIN_CANCEL_CHECK(.))
@@ -439,14 +395,13 @@
 	electrocute_mob(user, get_area(src), src, 0.5, TRUE)
 	to_chat(user, span_warning("When you touch it, you feel some dark energy."))
 
-
 /obj/structure/decorative_structures/cult_crystal/attack_hand(mob/living/user)
 	electrocute_mob(user, get_area(src), src, 0.5, TRUE)
 	to_chat(user, span_warning("When you touch it, you feel some dark energy."))
 	..()
 
 /obj/structure/decorative_structures/cult_crystal/Destroy()
-	playsound(src, 'sound/effects/glassbr3.ogg', 30, 0)
+	playsound(src, 'sound/effects/glassbr3.ogg', 30, FALSE)
 	var/turf/T = get_turf(src)
 	var/mob/living/simple_animal/crystal_soul = new /mob/living/simple_animal/hostile/construct/armoured/hostile(T)
 	crystal_soul.loot = list(pick(
@@ -458,7 +413,8 @@
 		/obj/item/spellbook/oneuse/forcewall,
 		/obj/item/soulstone/anybody,
 	))
-	new /obj/effect/particle_effect/smoke/vomiting(T)
+
+	new /obj/effect/particle_effect/fluid/smoke/vomiting(T)
 	new /obj/effect/decal/cleanable/blood/gibs(T)
 	new /obj/effect/decal/cleanable/blood(T)
 	..()

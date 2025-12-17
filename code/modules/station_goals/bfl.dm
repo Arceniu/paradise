@@ -13,7 +13,6 @@
 	<br><br>
 	-Nanotrasen Naval Command"}
 
-
 /datum/station_goal/bfl/on_report()
 	//Unlock BFL related things
 	var/datum/supply_packs/misc/station_goal/P = SSshuttle.supply_packs["[/datum/supply_packs/misc/station_goal/bfl]"]
@@ -48,6 +47,8 @@
 		return
 	SScargo_quests.remove_bfl_quests(COUNT_PLASMA_QUESTS)
 
+#undef COUNT_PLASMA_QUESTS
+
 ////////////
 //Building//
 ////////////
@@ -57,11 +58,12 @@
 	build_path = /obj/machinery/power/bfl_emitter
 	origin_tech = "engineering=4;combat=4;bluespace=4"
 	req_components = list(
-					/obj/item/stack/sheet/plasteel = 10,
-					/obj/item/stack/sheet/plasmaglass = 4,
-					/obj/item/stock_parts/capacitor/quadratic = 5,
-					/obj/item/stock_parts/micro_laser/quadultra = 10,
-					/obj/item/stack/sheet/mineral/diamond = 2)
+		/obj/item/stack/sheet/plasteel = 10,
+		/obj/item/stack/sheet/plasmaglass = 4,
+		/obj/item/stock_parts/capacitor/quadratic = 5,
+		/obj/item/stock_parts/micro_laser/quadultra = 10,
+		/obj/item/stack/sheet/mineral/diamond = 2,
+	)
 
 /obj/item/circuitboard/machine/bfl_receiver
 	board_name = "BFL Receiver"
@@ -69,9 +71,10 @@
 	build_path = /obj/machinery/bfl_receiver
 	origin_tech = "engineering=4;combat=4;bluespace=4"
 	req_components = list(
-					/obj/item/stack/sheet/metal = 20,
-					/obj/item/stack/sheet/plasteel = 10,
-					/obj/item/stack/sheet/plasmaglass = 20)
+		/obj/item/stack/sheet/metal = 20,
+		/obj/item/stack/sheet/plasteel = 10,
+		/obj/item/stack/sheet/plasmaglass = 20,
+	)
 
 ///////////
 //Emitter//
@@ -80,9 +83,7 @@
 	name = "BFL Emitter"
 	icon = 'icons/obj/machines/BFL_mission/Emitter.dmi'
 	icon_state = "Emitter_Off"
-	anchored = TRUE
 	density = TRUE
-	use_power = NO_POWER_USE
 	idle_power_usage = 100000
 	active_power_usage = 500000
 
@@ -101,33 +102,31 @@
 	var/response
 	src.add_fingerprint(user)
 	if(state)
-		response = alert(user, "You trying to deactivate BFL emitter machine, are you sure?", "BFL Emitter", "deactivate", "nothing")
+		response = tgui_alert(user, "Вы пытаетесь деактивировать излучатель BFL. Уверены?", "Излучатель BFL", list("Деактивировать", "Отмена"))
 	else
-		response = alert(user, "You trying to activate BFL emitter machine, are you sure?", "BFL Emitter", "activate", "nothing")
+		response = tgui_alert(user, "Вы пытаетесь активировать излучатель BFL. Уверены?", "Излучатель BFL", list("Активировать", "Отмена"))
 
 	switch(response)
-		if("deactivate")
+		if("Деактивировать")
 			if(emag)
-				visible_message("BFL software update, please wait.<br> 99% complete")
+				visible_message(span_notice("Обновление ПО BFL, пожалуйста подождите.<br>Завершено на 99%"))
 				playsound(src, 'sound/BFL/prank.ogg', 100, TRUE)
 			else
 				emitter_deactivate()
 				deactivate_time = world.time
-		if("activate")
+		if("Активировать")
 			if(!powernet)
 				connect_to_network()
 			if(!powernet)
-				to_chat(user, "Powernet not found.")
+				to_chat(user, span_warning("Энергосеть не обнаружена."))
 				return
 			if(surplus() < active_power_usage)
-				to_chat(user, "The connected wire doesn't have enough current.")
+				to_chat(user, span_warning("Недостаточно напряжения в подключенном проводе."))
 				return
 			if(world.time - deactivate_time > 30 SECONDS)
 				emitter_activate()
 			else
-				visible_message("Error, emitter is still cooling down")
-
-
+				visible_message(span_warning("Ошибка: излучатель всё ещё охлаждается"))
 
 /obj/machinery/power/bfl_emitter/emag_act(mob/user)
 	. = ..()
@@ -135,7 +134,7 @@
 		add_attack_logs(user, src, "emagged")
 		emag = TRUE
 		if(user)
-			to_chat(user, "Emitter successfully sabotaged")
+			to_chat(user, span_notice("Излучатель успешно саботирован"))
 
 /obj/machinery/power/bfl_emitter/process()
 	if(!state)
@@ -154,13 +153,12 @@
 		for(var/M in GLOB.player_list)
 			var/turf/mob_turf = get_turf(M)
 			if(mob_turf?.z == lavaland_z_lvl)
-				to_chat(M, span_boldwarning("You see bright red flash in the sky. Then clouds of smoke rises, uncovering giant red ray striking from the sky."))
+				to_chat(M, span_boldwarning("Вы видите яркую красную вспышку в небе. Затем клубы дыма рассеиваются, открывая гигантский красный луч, бьющий с небес."))
 		laser.move = rand_location.x
 		if(receiver)
 			receiver.mining = FALSE
 			if(receiver.lens)
 				receiver.lens.deactivate_lens()
-
 
 /obj/machinery/power/bfl_emitter/proc/receiver_test()
 	if(receiver)
@@ -168,7 +166,6 @@
 			receiver.lens.activate_lens()
 			receiver.mining = TRUE
 		return TRUE
-
 
 /obj/machinery/power/bfl_emitter/proc/emitter_activate()
 	state = TRUE
@@ -186,14 +183,13 @@
 		receiver = null
 
 	if(!receiver)
-		for(var/obj/machinery/bfl_receiver/bfl_receiver in GLOB.machines)
+		for(var/obj/machinery/bfl_receiver/bfl_receiver in SSmachines.get_by_type(/obj/machinery/bfl_receiver))
 			var/turf/receiver_turf = get_turf(bfl_receiver)
 			if(receiver_turf.z == lavaland_z_lvl)
 				receiver = bfl_receiver
 				break
 
 	receiver_test()
-
 
 /obj/machinery/power/bfl_emitter/proc/emitter_deactivate()
 	state = FALSE
@@ -216,17 +212,14 @@
 		playsound(src, 'sound/BFL/emitter.ogg', 100, TRUE)
 		sleep(25)
 
-
 /obj/machinery/power/bfl_emitter/update_icon_state()
 	icon_state = "Emitter_[state ? "On" : "Off"]"
-
-
 
 //code stolen from bluespace_tap, including comment below. He was right about the new datum
 //code stolen from dna vault, inculding comment below. Taking bets on that datum being made ever.
 //TODO: Replace this,bsa and gravgen with some big machinery datum
-/obj/machinery/power/bfl_emitter/Initialize()
-	.=..()
+/obj/machinery/power/bfl_emitter/Initialize(mapload)
+	. = ..()
 	lavaland_z_lvl = level_name_to_num(MINING)
 	pixel_x = -32
 	pixel_y = 0
@@ -268,7 +261,7 @@
 
 /obj/machinery/bfl_receiver
 	name = "BFL Receiver"
-	desc = "Activate button doesn't look right. Probably should open the pit manually, try using a crowbar."
+	desc = "Кнопка активации выглядит подозрительно. Возможно, следует открыть шахту вручную с помощью лома."
 	icon = 'icons/obj/machines/BFL_mission/Hole.dmi'
 	icon_state = "Receiver_Off"
 	anchored = TRUE
@@ -292,6 +285,15 @@
 	///Used for storing last icon update for receiver lights on borders of receiver
 	var/last_light_state_number = 0
 
+/obj/machinery/bfl_receiver/get_ru_names()
+	return list(
+		NOMINATIVE = "приёмник BFL",
+		GENITIVE = "приёмника BFL",
+		DATIVE = "приёмнику BFL",
+		ACCUSATIVE = "приёмник BFL",
+		INSTRUMENTAL = "приёмником BFL",
+		PREPOSITIONAL = "приёмнике BFL",
+	)
 
 /obj/machinery/bfl_receiver/Initialize(mapload)
 	. = ..()
@@ -313,13 +315,11 @@
 	)
 	AddElement(/datum/element/connect_loc, loc_connections)
 
-
 /obj/machinery/bfl_receiver/Destroy()
 	QDEL_NULL(internal)
 	QDEL_NULL(receiver_light)
 	QDEL_NULL(lens)
 	return ..()
-
 
 /obj/machinery/bfl_receiver/attack_hand(mob/user)
 	if(..())
@@ -327,28 +327,27 @@
 	var/response
 	src.add_fingerprint(user)
 	if(state)
-		response = alert(user, "You trying to deactivate BFL receiver machine, are you sure?", "BFL Receiver", "deactivate", "empty ore storage", "nothing")
+		response = tgui_alert(user, "Вы пытаетесь деактивировать приёмник BFL. Уверены?", "Приёмник BFL", list("Деактивировать", "Очистить хранилище руды", "Отмена"))
 	else
-		response = alert(user, "You trying to activate BFL receiver machine, are you sure?", "BFL Receiver", "activate", "empty ore storage", "nothing")
+		response = tgui_alert(user, "Вы пытаетесь активировать приёмник BFL. Уверены?", "Приёмник BFL", list("Активировать", "Очистить хранилище руды", "Отмена"))
 
 	switch(response)
-		if("deactivate")
-			to_chat(user, "No power. <br> You should open the pit manually, try using a crowbar")
-		if("activate")
-			to_chat(user, "No power. <br> You should open the pit manually, try using a crowbar")
-		if("empty ore storage")
+		if("Деактивировать")
+			to_chat(user, span_warning("Нет питания.<br>Попробуйте открыть шахту вручную с помощью лома."))
+		if("Активировать")
+			to_chat(user, span_warning("Нет питания.<br>Попробуйте открыть шахту вручную с помощью лома."))
+		if("Очистить хранилище руды")
 			if(lens)
-				to_chat(user, "The Lens interferes, you can't get any ore from storage.")
+				to_chat(user, span_warning("Линза создаёт помехи — невозможно получить руду из хранилища."))
 				return
 			if(state && (user.ckey != last_user_ckey))
-				to_chat(user, "Your inner voice telling you should close the pit first.")
+				to_chat(user, span_warning("Внутренний голос подсказывает, что сначала нужно закрыть шахту."))
 				last_user_ckey = user.ckey
 				return
 			var/turf/location = get_turf(src)
 			internal.empty_storage(location)
 			ore_count = 0
 			update_state()
-
 
 /obj/machinery/bfl_receiver/crowbar_act(mob/user, obj/item/I)
 	. = TRUE
@@ -368,7 +367,6 @@
 	last_light_state_number = light_state
 	receiver_light.update_icon(UPDATE_ICON_STATE)
 
-
 /obj/machinery/bfl_receiver/process()
 	if(!(mining && state))
 		return
@@ -384,10 +382,8 @@
 
 	update_state()
 
-
 /obj/machinery/bfl_receiver/update_icon_state()
 	icon_state = "Receiver_[state ? "On" : "Off"]"
-
 
 /obj/machinery/bfl_receiver/proc/receiver_activate()
 	state = TRUE
@@ -402,14 +398,12 @@
 	update_icon(UPDATE_ICON_STATE)
 	T.ChangeTurf(turf_under.type)
 
-
 /obj/machinery/bfl_receiver/proc/on_entered(datum/source, atom/movable/arrived, atom/old_loc, list/atom/old_locs)
 	SIGNAL_HANDLER
 
 	if(istype(arrived, /obj/machinery/bfl_lens))
 		var/obj/machinery/bfl_lens/bfl_lens = arrived
 		bfl_lens.step_count = 0
-
 
 #undef PLASMA
 #undef SAND
@@ -424,23 +418,20 @@
 	anchored = TRUE
 	var/light_amount = 0
 
-
 /atom/movable/bfl_receiver_light/Initialize(mapload)
 	. = ..()
 	pixel_x = -32
 	pixel_y = -32
 
-
 /atom/movable/bfl_receiver_light/update_icon_state()
 	icon_state = "Receiver_Light_[light_amount]"
-
 
 ////////
 //Lens//
 ////////
 /obj/machinery/bfl_lens
 	name = "High-precision lens"
-	desc = "Extremely fragile, handle with care."
+	desc = "Чрезвычайно хрупкая, обращайтесь осторожно."
 	icon = 'icons/obj/machines/BFL_Mission/Hole.dmi'
 	icon_state = "Lens_Pull"
 	max_integrity = 40
@@ -450,6 +441,16 @@
 	var/step_count = 0
 	var/state = FALSE
 
+/obj/machinery/bfl_lens/get_ru_names()
+	return list(
+		NOMINATIVE = "высокоточная линза",
+		GENITIVE = "высокоточной линзы",
+		DATIVE = "высокоточной линзе",
+		ACCUSATIVE = "высокоточную линзу",
+		INSTRUMENTAL = "высокоточной линзой",
+		PREPOSITIONAL = "высокоточной линзе",
+	)
+
 /obj/machinery/bfl_lens/update_icon_state()
 	if(state)
 		icon_state = "Lens_On"
@@ -458,12 +459,10 @@
 	else
 		icon_state = "Lens_Pull"
 
-
 /obj/machinery/bfl_lens/update_overlays()
 	. = ..()
 	if(state)
 		. += image('icons/obj/machines/BFL_Mission/Laser.dmi', icon_state = "Laser_Blue", pixel_y = 64, layer = GASFIRE_LAYER)
-
 
 /obj/machinery/bfl_lens/proc/activate_lens()
 	state = TRUE
@@ -471,19 +470,16 @@
 	set_light(8, l_on = TRUE)
 	working_sound()
 
-
 /obj/machinery/bfl_lens/proc/deactivate_lens()
 	state = FALSE
 	update_icon()
 	set_light_on(FALSE)
-
 
 /obj/machinery/bfl_lens/proc/working_sound()
 	set waitfor = FALSE
 	while(state)
 		playsound(src, 'sound/BFL/receiver.ogg', 100, TRUE)
 		sleep(25)
-
 
 /obj/machinery/bfl_lens/wrench_act(mob/user, obj/item/I)
 	. = TRUE
@@ -503,18 +499,15 @@
 
 	update_icon()
 
-
-/obj/machinery/bfl_lens/Initialize()
+/obj/machinery/bfl_lens/Initialize(mapload)
 	. = ..()
 	pixel_x = -32
 	pixel_y = -32
 
-
 /obj/machinery/bfl_lens/Destroy()
-	visible_message("Lens shatters in a million pieces")
-	playsound(src, "shatter", 70, 1)
+	visible_message(span_danger("Линза разлетается на миллионы осколков!"))
+	playsound(src, SFX_SHATTER, 70, TRUE)
 	return ..()
-
 
 /obj/machinery/bfl_lens/Move(atom/newloc, direct = NONE, glide_size_override = 0, update_dir = TRUE)
 	. = ..()
@@ -525,7 +518,6 @@
 	step_count++
 	pixel_x = -32
 	pixel_y = -32 //Explictly stating, that pixel_x and pixel_y will ALWAYS be -32/-32 when moved, because moving objects reset their offset.
-
 
 //everything else
 /obj/bfl_crack
@@ -552,7 +544,7 @@
 
 /obj/singularity/bfl_red
 	name = "BFL"
-	desc = "Giant laser, which is supposed for mining"
+	desc = "Гигантский лазер, предназначенный для добычи руды."
 	icon = 'icons/obj/machines/BFL_Mission/Laser.dmi'
 	icon_state = "Laser_Red"
 	speed_process = TRUE
@@ -583,16 +575,26 @@
 /obj/singularity/bfl_red/singularity_act()
 	return 0
 
-/obj/singularity/bfl_red/New(loc, var/starting_energy = 50, var/temp = 0)
+/obj/singularity/bfl_red/New(loc, starting_energy = 50, temp = 0)
 	starting_energy = 250
 	lavaland_z_lvl = level_name_to_num(MINING)
 	. = ..(loc, starting_energy, temp)
 
 /obj/effect/bfl_laser
 	name = "big laser beam"
-	desc = "A huge shining laser beam, goes through above hitting down. You wouldn't like to touch it."
+	desc = "Огромный сияющий луч, бьющий сверху вниз. Лучше не касаться."
 	icon = 'icons/obj/machines/BFL_Mission/laser_tile.dmi'
 	icon_state = "laser"
+
+/obj/effect/bfl_laser/get_ru_names()
+	return list(
+		NOMINATIVE = "луч мегалазера",
+		GENITIVE = "луча мегалазера",
+		DATIVE = "лучу мегалазера",
+		ACCUSATIVE = "луч мегалазера",
+		INSTRUMENTAL = "лучом мегалазера",
+		PREPOSITIONAL = "луче мегалазера",
+	)
 
 /obj/effect/bfl_laser/Initialize(mapload)
 	. = ..()
@@ -607,6 +609,7 @@
 	burn_stuff(arrived)
 
 /obj/effect/bfl_laser/hitby(atom/movable/AM, skipcatch, hitpush, blocked, datum/thrownthing/throwingdatum)
+	SEND_SIGNAL(src, COMSIG_ATOM_HITBY, AM, skipcatch, hitpush, blocked, throwingdatum)
 	burn_stuff(AM)
 
 /obj/effect/bfl_laser/process()
@@ -652,5 +655,5 @@
 	if(.)
 		playsound(src, 'sound/weapons/sear.ogg', 50, TRUE, -4)
 
-/obj/effect/bfl_laser/ex_act(severity)
+/obj/effect/bfl_laser/ex_act(severity, target)
 	return

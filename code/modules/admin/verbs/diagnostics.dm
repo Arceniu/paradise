@@ -1,5 +1,5 @@
 /client/proc/air_status(turf/target as turf)
-	set category = "Debug"
+	set category = STATPANEL_DEBUG
 	set name = "Display Air Status"
 
 	if(!check_rights(R_DEBUG))
@@ -20,10 +20,10 @@
 	message_admins("[key_name_admin(usr)] has checked the air status of [target]")
 	log_admin("[key_name(usr)] has checked the air status of [target]")
 
-	SSblackbox.record_feedback("tally", "admin_verb", 1, "Display Air Status") //If you are copy-pasting this, ensure the 4th parameter is unique to the new proc!
+	BLACKBOX_LOG_ADMIN_VERB("Display Air Status")
 
 /client/proc/fix_next_move()
-	set category = "Debug"
+	set category = STATPANEL_DEBUG
 	set name = "Unfreeze Everyone"
 
 	if(!check_rights(R_DEBUG))
@@ -59,11 +59,11 @@
 	message_admins("[key_name_admin(largest_click_mob)] had the largest click delay with [largest_click_time] frames / [largest_click_time/10] seconds!")
 	message_admins("world.time = [world.time]")
 
-	SSblackbox.record_feedback("tally", "admin_verb", 1, "Unfreeze Everyone") //If you are copy-pasting this, ensure the 4th parameter is unique to the new proc!
+	BLACKBOX_LOG_ADMIN_VERB("Unfreeze Everyone")
 	return
 
 /client/proc/radio_report()
-	set category = "Debug"
+	set category = STATPANEL_DEBUG
 	set name = "Radio report"
 
 	if(!check_rights(R_DEBUG))
@@ -80,7 +80,7 @@
 		"8" = "RADIO_MULEBOT",
 		"_default" = "NO_FILTER"
 		)
-	var/output = {"<meta charset="UTF-8"><b>Radio Report</b><hr>"}
+	var/output = {"<b>Radio Report</b><hr>"}
 	for(var/fq in SSradio.frequencies)
 		output += "<b>Freq: [fq]</b><br>"
 		var/datum/radio_frequency/fqs = SSradio.frequencies[fq]
@@ -92,23 +92,25 @@
 			if(!f)
 				output += "&nbsp;&nbsp;[filters[filter]]: ERROR<br>"
 				continue
-			output += "&nbsp;&nbsp;[filters[filter]]: [f.len]<br>"
+			output += "&nbsp;&nbsp;[filters[filter]]: [length(f)]<br>"
 			for(var/device in f)
 				if(isobj(device))
 					output += "&nbsp;&nbsp;&nbsp;&nbsp;[device] ([device:x],[device:y],[device:z] in area [get_area(device:loc)])<br>"
 				else
 					output += "&nbsp;&nbsp;&nbsp;&nbsp;[device]<br>"
 
-	usr << browse(output,"window=radioreport")
+	var/datum/browser/popup = new(usr, "radioreport", "Radio Report")
+	popup.set_content(output)
+	popup.open(FALSE)
 
 	message_admins("[key_name_admin(usr)] has generated a radio report")
 	log_admin("[key_name(usr)] has generated a radio report")
 
-	SSblackbox.record_feedback("tally", "admin_verb", 1, "Radio Report") //If you are copy-pasting this, ensure the 4th parameter is unique to the new proc!
+	BLACKBOX_LOG_ADMIN_VERB("Radio Report")
 
 /client/proc/reload_admins()
 	set name = "Reload Admins"
-	set category = "Server"
+	set category = STATPANEL_ADMIN_ADMIN
 
 	if(!check_rights(R_SERVER))
 		return
@@ -117,13 +119,12 @@
 	log_admin("[key_name(usr)] has manually reloaded admins")
 
 	load_admins(run_async=TRUE)
-	SSblackbox.record_feedback("tally", "admin_verb", 1, "Reload Admins") //If you are copy-pasting this, ensure the 4th parameter is unique to the new proc!
-
+	BLACKBOX_LOG_ADMIN_VERB("Reload Admins")
 
 /client/proc/print_jobban_old()
 	set name = "Print Jobban Log"
 	set desc = "This spams all the active jobban entries for the current round to standard output."
-	set category = "Debug"
+	set category = STATPANEL_DEBUG
 
 	if(!check_rights(R_DEBUG))
 		return
@@ -143,7 +144,7 @@
 	if(!check_rights(R_DEBUG))
 		return
 
-	var/filter = clean_input("Contains what?","Filter")
+	var/filter = tgui_input_text(usr, "Contains what?", "Filter")
 	if(!filter)
 		return
 
@@ -158,13 +159,12 @@
 /client/proc/vv_by_ref()
 	set name = "VV by Ref"
 	set desc = "Give this a ref string, and you will see its corresponding VV panel if it exists"
-	set category = "Debug"
-
+	set category = STATPANEL_ADMIN_DEBUG
 	// It's gated by "Debug Verbs", so might as well gate it to the debug permission
 	if(!check_rights(R_DEBUG))
 		return
 
-	var/refstring = clean_input("Which reference?","Ref")
+	var/refstring = tgui_input_text(usr, "Which reference?", "Ref")
 	if(!refstring)
 		return
 

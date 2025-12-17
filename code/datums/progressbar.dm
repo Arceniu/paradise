@@ -21,7 +21,6 @@
 	///Where to draw the progress bar above the icon
 	var/offset_y
 
-
 /datum/progressbar/New(mob/User, goal_number, atom/target)
 	. = ..()
 	if(!istype(target))
@@ -56,29 +55,35 @@
 	if(user.client)
 		user_client = user.client
 		add_prog_bar_image_to_client()
+		// Ghosts wants to see a do_afters too!
+		for(var/mob/dead/observer/observe in user.inventory_observers)
+			if(!observe.client)
+				LAZYREMOVE(user.inventory_observers, observe)
+				continue
+			user_client = observe.client
+			add_prog_bar_image_to_client()
+		// We dont need to set user_client back on every `for` iteration
+		user_client = user.client
 
 	RegisterSignal(user, COMSIG_QDELETING, PROC_REF(on_user_delete))
 	RegisterSignal(user, COMSIG_MOB_LOGOUT, PROC_REF(clean_user_client))
 	RegisterSignal(user, COMSIG_MOB_LOGIN, PROC_REF(on_user_login))
 
-
 /datum/progressbar/Destroy()
 	if(user)
+		UnregisterSignal(user, list(COMSIG_QDELETING, COMSIG_MOB_LOGOUT, COMSIG_MOB_LOGIN))
 		for(var/pb in user.progressbars[bar_loc])
 			var/datum/progressbar/progress_bar = pb
 			if(progress_bar == src || progress_bar.listindex <= listindex)
 				continue
 			progress_bar.listindex--
 
-			progress_bar.bar.pixel_y = world.icon_size + offset_y + (PROGRESSBAR_HEIGHT * (progress_bar.listindex - 1))
-			var/dist_to_travel = world.icon_size + offset_y + (PROGRESSBAR_HEIGHT * (progress_bar.listindex - 1)) - PROGRESSBAR_HEIGHT
+			progress_bar.bar.pixel_y = ICON_SIZE_Y + offset_y + (PROGRESSBAR_HEIGHT * (progress_bar.listindex - 1))
+			var/dist_to_travel = ICON_SIZE_Y + offset_y + (PROGRESSBAR_HEIGHT * (progress_bar.listindex - 1)) - PROGRESSBAR_HEIGHT
 			animate(progress_bar.bar, pixel_y = dist_to_travel, time = PROGRESSBAR_ANIMATION_TIME, easing = SINE_EASING)
 
 		LAZYREMOVEASSOC(user.progressbars, bar_loc, src)
 		user = null
-
-	if(user_client)
-		clean_user_client()
 
 	bar_loc = null
 
@@ -86,7 +91,6 @@
 		QDEL_NULL(bar)
 
 	return ..()
-
 
 ///Called right before the user's Destroy()
 /datum/progressbar/proc/on_user_delete(datum/source)
@@ -96,16 +100,14 @@
 	user = null
 	qdel(src)
 
-
 ///Removes the progress bar image from the user_client and nulls the variable, if it exists.
 /datum/progressbar/proc/clean_user_client(datum/source)
 	SIGNAL_HANDLER
 
 	if(!user_client) //Disconnected, already gone.
 		return
-	user_client.images -= bar
+	user_client.remove_progressbar(src)
 	user_client = null
-
 
 ///Called by user's Login(), it transfers the progress bar image to the new client.
 /datum/progressbar/proc/on_user_login(datum/source)
@@ -120,14 +122,21 @@
 	user_client = user.client
 	add_prog_bar_image_to_client()
 
-
 ///Adds a smoothly-appearing progress bar image to the player's screen.
 /datum/progressbar/proc/add_prog_bar_image_to_client()
 	bar.pixel_y = 0
 	bar.alpha = 0
-	user_client.images += bar
-	animate(bar, pixel_y = world.icon_size + offset_y + (PROGRESSBAR_HEIGHT * (listindex - 1)), alpha = 255, time = PROGRESSBAR_ANIMATION_TIME, easing = SINE_EASING)
+	user_client.add_progressbar(src)
+	animate(bar, pixel_y = ICON_SIZE_Y + offset_y + (PROGRESSBAR_HEIGHT * (listindex - 1)), alpha = 255, time = PROGRESSBAR_ANIMATION_TIME, easing = SINE_EASING)
 
+/client/proc/add_progressbar(datum/progressbar/bar)
+	images += bar.bar
+	RegisterSignal(bar, COMSIG_QDELETING, PROC_REF(remove_progressbar))
+
+/client/proc/remove_progressbar(datum/progressbar/bar)
+	SIGNAL_HANDLER
+	images -= bar.bar
+	UnregisterSignal(bar, COMSIG_QDELETING)
 
 ///Updates the progress bar image visually.
 /datum/progressbar/proc/update(progress)
@@ -137,7 +146,6 @@
 	last_progress = progress
 	bar.icon_state = "prog_bar_[round(((progress / goal) * 100), 5)]"
 
-
 ///Called on progress end, be it successful or a failure. Wraps up things to delete the datum and bar.
 /datum/progressbar/proc/end_progress()
 	if(last_progress != goal)
@@ -146,7 +154,6 @@
 	animate(bar, alpha = 0, time = PROGRESSBAR_ANIMATION_TIME)
 
 	QDEL_IN(src, PROGRESSBAR_ANIMATION_TIME)
-
 
 #undef PROGRESSBAR_ANIMATION_TIME
 #undef PROGRESSBAR_HEIGHT

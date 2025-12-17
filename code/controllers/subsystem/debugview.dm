@@ -8,7 +8,6 @@ SUBSYSTEM_DEF(debugview)
 	/// List of clients currently processing
 	var/list/client/processing = list()
 
-
 /datum/controller/subsystem/debugview/fire(resumed)
 	// Dont generate text if no one is there to look at it
 	if(!length(processing))
@@ -37,30 +36,31 @@ SUBSYSTEM_DEF(debugview)
 	entries += "\[Processing] Cost: [round(SSprocessing.cost, 1)]ms | P: [length(SSprocessing.processing)]"
 	entries += "\[Projectiles] Cost: [round(SSprojectiles.cost, 1)]ms | P: [length(SSprojectiles.processing)]"
 	entries += "\[Runechat] Cost: [round(SSrunechat.cost, 1)]ms | AM: [SSrunechat.bucket_count] | SQ: [length(SSrunechat.second_queue)]"
-	entries += "\[TGUI] Cost: [round(SStgui.cost, 1)]ms | P: [length(SStgui.open_uis)]"
+	entries += "\[TGUI] Cost: [round(SStgui.cost, 1)]ms | P: [length(SStgui.all_uis)]"
 	entries += "\[Timer] Cost: [round(SStimer.cost, 1)]ms | B: [SStimer.bucket_count] | P: [length(SStimer.second_queue)] | RST: [SStimer.bucket_reset_count]"
 
 	// Do some parsing to format it properly
 	var/out_text = entries.Join("\n")
-	var/mty = 480 - 9 * length(entries)
+	/*
+		480 - standart highest Y position
+		10 = 8(font_size) + 2(gap between lines)
+	*/
+	var/mty = 480 - 10 * length(entries)
 
 	// And update the clients
 	for(var/client/C as anything in processing)
 		C.debug_text_overlay.maptext_y = mty
-		C.debug_text_overlay.maptext = "<span class='maptext' style='background-color: #272727;'>[out_text]</span>"
-
+		C.debug_text_overlay.maptext = MAPTEXT("<span style='background-color: #272727;'>[out_text]</span>")
 
 /datum/controller/subsystem/debugview/proc/start_processing(client/C)
 	C.debug_text_overlay = new /atom/movable/screen/debugtextholder
 	C.screen |= C.debug_text_overlay
 	processing |= C
 
-
 /datum/controller/subsystem/debugview/proc/stop_processing(client/C)
 	processing -= C
 	C.screen -= C.debug_text_overlay
 	qdel(C.debug_text_overlay)
-
 
 /atom/movable/screen/debugtextholder
 	icon = 'icons/mob/screen_full.dmi'
@@ -70,11 +70,10 @@ SUBSYSTEM_DEF(debugview)
 	maptext_height = 480 // If we ever change view size, increase this
 	maptext_width = 480
 
-
 // Make a verb for dumping full SS stats
 /client/proc/ss_breakdown()
 	set name = "SS Info Breakdown"
-	set category = "Debug"
+	set category = STATPANEL_DEBUG
 
 	if(!check_rights(R_DEBUG|R_VIEWRUNTIMES))
 		return
@@ -89,7 +88,7 @@ SUBSYSTEM_DEF(debugview)
 		if((SS.flags & SS_NO_FIRE) || !SS.can_fire)
 			continue
 
-		html += "[SS.state_colour()]\[[SS.state_letter()]][SS.ss_id]</font>\t[round(SS.cost, 1)]ms | [round(SS.tick_usage, 1)]% [SS.get_stat_details() ? "| [SS.get_stat_details()] " : ""]| <a href=?_src_=vars;Vars=[SS.UID()]>VV Edit</a>"
+		html += "[SS.state_colour()]\[[SS.state_letter()]][SS.ss_id]</font>\t[round(SS.cost, 1)]ms | [round(SS.tick_usage, 1)]% [SS.get_stat_details() ? "| [SS.get_stat_details()] " : ""]| <a href='byond://?_src_=vars;Vars=[SS.UID()]'>VV Edit</a>"
 
 	popup.set_content(html.Join("<br>"))
 	popup.open(FALSE)

@@ -1,12 +1,3 @@
-/// Use this to set the base and ACTUAL pixel offsets of an object at the same time
-/// You should always use this for pixel setting in typepaths, unless you want the map display to look different from in game
-#define SET_BASE_PIXEL(x, y) \
-	pixel_x = x; \
-	base_pixel_x = x; \
-	pixel_y = y; \
-	base_pixel_y = y;
-
-
 /**
  * Causes the passed atom / image to appear floating,
  * playing a simple animation where they move up and down by 2 pixels (looping)
@@ -17,7 +8,6 @@
 #define DO_FLOATING_ANIM(target) \
 	animate(target, pixel_y = 2, time = 1 SECONDS, loop = -1, flags = ANIMATION_RELATIVE); \
 	animate(pixel_y = -2, time = 1 SECONDS, flags = ANIMATION_RELATIVE)
-
 
 /**
  * Stops the passed atom / image from appearing floating
@@ -38,7 +28,21 @@
 	}; \
 	animate(target, pixel_y = final_pixel_y, time = 0.2 SECONDS)
 
-
 /// The duration of the animate call in mob/living/update_transform
 #define UPDATE_TRANSFORM_ANIMATION_TIME (0.2 SECONDS)
 
+/// Similar to shake but more spasm-y and jerk-y
+/atom/proc/spasm_animation(loops = -1)
+	var/list/transforms = list(
+		matrix(transform).Translate(-1, 0),
+		matrix(transform).Translate(0, 1),
+		matrix(transform).Translate(1, 0),
+		matrix(transform).Translate(0, -1),
+		matrix(transform),
+	)
+
+	animate(src, transform = transforms[1], time = 0.1, loop = loops)
+	animate(transform = transforms[2], time = 0.1)
+	animate(transform = transforms[3], time = 0.2)
+	animate(transform = transforms[4], time = 0.3)
+	animate(transform = transforms[5], time = 0.1)

@@ -15,11 +15,22 @@
 	var/list/faction = list("neutral") // The factions the pAI will inherit from the card
 	resistance_flags = FIRE_PROOF | ACID_PROOF | INDESTRUCTIBLE
 	COOLDOWN_DECLARE(ping_cooldown)
-	ru_names = list(NOMINATIVE = "интелкарта пИИ", GENITIVE = "интелкарты пИИ", DATIVE = "интелкарте пИИ", ACCUSATIVE = "интелкарту пИИ", INSTRUMENTAL = "интелкартой пИИ", PREPOSITIONAL = "интелкарте пИИ")
 	/// for Syndicate pAI type
 	var/is_syndicate_type = FALSE
 	var/obj/item/paicard_upgrade/upgrade
 	var/list/upgrades = list()
+
+	var/current_emotion = 1
+
+/obj/item/paicard/get_ru_names()
+	return list(
+		NOMINATIVE = "интелкарта пИИ",
+		GENITIVE = "интелкарты пИИ",
+		DATIVE = "интелкарте пИИ",
+		ACCUSATIVE = "интелкарту пИИ",
+		INSTRUMENTAL = "интелкартой пИИ",
+		PREPOSITIONAL = "интелкарте пИИ",
+	)
 
 /obj/item/paicard/syndicate // Only seems that it is syndicard
 	name = "syndicate personal AI device"
@@ -44,102 +55,7 @@
 	if(!in_range(src, user) || (pai && (pai == user)))
 		return
 	user.set_machine(src)
-	var/dat = {"
-		<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">
-		<html>
-			<meta charset="UTF-8">
-			<head>
-				<style>
-					body {
-					    margin-top:5px;
-					    font-family:Verdana;
-					    color:white;
-					    font-size:13px;
-					    background-image:url('uiBackground.png');
-					    background-repeat:repeat-x;
-					    background-color:#272727;
-						background-position:center top;
-					}
-					table {
-					    font-size:13px;
-					    margin-left:-2px;
-					}
-					table.request {
-					    border-collapse:collapse;
-					}
-					table.desc {
-					    border-collapse:collapse;
-					    font-size:13px;
-					    border: 1px solid #161616;
-					    width:100%;
-					}
-					table.download {
-					    border-collapse:collapse;
-					    font-size:13px;
-					    border: 1px solid #161616;
-					    width:100%;
-					}
-					tr.d0 td, tr.d0 th {
-					    background-color: #506070;
-					    color: white;
-					}
-					tr.d1 td, tr.d1 th {
-					    background-color: #708090;
-					    color: white;
-					}
-					tr.d2 td {
-					    background-color: #00FF00;
-					    color: white;
-					    text-align:center;
-					}
-					td.button {
-					    border: 1px solid #161616;
-					    background-color: #40628a;
-					}
-					td.button {
-					    border: 1px solid #161616;
-					    background-color: #40628a;
-					    text-align: center;
-					}
-					td.button_red {
-					    border: 1px solid #161616;
-					    background-color: #B04040;
-					    text-align: center;
-					}
-					td.download {
-					    border: 1px solid #161616;
-					    background-color: #40628a;
-					    text-align: center;
-					}
-					th {
-					    text-align:left;
-					    width:125px;
-					}
-					td.request {
-					    width:140px;
-					    vertical-align:top;
-					}
-					td.radio {
-					    width:90px;
-					    vertical-align:top;
-					}
-					td.request {
-					    vertical-align:top;
-					}
-					a {
-					    color:#4477E0;
-					}
-					a.button {
-					    color:white;
-					    text-decoration: none;
-					}
-					h2 {
-					    font-size:15px;
-					}
-				</style>
-			</head>
-			<body>
-	"}
+	var/dat = ""
 
 	if(pai)
 		dat += {"
@@ -182,13 +98,13 @@
 				<table class="request">
 					<tr>
 						<td class="radio">Transmit:</td>
-						<td><a href='byond://?src=[UID()];wires=4'>[radio.broadcasting ? "<font color=#55FF55>En" : "<font color=#FF5555>Dis" ]abled</font></a>
+						<td><a href='byond://?src=[UID()];wires=4'>[radio.get_broadcasting() ? "<font color=#55FF55>En" : "<font color=#FF5555>Dis" ]abled</font></a>
 
 						</td>
 					</tr>
 					<tr>
 						<td class="radio">Receive:</td>
-						<td><a href='byond://?src=[UID()];wires=2'>[radio.listening ? "<font color=#55FF55>En" : "<font color=#FF5555>Dis" ]abled</font></a>
+						<td><a href='byond://?src=[UID()];wires=2'>[radio.get_listening() ? "<font color=#55FF55>En" : "<font color=#FF5555>Dis" ]abled</font></a>
 
 						</td>
 					</tr>
@@ -223,7 +139,7 @@
 		else
 			dat += {"
 				<b><font size='3px'>pAI Request Module</font></b><br><br>
-			    <p>No personality is installed.</p>
+				<p>No personality is installed.</p>
 				<table>
 					<tr>
 						<td class="button"><a href='byond://?src=[UID()];request=1' class="button">Request personality</a>
@@ -233,7 +149,10 @@
 				<br>
 				<p>Each time this button is pressed, a request will be sent out to any available personalities. Check back often give plenty of time for personalities to respond. This process could take anywhere from 15 seconds to several minutes, depending on the available personalities' timeliness.</p>
 			"}
-	user << browse(dat, "window=paicard")
+	var/datum/browser/popup = new(user, "paicard", "PAI cart")
+	popup.set_content(dat)
+	popup.add_stylesheet("paicard", 'html/css/pai_cart.css')
+	popup.open(TRUE)
 	onclose(user, "paicard")
 	return
 
@@ -246,7 +165,7 @@
 
 	if(pai)
 		if(!in_range(src, U))
-			U << browse(null, "window=paicard")
+			close_window(U, "paicard")
 			usr.unset_machine()
 			return
 
@@ -303,7 +222,7 @@
 			to_chat(pai, span_notice("Дополнительные дерективы: <br>[pai.pai_laws]"))
 	attack_self(usr)
 
-// 		WIRE_SIGNAL = 1
+//		WIRE_SIGNAL = 1
 //		WIRE_RECEIVE = 2
 //		WIRE_TRANSMIT = 4
 
@@ -329,10 +248,9 @@
 	if(upgrade && istype(upgrade, /obj/item/paicard_upgrade/protolate))
 		welcome_message.Add(span_warning("<b>Будучи СпИИ, вы имеете доступ к особым программам.</b>"))
 	else if(upgrade)
-		welcome_message.Add(span_warning("<b>Будучи СпИИ, вы имеете доступ к особым программам, а так же доступ к зашифрованному каналу связи Синдиката — :t</b>"))
+		welcome_message.Add(span_warning("<b>Будучи СпИИ, вы имеете доступ к особым программам, а так же доступ к зашифрованному каналу связи \"Синдиката\" — :t</b>"))
 
 	to_chat(pai, chat_box_notice(welcome_message.Join("<br>")))
-
 
 /obj/item/paicard/proc/removePersonality()
 	extinguish_light(TRUE)
@@ -343,8 +261,6 @@
 		add_overlay(get_emissive_block())
 	QDEL_LIST(upgrades)
 
-/obj/item/paicard
-	var/current_emotion = 1
 /obj/item/paicard/proc/setEmotion(emotion)
 	if(pai)
 		cut_overlays()
@@ -377,29 +293,24 @@
 			add_overlay(get_emissive_block())
 		current_emotion = emotion
 
-
 /obj/item/paicard/proc/alertUpdate()
 	visible_message(span_notice("[capitalize(declent_ru(NOMINATIVE))] выводит сообщение на экран: \"Дополнительные личности доступны для загрузки.\""))
 	softping()
 
-
 /obj/item/paicard/proc/softping()
 	if(COOLDOWN_FINISHED(src, ping_cooldown))
-		playsound(get_turf(src), 'sound/items/posiping.ogg', 50, 0)
+		playsound(get_turf(src), 'sound/items/posiping.ogg', 50, FALSE)
 		COOLDOWN_START(src, ping_cooldown, 20 SECONDS)
-
 
 /obj/item/paicard/emp_act(severity)
 	for(var/mob/M in src)
 		M.emp_act(severity)
 	..()
 
-
 /obj/item/paicard/extinguish_light(force = FALSE)
 	if(pai)
 		pai.extinguish_light()
 		set_light_on(FALSE)
-
 
 /obj/item/paicard/attackby(obj/item/I, mob/user, params)
 	if(istype(I, /obj/item/pai_cartridge))
@@ -440,7 +351,7 @@
 	if(istype(I, /obj/item/paicard_upgrade))
 		add_fingerprint(user)
 		var/obj/item/paicard_upgrade/new_upgrade = I
-		if(is_syndicate_type || upgrade || (pai && pai.syndipai))
+		if(is_syndicate_type || upgrade || (pai?.syndipai))
 			user.balloon_alert(user, "пИИ уже достаточно крут!")
 			return ATTACK_CHAIN_PROCEED
 
@@ -464,17 +375,16 @@
 		if(!radio)
 			to_chat(user, span_warning("[pai.name] не имеет установленного радио!"))
 			return ATTACK_CHAIN_PROCEED
-		if(radio.keyslot1)
+		if(radio.keyslot)
 			to_chat(user, span_warning("[pai.name] не имеет свободных слотов под ключи шифрования!"))
 			return ATTACK_CHAIN_PROCEED
 		if(!user.drop_transfer_item_to_loc(I, src))
 			return ..()
-		radio.keyslot1 = I
-		radio.recalculateChannels()
+		radio.keyslot = I
+		radio.recalculate_channels()
 		return ATTACK_CHAIN_BLOCKED_ALL
 
 	return ..()
-
 
 /obj/item/paicard/screwdriver_act(mob/living/user, obj/item/I)
 	. = TRUE
@@ -492,19 +402,18 @@
 
 		to_chat(user, span_notice("Вы вытащили картридж улучшения пИИ."))
 
-	if(radio?.keyslot1)
+	if(radio?.keyslot)
 		for(var/ch_name in radio.channels)
 			SSradio.remove_object(radio, SSradio.radiochannels[ch_name])
 			radio.secure_radio_connections[ch_name] = null
 
 		if(T)
-			user.put_in_hands(radio.keyslot1)
-			radio.keyslot1 = null
+			user.put_in_hands(radio.keyslot)
+			radio.keyslot = null
 
-		radio.recalculateChannels()
+		radio.recalculate_channels()
 		to_chat(user, span_notice("Вы извлекли ключ шифрования из [declent_ru(GENITIVE)]."))
 		I.play_tool_sound(user, I.tool_volume)
-
 
 /obj/item/paicard/attack_ghost(mob/dead/observer/user)
 	if(pai)
@@ -516,7 +425,6 @@
 		to_chat(user, span_warning("Вы не можете стать пИИ."))
 		return
 	softping()
-
 
 /obj/item/pai_cartridge
 	name = "PAI upgrade"
@@ -567,8 +475,10 @@
 /obj/item/paicard_upgrade/unused
 	used = FALSE
 
-/obj/item/paicard_upgrade/protolate
+/obj/item/paicard_upgrade/contractor/unused
+	used = FALSE
 
+/obj/item/paicard_upgrade/protolate
 
 /obj/item/paicard_upgrade/proc/set_syndie_key(obj/item/paicard/paicard)
 	if(!paicard)
@@ -581,40 +491,38 @@
 	if(paicard.radio.keyslot2.syndie)
 		paicard.radio.syndiekey = paicard.radio.keyslot2
 
-	paicard.radio.recalculateChannels(TRUE)
+	paicard.radio.recalculate_channels(TRUE)
 	if(paicard.pai)
 		to_chat(paicard.pai, span_notice("Обнаружены новые частоты радиосообщения, калибровка..."))
 
-
 /obj/item/paicard_upgrade/protolate/set_syndie_key(obj/item/paicard)
 	return
-
 
 /obj/item/paper/pai_upgrade
 	name = "Инструкция по применению"
 	icon_state = "paper_words"
 	info = {"<center> <b>Инструкция по применению СпИИ</b> </center><br>
 
- <b>В набор СпИИ входит:</b><br>
- 1.Картридж СпИИ<br>
- 2.Обычная карта для пИИ<br>
- 3.Отвертка<br>
- 4.Инструкция по применению<br>
- <br>
- <b>Использование:</b><br>
- Вариант №1<br>
- Вставить картридж в пИИ и запросить личность. Нужно подождать пока из базы данных загрузится пИИ. Примерное время ожидания от 30 секунд до 5 минут.<br>
- Вариант №2<br>
- Если у вас уже есть активный пИИ, то вставьте в него картридж. Он получит все обновления и перезагрузку ЦПУ.<br>
- Вариант №3<br>
- Если из базы данных не было предоставлено личности пИИ, то вы можете достать картридж с помощью отвертки, чтобы вернуть потраченные средства.<br>
- <br>
- <b>После обновления ваш пИИ получит дополнительную память, а также возможность установить новые программы:</b><br>
- 1.Доступ к видеокамерам станции.<br>
- 2.Возможность синтезировать и вводить лечащие реагенты в хозяина.<br>
- 3.Возмоность взаимодействия со шлюзами раз в 10 секунд (открытие, болтировка, электризация)<br>
- 4.Доступ к продвинутым записям СБ, для выставления и снятия статусов ареста или ввода в манифест.<br>
- 5.Термальное зрение для пИИ<br>
+<b>В набор СпИИ входит:</b><br>
+1.Картридж СпИИ<br>
+2.Обычная карта для пИИ<br>
+3.Отвертка<br>
+4.Инструкция по применению<br>
+<br>
+<b>Использование:</b><br>
+Вариант №1<br>
+Вставить картридж в пИИ и запросить личность. Нужно подождать пока из базы данных загрузится пИИ. Примерное время ожидания от 30 секунд до 5 минут.<br>
+Вариант №2<br>
+Если у вас уже есть активный пИИ, то вставьте в него картридж. Он получит все обновления и перезагрузку ЦПУ.<br>
+Вариант №3<br>
+Если из базы данных не было предоставлено личности пИИ, то вы можете достать картридж с помощью отвертки, чтобы вернуть потраченные средства.<br>
+<br>
+<b>После обновления ваш пИИ получит дополнительную память, а также возможность установить новые программы:</b><br>
+1.Доступ к видеокамерам станции.<br>
+2.Возможность синтезировать и вводить лечащие реагенты в хозяина.<br>
+3.Возмоность взаимодействия со шлюзами раз в 10 секунд (открытие, болтировка, электризация)<br>
+4.Доступ к продвинутым записям СБ, для выставления и снятия статусов ареста или ввода в манифест.<br>
+5.Термальное зрение для пИИ<br>
 "}
 
 /obj/item/paper/pai_upgrade/update_icon_state()

@@ -5,15 +5,14 @@
 	desc = "Sturdy wooden tribune. When you look at it, you want to start making a speech."
 	flags = ON_BORDER
 	density = TRUE
-	anchored = FALSE
 	max_integrity = 100
 	resistance_flags = FLAMMABLE
 	pass_flags_self = PASSGLASS
+	interaction_flags_click = NEED_HANDS | ALLOW_RESTING
 	var/buildstacktype = /obj/item/stack/sheet/wood
 	var/buildstackamount = 5
 	var/mover_dir = null
 	var/ini_dir = null
-
 
 /obj/structure/tribune/Initialize(mapload)
 	. = ..()
@@ -23,7 +22,6 @@
 	)
 	AddElement(/datum/element/connect_loc, loc_connections)
 
-
 /obj/structure/tribune/wrench_act(mob/user, obj/item/I)
 	. = TRUE
 	default_unfasten_wrench(user, I)
@@ -31,7 +29,7 @@
 /obj/structure/tribune/screwdriver_act(mob/user, obj/item/I)
 	. = TRUE
 	if(obj_flags & NODECONSTRUCT)
-		to_chat(user, "<span class='warning'>Try as you might, you can't figure out how to deconstruct [src].</span>")
+		to_chat(user, span_warning("Try as you might, you can't figure out how to deconstruct [src]."))
 		return
 	if(!I.use_tool(src, user, 30, volume = I.tool_volume))
 		return
@@ -45,7 +43,6 @@
 
 /obj/structure/tribune/proc/after_rotation(mob/user)
 	add_fingerprint(user)
-
 
 /obj/structure/tribune/setDir(newdir)
 	. = ..()
@@ -61,24 +58,18 @@
 	else
 		layer = ABOVE_MOB_LAYER
 
-/obj/structure/tribune/AltClick(mob/user)
-	if(!Adjacent(user))
-		return
-	if(user.incapacitated() || HAS_TRAIT(user, TRAIT_HANDS_BLOCKED))
-		to_chat(user, "<span class='warning'>You can't do that right now!</span>")
-		return
+/obj/structure/tribune/click_alt(mob/user)
 	if(anchored)
-		to_chat(user, "It is fastened to the floor!")
-		return
+		to_chat(user, span_warning("It is fastened to the floor!"))
+		return CLICK_ACTION_BLOCKING
 	setDir(turn(dir, 90))
 	after_rotation(user)
-
+	return CLICK_ACTION_SUCCESS
 
 /obj/structure/tribune/CanAllowThrough(atom/movable/mover, border_dir)
 	. = ..()
 	if(dir != border_dir || (mover.movement_type & MOVETYPES_NOT_TOUCHING_GROUND))
 		return TRUE
-
 
 /obj/structure/tribune/proc/on_exit(datum/source, atom/movable/leaving, atom/newLoc)
 	SIGNAL_HANDLER
@@ -99,9 +90,7 @@
 		leaving.Bump(src)
 		return COMPONENT_ATOM_BLOCK_EXIT
 
-
 /obj/structure/tribune/centcom
 	name = "CentCom tribune"
-	icon = 'icons/obj/tribune.dmi'
 	icon_state = "nt_tribune_cc"
 	desc = "A richly decorated tribune. Just looking at her makes your heart skip a beat."

@@ -4,7 +4,7 @@
 /mob/living/carbon/alien
 	name = "alien"
 	voice_name = "alien"
-	speak_emote = list("hisses")
+	speak_emote = list("шипит")
 	tts_seed = "Ladyvashj"
 	bubble_icon = "alien"
 	icon = 'icons/mob/alien.dmi'
@@ -14,12 +14,12 @@
 
 	var/nightvision_enabled = FALSE
 	nightvision = 4
-	
-	verb_say = "hisses"
-	verb_ask = "hisses curiously"
-	verb_exclaim = "roars"
-	verb_yell = "roars"
-	
+
+	verb_say = "шипит"
+	verb_ask = "вопросительно шипит"
+	verb_exclaim = "рычит"
+	verb_yell = "ревёт"
+
 	var/obj/item/card/id/wear_id = null // Fix for station bounced radios -- Skie
 	var/has_fine_manipulation = FALSE
 	var/move_delay_add = 0 // movement delay to add
@@ -40,6 +40,9 @@
 	var/leaping = FALSE
 	dirslash_enabled = TRUE
 
+	var/antag_datum_type = /datum/antagonist/xenomorph
+	var/role_text = ""
+
 	var/can_evolve = FALSE
 	var/evolution_points = 0
 	var/max_evolution_points = 200
@@ -52,7 +55,6 @@
 	var/static/praetorian_count = 0
 	var/static/queen_count = 0
 	var/static/queen_maximum = 0
-
 
 /mob/living/carbon/alien/New()
 	..()
@@ -67,13 +69,25 @@
 	if(caste_movement_delay)
 		update_alien_speed()
 
+/mob/living/carbon/alien/Initialize(mapload)
+	. = ..()
+	GLOB.aliens_list += src
 
 /mob/living/carbon/alien/Destroy()
 	if(night_vision_action)
 		night_vision_action.Remove(src)
 		night_vision_action = null
+	GLOB.aliens_list -= src
 	return ..()
 
+/mob/living/carbon/alien/proc/update_datum()
+	var/datum/old_datum = mind.has_antag_datum(/datum/antagonist/xenomorph)
+	if(old_datum)
+		if(old_datum.type != antag_datum_type)
+			mind.remove_antag_datum(old_datum)
+		else
+			return
+	mind.add_antag_datum(antag_datum_type, /datum/team/xenomorph)
 
 /**
  * Returns the list of type paths of the organs that we need to insert into this particular xeno upon its creation
@@ -86,29 +100,26 @@
 		/obj/item/organ/internal/ears
 	)
 
-
 /mob/living/carbon/alien/get_status_tab_items()
 	var/list/status_tab_data = ..()
 	. = status_tab_data
-	status_tab_data[++status_tab_data.len] = list("Intent:", "[a_intent]")
-	status_tab_data[++status_tab_data.len] = list("Move Mode:", "[m_intent]")
+	status_tab_data[++status_tab_data.len] = list("Намерение:", "[a_intent]")
+	status_tab_data[++status_tab_data.len] = list("Режим передвижения:", "[m_intent]")
 	if(can_evolve)
 		status_tab_data[++status_tab_data.len] = list("Evolution progress:", "[evolution_points]/[max_evolution_points]")
-
 
 /mob/living/carbon/alien/get_default_language()
 	if(default_language)
 		return default_language
 	return GLOB.all_languages[LANGUAGE_XENOS]
 
-/mob/living/carbon/alien/say_quote(var/message, var/datum/language/speaking = null)
+/mob/living/carbon/alien/say_quote(message, datum/language/speaking = null)
 	var/ending = copytext(message, length(message))
-	
-	if(speaking && (speaking.name != "Galactic Common")) //this is so adminbooze xenos speaking common have their custom verbs,
-		return speaking.get_spoken_verb(ending)          //and use normal verbs for their own languages and non-common languages
+
+	if(speaking && (speaking.name != "Galactic Common"))						//this is so adminbooze xenos speaking common have their custom verbs,
+		return genderize_decode(src, speaking.get_spoken_verb(ending))          //and use normal verbs for their own languages and non-common languages
 	else
 		return ..()
-
 
 /mob/living/carbon/alien/adjustToxLoss(
 	amount = 0,
@@ -118,7 +129,6 @@
 	used_weapon = null,
 )
 	return STATUS_UPDATE_NONE
-
 
 /mob/living/carbon/alien/get_incoming_damage_modifier(
 	damage = 0,
@@ -135,12 +145,10 @@
 		if(BURN)
 			. *= ALIEN_BURN_MOD
 
-
 /mob/living/carbon/alien/check_eye_prot()
 	return FLASH_PROTECTION_WELDER
 
-/mob/living/carbon/alien/handle_environment(var/datum/gas_mixture/environment)
-
+/mob/living/carbon/alien/handle_environment(datum/gas_mixture/environment)
 	if(!environment)
 		return
 
@@ -178,10 +186,8 @@
 	else
 		clear_alert("alien_fire")
 
-
 /mob/living/carbon/alien/IsAdvancedToolUser()
 	return has_fine_manipulation
-
 
 /mob/living/carbon/alien/Weaken(amount, ignore_canweaken)
 	. = ..()
@@ -189,7 +195,6 @@
 		// add some movement delay
 		move_delay_add = min(move_delay_add + round(amount / 5), 10)
 		add_or_update_variable_movespeed_modifier(/datum/movespeed_modifier/alien_stun_delay, multiplicative_slowdown = move_delay_add)
-
 
 /mob/living/carbon/alien/SetWeakened(amount, ignore_canweaken)
 	. = ..()
@@ -201,28 +206,22 @@
 		move_delay_add = 0
 		remove_movespeed_modifier(/datum/movespeed_modifier/alien_stun_delay)
 
-
 /mob/living/carbon/alien/update_stamina()
 	return
 
-
 /mob/living/carbon/alien/lying_angle_on_movement(direct)
 	return
-
 
 /mob/living/carbon/alien/on_lying_down(new_lying_angle)
 	. = ..()
 	update_icons()
 
-
 /mob/living/carbon/alien/on_standing_up()
 	. = ..()
 	update_icons()
 
-
 /mob/living/carbon/alien/proc/update_alien_speed()
 	add_or_update_variable_movespeed_modifier(/datum/movespeed_modifier/alien_speed, multiplicative_slowdown = caste_movement_delay)
-
 
 /mob/living/carbon/alien/getDNA()
 	return null
@@ -247,8 +246,7 @@
 	if(is_ventcrawling(src))
 		update_pipe_vision()
 
-
-/mob/living/carbon/alien/assess_threat(var/mob/living/simple_animal/bot/secbot/judgebot, var/lasercolor)
+/mob/living/carbon/alien/assess_threat(mob/living/simple_animal/bot/secbot/judgebot, lasercolor)
 	if(judgebot.emagged == 2)
 		return 10 //Everyone is a criminal!
 	var/threatcount = 0
@@ -296,7 +294,6 @@ Des: Gives the client of the alien an image on each infected mob.
 					client.images += I
 	return
 
-
 /*----------------------------------------
 Proc: RemoveInfectionImages()
 Des: Removes all infected images from the alien.
@@ -308,14 +305,12 @@ Des: Removes all infected images from the alien.
 				qdel(I)
 	return
 
-
 /mob/living/carbon/proc/get_plasma()
 	var/obj/item/organ/internal/xenos/plasmavessel/vessel = get_int_organ(/obj/item/organ/internal/xenos/plasmavessel)
 	if(!vessel)
 		return FALSE
 
 	return vessel.stored_plasma
-
 
 /**
  * Adjust_alien_plasma just requires the plasma amount, so admins can easily varedit it and stuff.
@@ -328,7 +323,6 @@ Des: Removes all infected images from the alien.
 	vessel.stored_plasma = clamp(vessel.stored_plasma + amount, 0, vessel.max_plasma)
 	for(var/datum/action/spell_action/action in actions)
 		action.UpdateButtonIcon()
-
 
 /**
  * Although this is on the carbon level, we only want this proc'ing for aliens that do have this hud.
@@ -345,10 +339,8 @@ Des: Removes all infected images from the alien.
 	hud_used.alien_plasma_display.maptext = "<div align='center' valign='middle' style='position:relative; top:0px; left:6px'> <font face='Small Fonts' color='magenta'>[get_plasma()]</font></div>"
 	hud_used.alien_plasma_display.maptext_x = -3
 
-
 /mob/living/carbon/alien/larva/update_plasma_display(mob/owner, update_buttons = FALSE)
 	return
-
 
 /mob/living/carbon/alien/getTrail()
 	if(getBruteLoss() < 200)

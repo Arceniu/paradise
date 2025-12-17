@@ -6,6 +6,19 @@
 /// Global list of all PDAs in the world
 GLOBAL_LIST_EMPTY(PDAs)
 
+//authorization log
+GLOBAL_LIST_EMPTY(name_to_PDAs)
+
+//Helpers
+/obj/item/pda/proc/inject_to_authorization_log()
+	if(GLOB.name_to_PDAs?[owner])
+		GLOB.name_to_PDAs?[owner] += src
+	else
+		GLOB.name_to_PDAs?[owner] = list(src)
+
+/obj/item/pda/proc/remove_from_authorization_log()
+	if(GLOB.name_to_PDAs?[owner])
+		LAZYREMOVE(GLOB.name_to_PDAs[owner], src)
 
 /obj/item/pda
 	name = "PDA"
@@ -17,14 +30,13 @@ GLOBAL_LIST_EMPTY(PDAs)
 	w_class = WEIGHT_CLASS_TINY
 	item_flags = DENY_UI_BLOCKED
 	slot_flags = ITEM_SLOT_ID|ITEM_SLOT_PDA|ITEM_SLOT_BELT
-	armor = list("melee" = 0, "bullet" = 0, "laser" = 0, "energy" = 0, "bomb" = 0, "bio" = 0, "rad" = 0, "fire" = 100, "acid" = 100)
+	armor = list(MELEE = 0, BULLET = 0, LASER = 0, ENERGY = 0, BOMB = 0, BIO = 0, RAD = 0, FIRE = 100, ACID = 100)
 	resistance_flags = FIRE_PROOF | ACID_PROOF
 	origin_tech = "programming=2"
 
 	light_on = FALSE
 	light_system = MOVABLE_LIGHT_DIRECTIONAL
 	light_range = 2
-	light_power = 1
 
 	//Main variables
 	var/owner = null
@@ -43,6 +55,7 @@ GLOBAL_LIST_EMPTY(PDAs)
 	var/datum/data/pda/utility/scanmode/scanmode = null
 
 	var/lock_code = "" // Lockcode to unlock uplink
+	var/silent = FALSE //To beep or not to beep, that is the question
 	var/honkamt = 0 //How many honks left when infected with honk.exe
 	var/mimeamt = 0 //How many silence left when infected with mime.exe
 	var/detonate = 1 // Can the PDA be blown up?
@@ -81,9 +94,7 @@ GLOBAL_LIST_EMPTY(PDAs)
 	var/obj/item/pda/chameleon_skin
 	/// Custom job name used in chameleon PDA.
 	var/fakejob
-	/// Our icon saved in the text format for TGUI usage
-	var/base64icon
-	/// Custom PDA name used in update_name()
+	/// Custom PDA name used in update_appearance(UPDATE_NAME)
 	var/custom_name
 	/// Current PDA case
 	var/obj/item/pda_case/current_case
@@ -104,10 +115,9 @@ GLOBAL_LIST_EMPTY(PDAs)
  */
 /obj/item/pda/Initialize(mapload)
 	. = ..()
+	silent = TRUE // We don't want to hear the first program start up
 	GLOB.PDAs += src
 	GLOB.PDAs = sortAtom(GLOB.PDAs)
-
-	base64icon = "[icon2base64(icon(icon, icon_state, frame = 1))]"
 
 	update_programs()
 	if(default_cartridge)
@@ -121,10 +131,11 @@ GLOBAL_LIST_EMPTY(PDAs)
 	else
 		new /obj/item/pen(src)
 	start_program(find_program(/datum/data/pda/app/main_menu))
-
+	silent = initial(silent)
 
 /obj/item/pda/Destroy()
 	GLOB.PDAs -= src
+	remove_from_authorization_log()
 	var/T = get_turf(loc)
 	if(id)
 		id.forceMove(T)
@@ -139,7 +150,6 @@ GLOBAL_LIST_EMPTY(PDAs)
 	current_painting?.Cut()
 	return ..()
 
-
 /obj/item/pda/proc/can_use(mob/user)
 	if(loc != user)
 		return FALSE
@@ -148,7 +158,6 @@ GLOBAL_LIST_EMPTY(PDAs)
 		return FALSE
 
 	return TRUE
-
 
 /obj/item/pda/GetAccess()
 	if(id)
@@ -159,17 +168,14 @@ GLOBAL_LIST_EMPTY(PDAs)
 /obj/item/pda/GetID()
 	return id ? id : ..()
 
-
-/obj/item/pda/MouseDrop(atom/over_object, src_location, over_location, src_control, over_control, params)
+/obj/item/pda/mouse_drop_dragged(atom/over_object, mob/user, src_location, over_location, params)
 	. = ..()
 
-	var/mob/user = usr
 	if(!ishuman(user) || !Adjacent(user) || user.incapacitated() || HAS_TRAIT(user, TRAIT_HANDS_BLOCKED))
 		return FALSE
 
 	attack_self(user)
 	return TRUE
-
 
 /obj/item/pda/attack_self(mob/user as mob)
 	user.set_machine(src)
@@ -205,8 +211,8 @@ GLOBAL_LIST_EMPTY(PDAs)
 	SStgui.close_uis(src)
 
 /obj/item/pda/verb/verb_reset_pda()
-	set category = "Object"
-	set name = "Reset PDA"
+	set category = STATPANEL_OBJECT
+	set name = "Сброс КПК"
 	set src in usr
 
 	if(issilicon(usr))
@@ -216,20 +222,18 @@ GLOBAL_LIST_EMPTY(PDAs)
 		start_program(find_program(/datum/data/pda/app/main_menu))
 		notifying_programs.Cut()
 		update_icon(UPDATE_OVERLAYS)
-		to_chat(usr, "<span class='notice'>You press the reset button on \the [src].</span>")
+		to_chat(usr, span_notice("You press the reset button on \the [src]."))
 		SStgui.update_uis(src)
 	else
-		to_chat(usr, "<span class='notice'>You cannot do this while restrained.</span>")
+		to_chat(usr, span_notice("You cannot do this while restrained."))
 
-/obj/item/pda/AltClick(mob/living/user)
-	if(!iscarbon(user))
-		return
+/obj/item/pda/click_alt(mob/living/user)
 	if(can_use(user))
 		if(id)
 			remove_id(user)
 		else
-			to_chat(user, "<span class='warning'>This PDA does not have an ID in it!</span>")
-
+			to_chat(user, span_warning("This PDA does not have an ID in it!"))
+	return CLICK_ACTION_SUCCESS
 
 /obj/item/pda/CtrlClick(mob/user)
 	..()
@@ -239,7 +243,6 @@ GLOBAL_LIST_EMPTY(PDAs)
 	if(can_use(user))
 		remove_pen(user)
 
-
 /obj/item/pda/proc/remove_id(mob/user)
 	if(!id)
 		return
@@ -247,33 +250,33 @@ GLOBAL_LIST_EMPTY(PDAs)
 	if(ismob(loc))
 		var/mob/M = loc
 		M.put_in_hands(id)
-		to_chat(user, "<span class='notice'>You remove the ID from the [name].</span>")
+		to_chat(user, span_notice("You remove the ID from the [name]."))
 		SStgui.update_uis(src)
 	id = null
+	playsound(src, 'sound/machines/terminal_eject.ogg', 50, TRUE)
 	cartridge?.on_id_updated()
 	request_cartridge?.on_id_updated()
 	update_icon(UPDATE_OVERLAYS)
 
-
 /obj/item/pda/verb/verb_remove_id()
-	set category = "Object"
-	set name = "Remove id"
+	set category = STATPANEL_OBJECT
+	set name = "Извлечь ID-карту"
 	set src in usr
 
 	if(issilicon(usr))
 		return
 
-	if( can_use(usr) )
+	if(can_use(usr))
 		if(id)
 			remove_id(usr)
 		else
-			to_chat(usr, "<span class='notice'>This PDA does not have an ID in it.</span>")
+			to_chat(usr, span_notice("This PDA does not have an ID in it."))
 	else
-		to_chat(usr, "<span class='notice'>You cannot do this while restrained.</span>")
+		to_chat(usr, span_notice("You cannot do this while restrained."))
 
 /obj/item/pda/verb/verb_remove_pen()
-	set category = "Object"
-	set name = "Remove pen"
+	set category = STATPANEL_OBJECT
+	set name = "Извлечь ручку"
 	set src in usr
 	remove_pen(usr)
 
@@ -282,10 +285,11 @@ GLOBAL_LIST_EMPTY(PDAs)
 	if(issilicon(user))
 		return
 
-	if( can_use(user) )
+	if(can_use(user))
 		var/obj/item/pen/O = locate() in src
 		if(O)
-			to_chat(user, "<span class='notice'>You remove \the [O] from [src].</span>")
+			to_chat(user, span_notice("You remove \the [O] from [src]."))
+			playsound(src, 'sound/machines/pda_button2.ogg', 50, TRUE)
 			if(istype(loc, /mob))
 				var/mob/M = loc
 				if(M.get_active_hand() == null)
@@ -293,10 +297,9 @@ GLOBAL_LIST_EMPTY(PDAs)
 					return
 			O.forceMove(get_turf(src))
 		else
-			to_chat(user, "<span class='warning'>This PDA does not have a pen in it.</span>")
+			to_chat(user, span_warning("This PDA does not have a pen in it."))
 	else
-		to_chat(user, "<span class='notice'>You cannot do this while restrained.</span>")
-
+		to_chat(user, span_notice("You cannot do this while restrained."))
 
 /obj/item/pda/proc/id_check(mob/user, in_pda_usage)
 	if(in_pda_usage)
@@ -319,10 +322,15 @@ GLOBAL_LIST_EMPTY(PDAs)
 		id = I
 		cartridge?.on_id_updated()
 		request_cartridge?.on_id_updated()
+		playsound(src, 'sound/machines/pda_button1.ogg', 50, TRUE)
 		update_icon(UPDATE_OVERLAYS)
 		return TRUE
 	return FALSE
 
+/obj/item/pda/proc/update_owner_name(new_name)
+	remove_from_authorization_log()
+	owner = new_name
+	inject_to_authorization_log()
 
 /obj/item/pda/update_name(updates = ALL)
 	. = ..()
@@ -335,7 +343,6 @@ GLOBAL_LIST_EMPTY(PDAs)
 	else
 		name = initial(name)
 
-
 /obj/item/pda/update_desc(updates = ALL)
 	. = ..()
 	if(chameleon_skin)
@@ -347,25 +354,19 @@ GLOBAL_LIST_EMPTY(PDAs)
 	else
 		desc = initial(desc)
 
-
 /obj/item/pda/update_icon(updates = ALL)
 	. = ..()
 	update_equipped_item(update_speedmods = FALSE)
 
-
 /obj/item/pda/update_icon_state()
 	if(chameleon_skin)
 		icon_state = initial(chameleon_skin.icon_state)
-		base64icon = "[icon2base64(icon(icon, icon_state, frame = 1))]"
 	else if(current_case?.new_icon_state)
 		icon_state = current_case.new_icon_state
-		base64icon = "[icon2base64(icon(icon, icon_state, frame = 1))]"
 	else if(current_painting)
 		icon_state = current_painting["icon"]
-		base64icon = current_painting["base64"]
 	else
 		icon_state = initial(icon_state)
-		base64icon = "[icon2base64(icon(icon, icon_state, frame = 1))]"
 
 	if(chameleon_skin)
 		item_state = initial(chameleon_skin.item_state)
@@ -375,7 +376,6 @@ GLOBAL_LIST_EMPTY(PDAs)
 		item_state = current_painting["icon"]
 	else
 		item_state = initial(item_state)
-
 
 /obj/item/pda/update_overlays()
 	. = ..()
@@ -400,7 +400,6 @@ GLOBAL_LIST_EMPTY(PDAs)
 	var/datum/data/pda/utility/flashlight/flight = locate() in programs
 	if(flight?.fon)
 		. += pda_light_overlay
-
 
 /obj/item/pda/attackby(obj/item/I, mob/user, params)
 	if(istype(I, /obj/item/pda_case))
@@ -429,6 +428,7 @@ GLOBAL_LIST_EMPTY(PDAs)
 		SStgui.update_uis(src)
 		if(request_cartridge.radio)
 			request_cartridge.radio.hostpda = src
+		playsound(src, 'sound/machines/pda_button1.ogg', 50, TRUE)
 		return ATTACK_CHAIN_BLOCKED_ALL
 
 	if(istype(I, /obj/item/cartridge))
@@ -446,6 +446,7 @@ GLOBAL_LIST_EMPTY(PDAs)
 		SStgui.update_uis(src)
 		if(cartridge.radio)
 			cartridge.radio.hostpda = src
+		playsound(src, 'sound/machines/pda_button1.ogg', 50, TRUE)
 		return ATTACK_CHAIN_BLOCKED_ALL
 
 	if(istype(I, /obj/item/card/id))
@@ -453,14 +454,18 @@ GLOBAL_LIST_EMPTY(PDAs)
 		var/obj/item/card/id/id_card = I
 		if(!id_card.registered_name)
 			to_chat(user, span_warning("The PDA rejects empty ID card."))
+			if(!silent)
+				playsound(src, 'sound/machines/terminal_error.ogg', 50, TRUE)
 			return ATTACK_CHAIN_PROCEED
 		if(!owner)
-			owner = id_card.registered_name
+			update_owner_name(id_card.registered_name)
 			ownjob = id_card.assignment
 			ownrank = id_card.rank
 			update_appearance(UPDATE_NAME)
 			to_chat(user, span_notice("The ID card has been scanned."))
 			SStgui.update_uis(src)
+			if(!silent)
+				playsound(src, 'sound/machines/terminal_success.ogg', 50, TRUE)
 			return ATTACK_CHAIN_PROCEED_SUCCESS
 		if(!can_use(user))
 			return ATTACK_CHAIN_PROCEED
@@ -480,6 +485,7 @@ GLOBAL_LIST_EMPTY(PDAs)
 		pai = I
 		to_chat(user, span_notice("You have inserted the pAI card into the PDA."))
 		SStgui.update_uis(src)
+		playsound(src, 'sound/machines/pda_button1.ogg', 50, TRUE)
 		return ATTACK_CHAIN_BLOCKED_ALL
 
 	if(is_pen(I))
@@ -502,13 +508,11 @@ GLOBAL_LIST_EMPTY(PDAs)
 
 	return ..()
 
-
 /obj/item/pda/attack(mob/living/target, mob/living/user, params, def_zone, skip_attack_anim = FALSE)
 	. = ATTACK_CHAIN_PROCEED
 	if(scanmode && iscarbon(target))
 		. |= ATTACK_CHAIN_SUCCESS
 		scanmode.scan_mob(target, user)
-
 
 /obj/item/pda/afterattack(atom/A, mob/user, proximity, params)
 	if(proximity && scanmode)
@@ -521,16 +525,14 @@ GLOBAL_LIST_EMPTY(PDAs)
 
 	if(ismob(loc))
 		var/mob/M = loc
-		M.show_message("<span class='danger'>Your [src] explodes!</span>", 1)
+		M.show_message(span_danger("Your [src] explodes!"), 1)
 
 	if(T)
 		T.hotspot_expose(700,125)
 
-		explosion(T, -1, -1, 2, 3, cause = src)
+		explosion(T, devastation_range = -1, heavy_impact_range = -1, light_impact_range = 2, flash_range = 3, cause = src)
 	qdel(src)
 	return
-
-
 
 // Pass along the pulse to atoms in contents, largely added so pAIs are vulnerable to EMP
 /obj/item/pda/emp_act(severity)
@@ -538,15 +540,14 @@ GLOBAL_LIST_EMPTY(PDAs)
 		A.emp_act(severity)
 
 /obj/item/pda/proc/play_ringtone()
-	var/S
+	var/sound
 
 	if(ttone in ttone_sound)
-		S = ttone_sound[ttone]
+		sound = ttone_sound[ttone]
 	else
-		S = 'sound/machines/twobeep.ogg'
-	playsound(loc, S, 50, 1)
-	for(var/mob/O in hearers(3, loc))
-		O.show_message(text("[bicon(src)] *[ttone]*"))
+		sound = 'sound/machines/twobeep_high.ogg'
+	playsound(loc, sound, 50, TRUE)
+	audible_message("[icon2html(src, hearers(3, loc))] *[ttone]*", hearing_distance = 3)
 
 /obj/item/pda/proc/set_ringtone(mob/user)
 	var/new_tone = tgui_input_text(user, "Please enter new ringtone", name, ttone, max_length = 20, encode = FALSE)
@@ -568,5 +569,5 @@ GLOBAL_LIST_EMPTY(PDAs)
 
 /obj/item/pda/extinguish_light(force = FALSE)
 	var/datum/data/pda/utility/flashlight/FL = find_program(/datum/data/pda/utility/flashlight)
-	if(FL && FL.fon)
+	if(FL?.fon)
 		FL.start()

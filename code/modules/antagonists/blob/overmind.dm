@@ -1,6 +1,5 @@
 GLOBAL_LIST_EMPTY(overminds)
 
-
 /mob/camera/blob
 	name = "Blob Overmind"
 	real_name = "Blob Overmind"
@@ -49,12 +48,11 @@ GLOBAL_LIST_EMPTY(overminds)
 	/// Does the blob have an infinite resource?
 	var/is_infinity = FALSE
 
-
 /mob/camera/blob/Initialize(mapload, core = null, starting_points = OVERMIND_STARTING_POINTS)
 	ADD_TRAIT(src, TRAIT_BLOB_ALLY, INNATE_TRAIT)
 	blob_points = starting_points
 	blob_core = core
-	GLOB.overminds += src
+	GLOB.overminds |= src
 	var/new_name = "[initial(name)] ([rand(1, 999)])"
 	name = new_name
 	real_name = new_name
@@ -66,7 +64,6 @@ GLOBAL_LIST_EMPTY(overminds)
 	. = ..()
 	START_PROCESSING(SSobj, src)
 	GLOB.blob_telepathy_mobs |= src
-
 
 /mob/camera/blob/Destroy()
 	QDEL_NULL(blobstrain)
@@ -89,16 +86,11 @@ GLOBAL_LIST_EMPTY(overminds)
 
 	return ..()
 
-
 /mob/camera/blob/process()
-	if(!blob_core)
-		qdel(src)
-		return
 	if(!free_strain_rerolls && (last_reroll_time + BLOB_POWER_REROLL_FREE_TIME < world.time))
-		to_chat(src, span_boldnotice("Вы получили еще одну бесплатную смену штамма."))
+		to_chat(src, span_boldnotice("Вы получили ещё одну бесплатную смену штамма."))
 		free_strain_rerolls = TRUE
 	track_z()
-
 
 /mob/camera/blob/Login()
 	. = ..()
@@ -112,11 +104,9 @@ GLOBAL_LIST_EMPTY(overminds)
 	if(isturf(T))
 		update_z(T.z)
 
-
 /mob/camera/blob/Logout()
 	update_z(null)
 	. = ..()
-
 
 /mob/camera/blob/proc/can_attack()
 	return (world.time > (last_attack + CLICK_CD_RANGE))
@@ -132,7 +122,6 @@ GLOBAL_LIST_EMPTY(overminds)
 	else
 		return FALSE
 
-
 /mob/camera/blob/can_z_move(direction, turf/start, turf/destination, z_move_flags = NONE, mob/living/rider)
 	. = ..()
 	if(!.)
@@ -140,7 +129,7 @@ GLOBAL_LIST_EMPTY(overminds)
 	var/turf/target_turf = .
 	if(!is_valid_turf(target_turf)) // Allows unplaced blobs to travel through station z-levels
 		if(z_move_flags & ZMOVE_FEEDBACK)
-			to_chat(src, span_warning("Ваш пункт назначения недействителен. Перейдите в другое место и попробуйте еще раз."))
+			to_chat(src, span_warning("Ваш пункт назначения недействителен. Перейдите в другое место и попробуйте ещё раз."))
 		return null
 
 /mob/camera/blob/proc/is_valid_turf(turf/tile)
@@ -148,7 +137,6 @@ GLOBAL_LIST_EMPTY(overminds)
 	if((area && !(area.area_flags & BLOBS_ALLOWED)) || !tile || !is_station_level(tile.z))
 		return FALSE
 	return TRUE
-
 
 /mob/camera/blob/get_status_tab_items()
 	. = ..()
@@ -169,7 +157,6 @@ GLOBAL_LIST_EMPTY(overminds)
 		if(!using_hud?.blobpwrdisplay)
 			continue
 		using_hud.blobpwrdisplay.maptext = MAPTEXT("<div align='center' valign='middle' style='position:relative; top:0px; left:6px'><font color='#82ed00'>[current_health]%</font></div>")
-
 
 /mob/camera/blob/say(
 	message,
@@ -201,19 +188,16 @@ GLOBAL_LIST_EMPTY(overminds)
 	add_say_logs(src, message, language = "BLOB")
 
 	var/message_a = say_quote(message)
-	var/rendered = span_big(span_blob("<b>\[Blob Telepathy\] <span class='name'>[name]</span>(<font color=\"[blobstrain.color]\">[blobstrain.name]</font>)</b> [message_a], [message]"))
+	var/rendered = span_big(span_blob("<b>\[Blob Telepathy\] [span_name(name)](<font color=\"[blobstrain.color]\">[blobstrain.name]</font>)</b> [message_a], [message]"))
 	relay_to_list_and_observers(rendered, GLOB.blob_telepathy_mobs, src)
 
 /mob/camera/blob/proc/add_points(points)
 	blob_points = clamp(blob_points + points, 0, max_blob_points)
 	hud_used.blobpwrdisplay.maptext = MAPTEXT("<div align='center' valign='middle' style='position:relative; top:0px; left:6px'><font color='#e36600'>[(is_infinity || SSticker?.mode?.is_blob_infinity_points)? "INF" : round(blob_points)]</font></div>")
 
-
 /mob/camera/blob/proc/select_strain(first_select = FALSE)
 	var/reagent_type = pick(GLOB.valid_blobstrains)
 	set_strain(reagent_type, first_select)
-
-
 
 /mob/camera/blob/proc/set_strain(datum/blobstrain/new_strain, first_select = FALSE)
 	if(!ispath(new_strain))
@@ -235,7 +219,6 @@ GLOBAL_LIST_EMPTY(overminds)
 		var/list/messages = get_strain_info()
 		to_chat(src, chat_box_red(messages.Join("<br>")))
 	SEND_SIGNAL(src, COMSIG_BLOB_SELECTED_STRAIN, blobstrain)
-
 
 /mob/camera/blob/proc/get_strain_info()
 	. = list()

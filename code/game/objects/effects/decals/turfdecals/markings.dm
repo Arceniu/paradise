@@ -1,5 +1,4 @@
 /obj/effect/turf_decal/stripes/line
-	icon_state = "warningline"
 
 /obj/effect/turf_decal/stripes/end
 	icon_state = "warn_end"
@@ -257,6 +256,9 @@
 	icon_state = "siding_wood_line"
 	color = "#55391A"
 
+/obj/effect/turf_decal/siding/wood/pallet
+	icon_state = "siding_wood_poddon"
+
 /obj/effect/turf_decal/siding/wood/corner
 	icon_state = "siding_wood_corner"
 
@@ -283,7 +285,6 @@
 	icon_state = "siding_thinplating_end"
 
 /obj/effect/turf_decal/siding/thinplating/dark
-	icon_state = "siding_thinplating_line"
 	color = "#474747"
 
 /obj/effect/turf_decal/siding/thinplating/dark/corner
@@ -312,7 +313,6 @@
 	icon_state = "siding_wideplating_end"
 
 /obj/effect/turf_decal/siding/wideplating/dark
-	icon_state = "siding_wideplating_line"
 	color = "#474747"
 
 /obj/effect/turf_decal/siding/wideplating/dark/corner

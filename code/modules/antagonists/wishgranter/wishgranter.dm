@@ -1,11 +1,10 @@
 /datum/antagonist/wishgranter
 	name = "Wishgranter Avatar"
 	special_role = "Avatar of the Wish Granter"
-
+	antag_menu_name = "Аватар исполнителя желаний"
 
 /datum/antagonist/wishgranter/give_objectives()
 	add_objective(/datum/objective/hijack)
-
 
 /datum/antagonist/wishgranter/on_gain()
 	. = ..()
@@ -14,11 +13,9 @@
 
 	give_powers()
 
-
 /datum/antagonist/wishgranter/greet()
 	. = ..()
 	. += span_notice("Your inhibitions are swept away, the bonds of loyalty broken, you are free to murder as you please!")
-
 
 /datum/antagonist/wishgranter/proc/give_powers()
 	var/mob/living/carbon/human/H = owner.current

@@ -10,6 +10,12 @@
 	static_inventory += using
 	action_intent = using
 
+/datum/hud/simple_animal/lang/New(mob/user)
+	. = ..()
+	var/atom/movable/screen/using
+
+	using = new /atom/movable/screen/language_menu(null, src)
+	static_inventory += using
 
 /datum/hud/corgi/New(mob/user)
 	..()
@@ -22,7 +28,6 @@
 	mymob.pullin.update_icon(UPDATE_ICON_STATE)
 	mymob.pullin.screen_loc = ui_construct_pull
 	static_inventory += mymob.pullin
-
 
 /datum/hud/simple_animal/spider/New(mob/user)
 	..()

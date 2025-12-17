@@ -5,7 +5,6 @@
  *		Medical Record Cabinets
  */
 
-
 /*
  * Filing Cabinets
  */
@@ -18,7 +17,6 @@
 	anchored = TRUE
 	var/opened = FALSE
 
-
 /obj/structure/filingcabinet/chestdrawer
 	name = "chest drawer"
 	icon_state = "chestdrawer"
@@ -30,17 +28,14 @@
 /obj/structure/filingcabinet/filingcabinet	//not changing the path to avoid unecessary map issues, but please don't name stuff like this in the future -Pete
 	icon_state = "tallcabinet"
 
-
 /obj/structure/filingcabinet/Initialize(mapload)
 	. = ..()
 	for(var/obj/item/I in loc)
 		if(istype(I, /obj/item/paper) || istype(I, /obj/item/folder) || istype(I, /obj/item/photo))
 			I.loc = src
 
-
 /obj/structure/filingcabinet/update_icon_state()
 	icon_state = "[initial(icon_state)][opened ? "-open" : ""]"
-
 
 /obj/structure/filingcabinet/attackby(obj/item/I, mob/user, params)
 	if(user.a_intent == INTENT_HARM)
@@ -69,7 +64,6 @@
 	to_chat(user, span_warning("You cannot put [I] into [src]!"))
 	return ATTACK_CHAIN_PROCEED
 
-
 /obj/structure/filingcabinet/wrench_act(mob/living/user, obj/item/I)
 	. = TRUE
 	default_unfasten_wrench(user, I)
@@ -83,7 +77,7 @@
 
 /obj/structure/filingcabinet/attack_hand(mob/user)
 	if(!length(contents))
-		to_chat(user, "<span class='notice'>[src] is empty.</span>")
+		to_chat(user, span_notice("[src] is empty."))
 		return
 
 	add_fingerprint(user)
@@ -111,13 +105,13 @@
 			I.loc = loc
 			if(prob(25))
 				step_rand(I)
-			to_chat(user, "<span class='notice'>You pull \a [I] out of [src] at random.</span>")
+			to_chat(user, span_notice("You pull \a [I] out of [src] at random."))
 			return
-	to_chat(user, "<span class='notice'>You find nothing in [src].</span>")
+	to_chat(user, span_notice("You find nothing in [src]."))
 
 /obj/structure/filingcabinet/Topic(href, href_list)
 	if(href_list["retrieve"])
-		usr << browse(null, "window=filingcabinet") // Close the menu
+		close_window(usr, "filingcabinet")		// Close the menu
 
 		//var/retrieveindex = text2num(href_list["retrieve"])
 		var/obj/item/P = locate(href_list["retrieve"])//contents[retrieveindex]
@@ -131,13 +125,11 @@
 			opened = FALSE
 			update_icon(UPDATE_ICON_STATE)
 
-
 /*
  * Security Record Cabinets
  */
 /obj/structure/filingcabinet/security
 	var/populated = FALSE
-
 
 /obj/structure/filingcabinet/security/proc/populate()
 	if(!populated)
@@ -148,12 +140,11 @@
 					S = R
 					break
 			var/obj/item/paper/P = new /obj/item/paper(src)
-			P.info = "<CENTER><B>Security Record</B></CENTER><BR>"
-			P.info += "Name: [G.fields["name"]] ID: [G.fields["id"]]<BR>\nSex: [G.fields["sex"]]<BR>\nAge: [G.fields["age"]]<BR>\nFingerprint: [G.fields["fingerprint"]]<BR>\nPhysical Status: [G.fields["p_stat"]]<BR>\nMental Status: [G.fields["m_stat"]]<BR>"
-			P.info += "<BR>\n<CENTER><B>Security Data</B></CENTER><BR>\nCriminal Status: [S.fields["criminal"]]<BR>\n<BR>\nMinor Crimes: [S.fields["mi_crim"]]<BR>\nDetails: [S.fields["mi_crim_d"]]<BR>\n<BR>\nMajor Crimes: [S.fields["ma_crim"]]<BR>\nDetails: [S.fields["ma_crim_d"]]<BR>\n<BR>\nImportant Notes:<BR>\n\t[S.fields["notes"]]<BR>\n<BR>\n<CENTER><B>Comments/Log</B></CENTER><BR>"
+			P.info = "<center><b>Security Record</b></center><br>"
+			P.info += "Name: [G.fields["name"]] ID: [G.fields["id"]]<br>\nSex: [G.fields["sex"]]<br>\nAge: [G.fields["age"]]<br>\nFingerprint: [G.fields["fingerprint"]]<br>\nPhysical Status: [G.fields["p_stat"]]<br>\nMental Status: [G.fields["m_stat"]]<br>"
+			P.info += "<br>\n<center><b>Security Data</b></center><br>\nCriminal Status: [S.fields["criminal"]]<br>\n<br>\nMinor Crimes: [S.fields["mi_crim"]]<br>\nDetails: [S.fields["mi_crim_d"]]<br>\n<br>\nMajor Crimes: [S.fields["ma_crim"]]<br>\nDetails: [S.fields["ma_crim_d"]]<br>\n<br>\nImportant Notes:<br>\n\t[S.fields["notes"]]<br>\n<br>\n<center><b>Comments/Log</b></center><br>"
 			for(var/c in S.fields["comments"])
-				P.info += "[c]<BR>"
-			P.info += "</TT>"
+				P.info += "[c]<br>"
 			P.name = "paper - '[G.fields["name"]]'"
 			populated = TRUE	//tabbing here is correct- it's possible for people to try and use it
 						//before the records have been generated, so we do this inside the loop.
@@ -181,12 +172,11 @@
 					M = R
 					break
 			var/obj/item/paper/P = new /obj/item/paper(src)
-			P.info = "<CENTER><B>Medical Record</B></CENTER><BR>"
-			P.info += "Name: [G.fields["name"]] ID: [G.fields["id"]]<BR>\nSex: [G.fields["sex"]]<BR>\nAge: [G.fields["age"]]<BR>\nFingerprint: [G.fields["fingerprint"]]<BR>\nPhysical Status: [G.fields["p_stat"]]<BR>\nMental Status: [G.fields["m_stat"]]<BR>"
-			P.info += "<BR>\n<CENTER><B>Medical Data</B></CENTER><BR>\nBlood Type: [M.fields["b_type"]]<BR>\nDNA: [M.fields["b_dna"]]<BR>\n<BR>\nMinor Disabilities: [M.fields["mi_dis"]]<BR>\nDetails: [M.fields["mi_dis_d"]]<BR>\n<BR>\nMajor Disabilities: [M.fields["ma_dis"]]<BR>\nDetails: [M.fields["ma_dis_d"]]<BR>\n<BR>\nAllergies: [M.fields["alg"]]<BR>\nDetails: [M.fields["alg_d"]]<BR>\n<BR>\nCurrent Diseases: [M.fields["cdi"]] (per disease info placed in log/comment section)<BR>\nDetails: [M.fields["cdi_d"]]<BR>\n<BR>\nImportant Notes:<BR>\n\t[M.fields["notes"]]<BR>\n<BR>\n<CENTER><B>Comments/Log</B></CENTER><BR>"
+			P.info = "<center><b>Medical Record</b></center><br>"
+			P.info += "Name: [G.fields["name"]] ID: [G.fields["id"]]<br>\nSex: [G.fields["sex"]]<br>\nAge: [G.fields["age"]]<br>\nFingerprint: [G.fields["fingerprint"]]<br>\nPhysical Status: [G.fields["p_stat"]]<br>\nMental Status: [G.fields["m_stat"]]<br>"
+			P.info += "<br>\n<center><b>Medical Data</b></center><br>\nBlood Type: [M.fields["b_type"]]<br>\nDNA: [M.fields["b_dna"]]<br>\n<br>\nMinor Disabilities: [M.fields["mi_dis"]]<br>\nDetails: [M.fields["mi_dis_d"]]<br>\n<br>\nMajor Disabilities: [M.fields["ma_dis"]]<br>\nDetails: [M.fields["ma_dis_d"]]<br>\n<br>\nAllergies: [M.fields["alg"]]<br>\nDetails: [M.fields["alg_d"]]<br>\n<br>\nCurrent Diseases: [M.fields["cdi"]] (per disease info placed in log/comment section)<br>\nDetails: [M.fields["cdi_d"]]<br>\n<br>\nImportant Notes:<br>\n\t[M.fields["notes"]]<br>\n<br>\n<center><b>Comments/Log</b></center><br>"
 			for(var/c in M.fields["comments"])
-				P.info += "[c]<BR>"
-			P.info += "</TT>"
+				P.info += "[c]<br>"
 			P.name = "paper - '[G.fields["name"]]'"
 			populated = TRUE	//tabbing here is correct- it's possible for people to try and use it
 						//before the records have been generated, so we do this inside the loop.
@@ -227,13 +217,12 @@ GLOBAL_LIST_EMPTY(employmentCabinets)
 		if(G.fields["reference"])
 			addFile(G.fields["reference"])
 
-
 /obj/structure/filingcabinet/employment/proc/addFile(mob/living/carbon/human/employee)
 	new /obj/item/paper/contract/employment(src, employee)
 
 /obj/structure/filingcabinet/employment/attack_hand(mob/user)
 	if(cooldown)
-		to_chat(user, "<span class='warning'>[src] is jammed, give it a few seconds.</span>")
+		to_chat(user, span_warning("[src] is jammed, give it a few seconds."))
 	else
 		if(!populated)
 			add_fingerprint(user)

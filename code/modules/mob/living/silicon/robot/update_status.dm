@@ -2,10 +2,8 @@
 /mob/living/silicon/robot/incapacitated(ignore_flags)
 	return lockcharge || HAS_TRAIT(src, TRAIT_INCAPACITATED) || !is_component_functioning("actuator")
 
-
 /mob/living/silicon/robot/has_vision(information_only = FALSE)
 	return ..(information_only) && ((stat == DEAD && information_only) || is_component_functioning("camera"))
-
 
 /mob/living/silicon/robot/update_stat(reason = "none given", should_log = FALSE)
 	if(HAS_TRAIT(src, TRAIT_GODMODE))
@@ -28,7 +26,6 @@
 				set_stat(CONSCIOUS)
 
 		update_icons()
-		update_headlamp(TRUE, 0)
 
 	else
 		if(health)
@@ -43,12 +40,10 @@
 
 	..()
 
-
 /mob/living/silicon/robot/update_revive(updating = TRUE, defib_revive = FALSE)
 	. = ..(updating)
 	if(.)
 		update_icons()
-
 
 /mob/living/silicon/robot/on_knockedout_trait_loss(datum/source)
 	. = ..()

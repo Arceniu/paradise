@@ -1,6 +1,5 @@
 //Helper Modules
 
-
 // Helper to repressurize the area in case it was run in space
 /datum/mapGeneratorModule/bottomLayer/repressurize
 	spawnableAtoms = list()
@@ -35,9 +34,20 @@
 		if(is_border(T))
 			place(T)
 
-/datum/mapGeneratorModule/border/proc/is_border(var/turf/T)
+/datum/mapGeneratorModule/border/proc/is_border(turf/T)
 	for(var/direction in list(SOUTH,EAST,WEST,NORTH))
 		if(get_step(T,direction) in mother.map)
 			continue
 		return 1
 	return 0
+
+/datum/mapGeneratorModule/bottomLayer/massdelete
+	spawnableAtoms = list()
+	spawnableTurfs = list()
+
+/datum/mapGeneratorModule/bottomLayer/massdelete/generate()
+	if(!mother)
+		return
+	for(var/V in mother.map)
+		var/turf/T = V
+		T.empty()

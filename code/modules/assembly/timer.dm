@@ -3,7 +3,6 @@
 	desc = "Used to time things. Works well with contraptions which has to count down. Tick tock."
 	icon_state = "timer"
 	materials = list(MAT_METAL=500, MAT_GLASS=50)
-	origin_tech = "magnets=1;engineering=1"
 
 	secured = FALSE
 
@@ -14,7 +13,6 @@
 	var/repeat = FALSE
 	var/set_time = 10
 	var/mob/user // for logging
-
 
 /obj/item/assembly/timer/Destroy()
 	user = null
@@ -27,14 +25,12 @@
 	else
 		. += span_notice("The timer is set for [time] seconds.")
 
-
 /obj/item/assembly/timer/activate()
 	if(!..())
 		return FALSE//Cooldown check
 	timing = !timing
 	update_icon()
 	return FALSE
-
 
 /obj/item/assembly/timer/toggle_secure()
 	secured = !secured
@@ -46,17 +42,15 @@
 	update_icon()
 	return secured
 
-
 /obj/item/assembly/timer/proc/timer_end()
-	if(!secured || cooldown > 0)
+	if(!secured || !COOLDOWN_FINISHED(src, cooldown))
 		return FALSE
-	cooldown = 2
+
+	COOLDOWN_START(src, cooldown, cooldown_time)
 	pulse(FALSE, user)
 	update_icon()
-	if(loc)
-		loc.visible_message("[bicon(src)] *beep* *beep*", "*beep* *beep*")
-	addtimer(CALLBACK(src, PROC_REF(process_cooldown)), 10)
-
+	audible_message("[icon2html(src, hearers(loc))] *beep* *beep* *beep*")
+	playsound(src, 'sound/machines/triple_beep.ogg', 40, extrarange = SHORT_RANGE_SOUND_EXTRARANGE)
 
 /obj/item/assembly/timer/process()
 	if(timing && (time > 0))
@@ -66,7 +60,6 @@
 		timer_end()
 		time = set_time
 
-
 /obj/item/assembly/timer/update_overlays()
 	. = ..()
 	attached_overlays = list()
@@ -74,7 +67,6 @@
 		. += "timer_timing"
 		attached_overlays += "timer_timing"
 	holder?.update_icon()
-
 
 /obj/item/assembly/timer/interact(mob/user)//TODO: Have this use the wires
 	if(!secured)
@@ -87,28 +79,27 @@
 	if(second < 10) second = "0[second]"
 	if(set_second < 10) set_second = "0[set_second]"
 
-	var/dat = {"<meta charset="UTF-8">
-	<TT>
+	var/dat = {"
+	<tt>
 		<center><h2>Timing Unit</h2>
 		[minute]:[second] <a href='byond://?src=[UID()];time=1'>[timing?"Stop":"Start"]</a> <a href='byond://?src=[UID()];reset=1'>Reset</a><br>
 		Repeat: <a href='byond://?src=[UID()];repeat=1'>[repeat?"On":"Off"]</a><br>
 		Timer set for
-		<a href='byond://?src=[UID()];tp=-30'>-</A> <a href='byond://?src=[UID()];tp=-1'>-</A> [set_minute]:[set_second] <a href='byond://?src=[UID()];tp=1'>+</A> <a href='byond://?src=[UID()];tp=30'>+</A>
+		<a href='byond://?src=[UID()];tp=-30'>-</a> <a href='byond://?src=[UID()];tp=-1'>-</a> [set_minute]:[set_second] <a href='byond://?src=[UID()];tp=1'>+</a> <a href='byond://?src=[UID()];tp=30'>+</a>
 		</center>
-	</TT>
-	<BR><BR>
-	<a href='byond://?src=[UID()];refresh=1'>Refresh</A>
-	<BR><BR>
-	<a href='byond://?src=[UID()];close=1'>Close</A>"}
+	</tt>
+	<br><br>
+	<a href='byond://?src=[UID()];refresh=1'>Refresh</a>
+	<br><br>
+	<a href='byond://?src=[UID()];close=1'>Close</a>"}
 	var/datum/browser/popup = new(user, "timer", name, 400, 400, src)
 	popup.set_content(dat)
 	popup.open()
 
-
 /obj/item/assembly/timer/Topic(href, href_list)
 	..()
 	if(usr.incapacitated() || HAS_TRAIT(usr, TRAIT_HANDS_BLOCKED) || !in_range(loc, usr))
-		usr << browse(null, "window=timer")
+		close_window(usr, "timer")
 		onclose(usr, "timer")
 		return
 
@@ -133,7 +124,7 @@
 			time = set_time
 
 	if(href_list["close"])
-		usr << browse(null, "window=timer")
+		close_window(usr, "timer")
 		return
 
 	if(usr)

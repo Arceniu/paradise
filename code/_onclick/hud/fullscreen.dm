@@ -1,6 +1,3 @@
-/mob
-	var/list/screens = list()
-
 /mob/proc/overlay_fullscreen(category, type, severity)
 	var/atom/movable/screen/fullscreen/screen = screens[category]
 	if(!screen || screen.type != type)
@@ -16,12 +13,16 @@
 	if(client && screen.should_show_to(src))
 		screen.update_for_view(client.view)
 		client.screen += screen
+		for(var/mob/dead/observer/observe as anything in inventory_observers)
+			if(!observe.client)
+				LAZYREMOVE(inventory_observers, observe)
+				continue
+			observe.client.screen += screen
 
 	if(screen.needs_offsetting)
 		SET_PLANE_EXPLICIT(screen, PLANE_TO_TRUE(screen.plane), src)
 
 	return screen
-
 
 /mob/proc/clear_fullscreen(category, animated = 10)
 	var/atom/movable/screen/fullscreen/screen = screens[category]
@@ -29,6 +30,11 @@
 		return
 
 	screens -= category
+	for(var/mob/dead/observer/observe as anything in inventory_observers)
+		if(!observe.client)
+			LAZYREMOVE(inventory_observers, observe)
+			continue
+		observe.screens -= category
 
 	if(animated)
 		animate(screen, alpha = 0, time = animated)
@@ -36,19 +42,27 @@
 	else
 		if(client)
 			client.screen -= screen
-		qdel(screen)
 
+			for(var/mob/dead/observer/observe as anything in inventory_observers)
+				if(!observe.client)
+					LAZYREMOVE(inventory_observers, observe)
+					continue
+				observe.client.screen -= screen
+		qdel(screen)
 
 /mob/proc/clear_fullscreen_after_animate(atom/movable/screen/fullscreen/screen)
 	if(client)
 		client.screen -= screen
+		for(var/mob/dead/observer/observe as anything in inventory_observers)
+			if(!observe.client)
+				LAZYREMOVE(inventory_observers, observe)
+				continue
+			observe.client.screen -= screen
 	qdel(screen)
-
 
 /mob/proc/clear_fullscreens()
 	for(var/category in screens)
 		clear_fullscreen(category)
-
 
 /datum/hud/proc/reload_fullscreen()
 	if(mymob.client)
@@ -59,8 +73,20 @@
 			if(screen.should_show_to(mymob))
 				screen.update_for_view(mymob.client.view)
 				mymob.client.screen |= screen
+
+				for(var/mob/dead/observer/observe in mymob.inventory_observers)
+					if(!observe.client)
+						LAZYREMOVE(mymob.inventory_observers, observe)
+						continue
+					observe.client.screen |= screen
 			else
 				mymob.client.screen -= screen
+
+				for(var/mob/dead/observer/observe in mymob.inventory_observers)
+					if(!observe.client)
+						LAZYREMOVE(mymob.inventory_observers, observe)
+						continue
+					observe.client.screen -= screen
 
 /mob/on_changed_z_level(turf/old_turf, turf/new_turf, same_z_layer, notify_contents)
 	. = ..()
@@ -88,7 +114,7 @@
 	var/needs_offsetting = TRUE
 
 /atom/movable/screen/fullscreen/proc/update_for_view(client_view)
-	if (screen_loc == "CENTER-7,CENTER-7" && view != client_view)
+	if(screen_loc == "CENTER-7,CENTER-7" && view != client_view)
 		var/list/actualview = getviewsize(client_view)
 		view = client_view
 		transform = matrix(actualview[1]/FULLSCREEN_OVERLAY_RESOLUTION_X, 0, 0, 0, actualview[2]/FULLSCREEN_OVERLAY_RESOLUTION_Y, 0)
@@ -127,8 +153,6 @@
 	icon_state = "flash"
 
 /atom/movable/screen/fullscreen/flash/noise
-	icon = 'icons/mob/screen_gen.dmi'
-	screen_loc = "WEST,SOUTH to EAST,NORTH"
 	icon_state = "noise"
 
 /atom/movable/screen/fullscreen/high
@@ -136,11 +160,9 @@
 	screen_loc = "WEST,SOUTH to EAST,NORTH"
 	icon_state = "druggy"
 
-
 /atom/movable/screen/fullscreen/payback
 	icon_state = "payback"
 	show_when_dead = TRUE
-
 
 /atom/movable/screen/fullscreen/cinematic_backdrop
 	icon = 'icons/mob/screen_gen.dmi'
@@ -151,7 +173,6 @@
 	color = "#000000"
 	show_when_dead = TRUE
 
-
 /atom/movable/screen/fullscreen/lighting_backdrop
 	icon = 'icons/mob/screen_gen.dmi'
 	icon_state = "flash"
@@ -161,6 +182,14 @@
 	blend_mode = BLEND_OVERLAY
 	show_when_dead = TRUE
 	needs_offsetting = FALSE
+
+/atom/movable/screen/fullscreen/curse
+	icon_state = "curse"
+	layer = CURSE_LAYER
+
+/atom/movable/screen/fullscreen/bloody_screen
+	icon_state = "bloody_screen"
+	layer = BLOODY_SCREEN_LAYER
 
 //Provides darkness to the back of the lighting plane
 /atom/movable/screen/fullscreen/lighting_backdrop/lit

@@ -5,6 +5,7 @@
 	blood_volume = BLOOD_VOLUME_NORMAL
 	rotate_on_lying = TRUE
 	pull_hand = null
+	throw_range = 3
 	var/list/stomach_contents
 	var/list/processing_patches
 	var/list/internal_organs	= list()
@@ -12,7 +13,6 @@
 
 	var/life_tick = 0      // The amount of life ticks that have processed on this mob.
 
-	var/obj/item/handcuffed = null //Whether or not the mob is handcuffed
 	var/obj/item/legcuffed = null  //Same as handcuffs but for legs. Bear traps use this.
 
 	var/obj/item/head = null
@@ -35,4 +35,12 @@
 	var/revival_in_progress = FALSE
 	/// Just a timer stamp for [/mob/living/carbon/relaymove]
 	var/last_stomach_attack
+	///Whether or not the mob is currently handcuffed, defined as the handcuff item restraining them
+	var/obj/item/restraints/handcuffs/handcuffed = null
+	///used to track how many times the mob has tried breaking away from their handcuffs since being cuffed. Reset to zero in update_handcuffed()
+	var/cuff_breakout_attempts = 0
 
+	var/last_pain_message = ""
+	COOLDOWN_DECLARE(pain_cd)
+
+	var/list/overlays_standing[TOTAL_LAYERS]

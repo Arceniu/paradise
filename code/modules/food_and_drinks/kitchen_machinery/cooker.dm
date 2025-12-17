@@ -1,10 +1,8 @@
 /obj/machinery/cooker
 	name = "cooker"
 	desc = "You shouldn't be seeing this!"
-	layer = 2.9
 	density = TRUE
 	anchored = TRUE
-	use_power = IDLE_POWER_USE
 	idle_power_usage = 5
 	var/on = 0
 	var/onicon = null
@@ -37,14 +35,14 @@
 // check if you can put it in the machine
 /obj/machinery/cooker/proc/checkValid(obj/item/check, mob/user)
 	if(on)
-		to_chat(user, "<span class='notice'>[src] is still active!</span>")
-		return 0
+		to_chat(user, span_notice("[src] is still active!"))
+		return FALSE
 	if(istype(check, /obj/item/reagent_containers/food/snacks))
-		return 1
+		return TRUE
 	if(has_specials && checkSpecials(check))
 		return TRUE
 	to_chat(user, "<span class ='notice'>You can only process food!</span>")
-	return 0
+	return FALSE
 
 /obj/machinery/cooker/proc/setIcon(obj/item/copyme, obj/item/copyto)
 	copyto.color = foodcolor
@@ -54,7 +52,7 @@
 
 /obj/machinery/cooker/proc/turnoff(obj/item/olditem)
 	icon_state = officon
-	playsound(loc, 'sound/machines/ding.ogg', 50, 1)
+	playsound(loc, 'sound/machines/ding.ogg', 50, TRUE)
 	on = 0
 	qdel(olditem)
 	return
@@ -68,9 +66,10 @@
 	setRegents(props, burnt)
 	if(user && (user in viewers(5, src)))
 		to_chat(user, span_warning("You smell burning coming from the [src]!"))
-	var/datum/effect_system/smoke_spread/bad/smoke = new    // burning things makes smoke!
-	smoke.set_up(5, 0, src)
+	var/datum/effect_system/fluid_spread/smoke/bad/smoke = new // burning things makes smoke!
+	smoke.set_up(amount = 5, location = src)
 	smoke.start()
+
 	if(prob(firechance))
 		var/obj/effect/decal/cleanable/liquid_fuel/oil = new(drop_turf)
 		oil.name = "fat"
@@ -82,21 +81,18 @@
 	setme.name = "[thiscooktype] [name.name]"
 	setme.desc = "[name.desc]. It has been [thiscooktype]"
 
-
 /obj/machinery/cooker/proc/putIn(obj/item/tocook, mob/chef)
 	if(!chef.drop_transfer_item_to_loc(tocook, src))
 		return FALSE
 	. = TRUE
 	icon_state = onicon
-	to_chat(chef, "<span class='notice'>You put [tocook] into [src].</span>")
+	to_chat(chef, span_notice("You put [tocook] into [src]."))
 	on = 1
-
 
 // Override this with the correct snack type
 /obj/machinery/cooker/proc/gettype()
 	var/obj/item/reagent_containers/food/snacks/type = new(get_turf(src))
 	return type
-
 
 /obj/machinery/cooker/grab_attack(mob/living/grabber, atom/movable/grabbed_thing)
 	. = TRUE
@@ -104,10 +100,8 @@
 		return .
 	special_grab_attack(grabbed_thing, grabber)
 
-
 /obj/machinery/cooker/proc/special_grab_attack(atom/movable/grabbed_thing, mob/living/grabber)
 	return
-
 
 /obj/machinery/cooker/attackby(obj/item/I, mob/user, params)
 	if(user.a_intent == INTENT_HARM)
@@ -141,7 +135,6 @@
 	addtimer(CALLBACK(src, PROC_REF(cooking_end), I, user), cooktime)
 	return ATTACK_CHAIN_BLOCKED_ALL
 
-
 /obj/machinery/cooker/proc/cooking_end(obj/item/cooking, mob/cook)
 	if(QDELETED(cooking) || cooking.loc != src)
 		return
@@ -168,7 +161,6 @@
 	newfood.cooktype[thiscooktype] = 1
 	turnoff(cooking)
 
-
 /obj/machinery/cooker/crowbar_act(mob/user, obj/item/I)
 	if(!upgradeable)
 		return
@@ -181,7 +173,6 @@
 	if(default_deconstruction_screwdriver(user, openicon, officon, I))
 		return TRUE
 
-
 // MAKE SURE TO OVERRIDE THESE ON THE MACHINE IF IT HAS SPECIAL FOOD INTERACTIONS!
 // FAILURE TO OVERRIDE WILL RESULT IN FAILURE TO PROPERLY HANDLE SPECIAL INTERACTIONS!		--FalseIncarnate
 /obj/machinery/cooker/proc/checkSpecials(obj/item/I)
@@ -189,5 +180,5 @@
 		return 0
 	return 0
 
-/obj/machinery/cooker/proc/cookSpecial(var/special)
+/obj/machinery/cooker/proc/cookSpecial(special)
 	return

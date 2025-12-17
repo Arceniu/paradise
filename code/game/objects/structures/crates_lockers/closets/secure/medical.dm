@@ -19,7 +19,6 @@
 	new /obj/item/reagent_containers/glass/bottle/charcoal(src)
 	new /obj/item/reagent_containers/glass/bottle/charcoal(src)
 
-
 /obj/structure/closet/secure_closet/medical2
 	name = "anesthetic locker"
 	desc = "Used to knock people out."
@@ -33,7 +32,6 @@
 	new /obj/item/clothing/mask/breath/medical(src)
 	new /obj/item/clothing/mask/breath/medical(src)
 	new /obj/item/clothing/mask/breath/medical(src)
-
 
 /obj/structure/closet/secure_closet/medical3
 	name = "medical doctor's locker"
@@ -51,15 +49,24 @@
 	new /obj/item/clothing/shoes/white(src)
 	new /obj/item/radio/headset/headset_med(src)
 	new /obj/item/clothing/gloves/color/latex/nitrile(src)
+	new /obj/item/clothing/glasses/hud/health(src)
+	new /obj/item/storage/belt/medical(src)
+	new /obj/item/reagent_containers/hypospray/safety(src)
+
+/obj/structure/closet/secure_closet/medical4
+	name = "surgeon locker"
+	req_access = list(ACCESS_SURGERY)
+	icon_state = "med"
+
+/obj/structure/closet/secure_closet/medical4/populate_contents()
+	new /obj/item/storage/box/masks(src)
+	new /obj/item/storage/box/gloves(src)
+	new /obj/item/storage/box/bodybags(src)
+	new /obj/item/storage/box/bodybags/biohazard(src)
+	new /obj/item/storage/belt/medical/surgery/loaded(src)
 	new /obj/item/defibrillator/loaded(src)
 	new /obj/item/handheld_defibrillator(src)
 	new /obj/item/handheld_defibrillator(src)
-	new /obj/item/storage/belt/medical(src)
-	new /obj/item/clothing/glasses/hud/health(src)
-	new /obj/item/clothing/shoes/sandal/white(src)
-	new /obj/item/clothing/head/surgery/lightgreen(src)
-	new /obj/item/clothing/under/rank/medical/lightgreen(src)
-
 
 //Exam Room
 /obj/structure/closet/secure_closet/exam
@@ -84,12 +91,11 @@
 	new /obj/item/storage/firstaid/o2(src)
 	new /obj/item/storage/firstaid/toxin(src)
 
-
 // Psychiatrist's pill bottle
 /obj/item/storage/pill_bottle/psychiatrist
 	name = "psychiatrist's pill bottle"
 	desc = "Contains various pills to calm or sedate patients."
-	wrapper_color = COLOR_PALE_BTL_GREEN
+	wrapper_color = COLOR_IRISH_GREEN
 
 // Why the hell is this in the closets folder?
 /obj/item/storage/pill_bottle/psychiatrist/populate_contents()
@@ -141,16 +147,19 @@
 			new /obj/item/clothing/head/surgery/purple(src)
 	new /obj/item/radio/headset/heads/cmo(src)
 	new /obj/item/defibrillator/compact/advanced/loaded(src)
-	new /obj/item/handheld_defibrillator(src)
+	new /obj/item/handheld_defibrillator/advanced(src)
 	new /obj/item/storage/belt/medical(src)
 	new /obj/item/flash(src)
 	new /obj/item/reagent_containers/hypospray/CMO(src)
 	new /obj/item/organ/internal/cyberimp/eyes/hud/medical(src)
+	new /obj/item/autoimplanter/oneuse/med_hud(src)
 	new /obj/item/door_remote/chief_medical_officer(src)
 	new /obj/item/reagent_containers/food/drinks/mug/cmo(src)
 	new /obj/item/clothing/accessory/medal/medical(src)
 	new /obj/item/megaphone(src)	//added here deleted on maps
 	new /obj/item/storage/garmentbag/CMO(src)
+	new /obj/item/gun/energy/gun/mini(src)
+	new /obj/item/clothing/accessory/holster(src)
 
 /obj/structure/closet/secure_closet/animal
 	name = "animal control locker"
@@ -161,7 +170,6 @@
 	new /obj/item/radio/electropack(src)
 	new /obj/item/radio/electropack(src)
 	new /obj/item/radio/electropack(src)
-
 
 /obj/structure/closet/secure_closet/chemical
 	name = "chemical closet"
@@ -175,7 +183,6 @@
 	new /obj/item/storage/box/pillbottles(src)
 	new /obj/item/storage/box/patch_packs(src)
 	new /obj/item/storage/box/patch_packs(src)
-
 
 /obj/structure/closet/secure_closet/medical_wall
 	name = "first aid closet"

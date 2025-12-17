@@ -9,17 +9,14 @@
 	embedded_ignore_throwspeed_threshold = TRUE
 	w_class = WEIGHT_CLASS_SMALL
 	hitsound = 'sound/weapons/bladeslice.ogg'
-	attack_verb = list("slices", "cuts", "stabs", "jabs")
-	toolspeed = 1
+	attack_verb = list("полоснул", "порезал", "уколол", "ткнул")
 
 /obj/item/scissors/barber
 	name = "Barber's Scissors"
 	desc = "A pair of scissors used by the barber."
 	icon_state = "bscissor"
-	item_state = "scissor"
-	attack_verb = list("beautifully sliced", "artistically cut", "smoothly stabbed", "quickly jabbed")
+	attack_verb = list("изящно полоснул", "превосходно порезал", "прекрасно уколол", "восхитительно ткнул")
 	toolspeed = 0.75
-
 
 /obj/item/scissors/attack(mob/living/carbon/human/target, mob/living/user, params, def_zone, skip_attack_anim = FALSE)
 	if(!ishuman(target) || user.a_intent != INTENT_HELP)

@@ -65,6 +65,11 @@ type ByondType = {
   strictMode: boolean;
 
   /**
+   * The external URL for the IndexedDB IFrame to use as the origin
+   */
+  storageCdn: string;
+
+  /**
    * Makes a BYOND call.
    *
    * If path is empty, this will trigger a Topic call.
@@ -191,4 +196,9 @@ interface Window {
   Byond: ByondType;
   __store__: Store<unknown, AnyAction>;
   __augmentStack__: (store: Store) => StackAugmentor;
+
+  // 516 byondstorage API.
+  hubStorage: Storage;
+  domainStorage: Storage;
+  serverStorage: Storage;
 }

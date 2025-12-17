@@ -21,24 +21,43 @@
 	icon = 'icons/obj/stationobjs.dmi'
 	icon_state = "signpost2"
 	anchored = TRUE
-	density = FALSE
 
 /obj/structure/respawner
-	name = "\improper Long-Distance Cloning Machine"
+	name = "Long-Distance Cloning Machine"
 	desc = "Top-of-the-line Nanotrasen technology allows for cloning of crew members from off-station upon bluespace request."
 	icon = 'icons/obj/objects.dmi'
 	icon_state = "borgcharger1(old)"
 	anchored = TRUE
 	density = TRUE
 	var/use_old_mind = FALSE
+	/// An outfit for ghosts to spawn with
+	var/datum/outfit/selected_outfit
 
 /obj/structure/respawner/attack_ghost(mob/dead/observer/user)
-	var/response = tgui_alert(user, "Are you sure you want to spawn here?\n(If you do this, you won't be able to be cloned!)", "Respawn?", list("Yes", "No"))
-	if(response == "Yes")
+	if(check_rights(R_EVENT))
+		var/outfit_pick = tgui_alert(user, "Хочешь выбрать снаряжение или возродиться?", "Выбрать снаряжение?", list("Выбрать снаряжение", "Возродиться", "Отмена"))
+		if(outfit_pick == "Отмена")
+			return
+		if(outfit_pick == "Выбрать снаряжение")
+			var/new_outfit = user.client.robust_dress_shop()
+			if(!new_outfit)
+				return
+			log_admin("[key_name(user)] changed a respawner machine's outfit to [new_outfit].")
+			message_admins("[key_name(user)] changed a respawner machine's outfit to [new_outfit].")
+			if(new_outfit == "Naked")
+				selected_outfit = null
+				return
+			selected_outfit = new new_outfit
+			return
+
+	var/response = tgui_alert(user, "Вы уверены, что хотите появиться здесь?\n(Если вы сделаете это, вас нельзя будет клонировать!)", "Возродиться?", list("Да", "Нет"))
+	if(response == "Да")
 		user.forceMove(get_turf(src))
 		log_admin("[key_name_log(user)] was incarnated by a respawner machine.")
 		message_admins("[key_name_admin(user)] was incarnated by a respawner machine.")
 		var/mob/living/carbon/human/new_human = user.incarnate_ghost(use_old_mind)
+		if(selected_outfit)
+			selected_outfit.equip(new_human)
 		new_human.mind.offstation_role = TRUE // To prevent them being an antag objective
 
 /obj/structure/respawner/old_mind
@@ -57,8 +76,7 @@
 	var/alert_title = "Ethereal Beacon Active!"
 	var/atom/attack_atom
 
-
-/obj/structure/ghost_beacon/Initialize()
+/obj/structure/ghost_beacon/Initialize(mapload)
 	. = ..()
 	last_ghost_alert = world.time
 	attack_atom = src
@@ -80,7 +98,7 @@
 /obj/structure/ghost_beacon/attack_hand(mob/user)
 	if(!is_admin(user))
 		return
-	to_chat(user, "<span class='notice'>You [active ? "disable" : "enable"] \the [src].</span>")
+	to_chat(user, span_notice("You [active ? "disable" : "enable"] \the [src]."))
 	if(active)
 		STOP_PROCESSING(SSobj, src)
 	else

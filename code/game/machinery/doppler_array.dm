@@ -2,17 +2,29 @@ GLOBAL_LIST_EMPTY(doppler_arrays)
 
 /obj/machinery/doppler_array
 	name = "tachyon-doppler array"
-	desc = "A highly precise directional sensor array which measures the release of quants from decaying tachyons. The doppler shifting of the mirror-image formed by these quants can reveal the size, location and temporal affects of energetic disturbances within a large radius ahead of the array."
+	desc = "Высокоточная cистема датчиков направления, которая измеряет высвобождение квантов из распадающихся тахионов. Доплеровское смещение зеркального изображения, формируемого этими квантами, может выявить размер, местоположение и временные последствия энергетических всплесков в большом радиусе перед матрицей."
+	gender = FEMALE
 	icon = 'icons/obj/machines/research.dmi'
 	icon_state = "tdoppler"
 	base_icon_state = "tdoppler"
 	density = TRUE
 	anchored = TRUE
 	atom_say_verb = "states coldly"
+	interaction_flags_click = NEED_HANDS | ALLOW_RESTING | NEED_DEXTERITY
 	var/list/logged_explosions = list()
 	var/explosion_target
 	var/datum/tech/toxins/toxins_tech
 	var/max_toxins_tech = 7
+
+/obj/machinery/doppler_array/get_ru_names()
+	return list(
+		NOMINATIVE = "тахионно-доплеровская установка",
+		GENITIVE = "тахионно-доплеровской установки",
+		DATIVE = "тахионно-доплеровской установке",
+		ACCUSATIVE = "тахионно-доплеровскую установку",
+		INSTRUMENTAL = "тахионно-доплеровской установкой",
+		PREPOSITIONAL = "тахионно-доплеровской установке",
+	)
 
 /datum/explosion_log
 	var/logged_time
@@ -20,15 +32,19 @@ GLOBAL_LIST_EMPTY(doppler_arrays)
 	var/actual_size_message
 	var/theoretical_size_message
 
-/datum/explosion_log/New(var/log_time, var/log_epicenter, var/log_actual_size_message, var/log_theoretical_size_message)
+/datum/explosion_log/New(log_time, log_epicenter, log_actual_size_message, log_theoretical_size_message)
 	..()
 	logged_time = log_time
 	epicenter = log_epicenter
 	actual_size_message = log_actual_size_message
 	theoretical_size_message = log_theoretical_size_message
 
-/obj/machinery/doppler_array/New()
-	..()
+/obj/machinery/doppler_array/examine(mob/user)
+	. = ..()
+	. += span_notice("<b>Alt-Click</b> to rotate.")
+
+/obj/machinery/doppler_array/Initialize(mapload)
+	. = ..()
 	GLOB.doppler_arrays += src
 	explosion_target = rand(min(8,GLOB.max_ex_light_range), min(20,GLOB.max_ex_light_range))
 	toxins_tech = new /datum/tech/toxins(src)
@@ -37,7 +53,6 @@ GLOBAL_LIST_EMPTY(doppler_arrays)
 	GLOB.doppler_arrays -= src
 	logged_explosions.Cut()
 	return ..()
-
 
 /obj/machinery/doppler_array/attackby(obj/item/I, mob/user, params)
 	if(user.a_intent == INTENT_HARM)
@@ -52,13 +67,11 @@ GLOBAL_LIST_EMPTY(doppler_arrays)
 
 	return ..()
 
-
 /obj/machinery/doppler_array/wrench_act(mob/user, obj/item/I)
 	. = TRUE
 	if(!default_unfasten_wrench(user, I, 0))
 		return
 	update_icon(UPDATE_ICON_STATE)
-
 
 /obj/machinery/doppler_array/attack_hand(mob/user)
 	if(..())
@@ -69,32 +82,17 @@ GLOBAL_LIST_EMPTY(doppler_arrays)
 /obj/machinery/doppler_array/attack_ghost(mob/user)
 	ui_interact(user)
 
-
-/obj/machinery/doppler_array/AltClick(mob/user)
+/obj/machinery/doppler_array/click_alt(mob/user)
 	rotate(user)
-
-
-/obj/machinery/doppler_array/verb/rotate_verb()
-	set name = "Rotate Tachyon-doppler Dish"
-	set category = "Object"
-	set src in oview(1)
-	rotate(usr)
-
+	return CLICK_ACTION_SUCCESS
 
 /obj/machinery/doppler_array/proc/rotate(mob/user)
-	if(user.incapacitated() || HAS_TRAIT(user, TRAIT_HANDS_BLOCKED))
-		return
-	if(!Adjacent(user))
-		return
-	if(!user.IsAdvancedToolUser())
-		to_chat(user, span_warning("You don't have the dexterity to do that!"))
-		return
 	add_fingerprint(user)
 	dir = turn(dir, 90)
 	to_chat(user, span_notice("You rotate [src]."))
 
 /obj/machinery/doppler_array/proc/print_explosive_logs(mob/user)
-	if(!logged_explosions.len)
+	if(!length(logged_explosions))
 		atom_say("No logs currently stored in internal database.")
 		return
 	if(active_timers)
@@ -105,7 +103,7 @@ GLOBAL_LIST_EMPTY(doppler_arrays)
 
 /obj/machinery/doppler_array/proc/print()
 	visible_message(span_notice("[src] prints a piece of paper!"))
-	playsound(loc, 'sound/goonstation/machines/printer_dotmatrix.ogg', 50, 1)
+	playsound(loc, 'sound/goonstation/machines/printer_dotmatrix.ogg', 50, TRUE)
 	var/obj/item/paper/explosive_log/P = new(get_turf(src))
 	for(var/D in logged_explosions)
 		var/datum/explosion_log/E = D
@@ -118,8 +116,7 @@ GLOBAL_LIST_EMPTY(doppler_arrays)
 	P.info += "</table><hr/>\
 	<em>Printed at [station_time_timestamp()].</em>"
 
-/obj/machinery/doppler_array/proc/sense_explosion(var/x0,var/y0,var/z0,var/devastation_range,var/heavy_impact_range,var/light_impact_range,
-												  var/took,var/orig_dev_range,var/orig_heavy_range,var/orig_light_range)
+/obj/machinery/doppler_array/proc/sense_explosion(x0, y0, z0, devastation_range, heavy_impact_range, light_impact_range, took, orig_dev_range, orig_heavy_range, orig_light_range)
 	if(stat & NOPOWER)
 		return
 	if(z != z0)
@@ -149,9 +146,11 @@ GLOBAL_LIST_EMPTY(doppler_arrays)
 	if(!(direct & dir))
 		return
 
-	var/list/messages = list("Explosive disturbance detected.", \
-							 "Epicenter at: grid ([x0],[y0]). Temporal displacement of tachyons: [took] seconds.", \
-							 "Actual: Epicenter radius: [devastation_range]. Outer radius: [heavy_impact_range]. Shockwave radius: [light_impact_range].")
+	var/list/messages = list(
+		"Explosive disturbance detected.", \
+		"Epicenter at: grid ([x0],[y0]). Temporal displacement of tachyons: [took] seconds.", \
+		"Actual: Epicenter radius: [devastation_range]. Outer radius: [heavy_impact_range]. Shockwave radius: [light_impact_range]."
+	)
 
 	// If the bomb was capped, say its theoretical size.
 	if(devastation_range < orig_dev_range || heavy_impact_range < orig_heavy_range || light_impact_range < orig_light_range)
@@ -169,15 +168,13 @@ GLOBAL_LIST_EMPTY(doppler_arrays)
 		toxins_tech.level = tmp_tech
 		messages += "Toxins technology level upgraded to [toxins_tech.level]. Swipe a technology disk to save data."
 	for(var/message in messages)
-		atom_say(message)
-
+		atom_say(message, use_tts = FALSE)
 
 /obj/machinery/doppler_array/update_icon_state()
 	if(stat & BROKEN)
-		icon_state = "[base_icon_state]-broken"
+		icon_state = "[base_icon_state]_broken"
 	else
-		icon_state = (!(stat & NOPOWER) && anchored) ? base_icon_state : "[base_icon_state]-off"
-
+		icon_state = (!(stat & NOPOWER) && anchored) ? base_icon_state : "[base_icon_state]_off"
 
 /obj/machinery/doppler_array/power_change(forced = FALSE)	// overrides base power_change to check to make sure machine is anchored
 	if(powered(power_channel) && anchored)
@@ -185,7 +182,6 @@ GLOBAL_LIST_EMPTY(doppler_arrays)
 	else
 		stat |= NOPOWER
 	update_icon(UPDATE_ICON_STATE)
-
 
 /obj/machinery/doppler_array/ui_interact(mob/user, datum/tgui/ui = null)
 	ui = SStgui.try_update_ui(user, src, ui)

@@ -1,5 +1,5 @@
-#define PAPERWORK	1
-#define PHOTO		2
+#define PAPERWORK 1
+#define PHOTO 2
 
 /obj/item/clipboard
 	name = "clipboard"
@@ -18,20 +18,16 @@
 	..()
 	update_icon(UPDATE_OVERLAYS)
 
-
-/obj/item/clipboard/AltClick(mob/user)
-	if(Adjacent(user) && !user.incapacitated() && !HAS_TRAIT(user, TRAIT_HANDS_BLOCKED))
-		if(is_pen(user.get_active_hand()))
-			penPlacement(user, user.get_active_hand(), TRUE)
-		else
-			removePen(user)
-		return
-	. = ..()
-
+/obj/item/clipboard/click_alt(mob/user)
+	if(is_pen(user.get_active_hand()))
+		penPlacement(user, user.get_active_hand(), TRUE)
+	else
+		removePen(user)
+	return CLICK_ACTION_SUCCESS
 
 /obj/item/clipboard/verb/removePen()
-	set category = "Object"
-	set name = "Remove clipboard pen"
+	set category = STATPANEL_OBJECT
+	set name = "Открепить ручку"
 	if(!ishuman(usr) || usr.incapacitated() || HAS_TRAIT(usr, TRAIT_HANDS_BLOCKED))
 		return
 	penPlacement(usr, containedpen, FALSE)
@@ -50,10 +46,9 @@
 
 /obj/item/clipboard/examine(mob/user)
 	. = ..()
-	. += "<span class='info'><b>Alt-Click</b> to remove its pen.</span>"
+	. += span_notice("<b>Alt-Click</b> to remove its pen.")
 	if(in_range(user, src) && toppaper)
 		. += toppaper.examine(user)
-
 
 /obj/item/clipboard/proc/penPlacement(mob/user, obj/item/pen/pen, placing)
 	if(placing)
@@ -78,7 +73,6 @@
 	update_icon(UPDATE_OVERLAYS)
 	return TRUE
 
-
 /obj/item/clipboard/proc/showClipboard(mob/user) //Show them what's on the clipboard
 	var/dat = {"<meta charset="UTF-8"><title>[src]</title>"}
 	dat += "<a href='byond://?src=[UID()];doPenThings=[containedpen ? "Remove" : "Add"]'>[containedpen ? "Remove pen" : "Add pen"]</a><br><hr>"
@@ -92,7 +86,6 @@
 	var/datum/browser/popup = new(user, "clipboard", "[src]", 400, 400)
 	popup.set_content(dat)
 	popup.open()
-
 
 /obj/item/clipboard/update_overlays()
 	. = ..()
@@ -110,7 +103,6 @@
 			break
 	. += "clipboard_over"
 
-
 /obj/item/clipboard/attackby(obj/item/I, mob/user, params)
 	var/paperwork = isPaperwork(I)
 	if(paperwork) //If it's a photo, paper bundle, or piece of paper, place it on the clipboard.
@@ -118,7 +110,7 @@
 		if(!user.drop_transfer_item_to_loc(I, src))
 			return ..()
 		to_chat(user, span_notice("You have clipped [I] onto [src]."))
-		playsound(loc, "pageturn", 50, TRUE)
+		playsound(loc, SFX_PAGE_TURN, 50, TRUE)
 		if(paperwork == PAPERWORK)
 			toppaper = I
 		update_icon(UPDATE_OVERLAYS)
@@ -133,7 +125,7 @@
 		if(containedpen) //If there's a pen in the clipboard, let's just let them write and not bother asking about the pen
 			toppaper.attackby(I, user, params)
 			return ATTACK_CHAIN_BLOCKED_ALL
-		var/writeonwhat = input(user, "Write on [toppaper.name], or place your pen in [src]?", "Pick one!") as null|anything in list("Write", "Place pen")
+		var/writeonwhat = tgui_alert(user, "Write on [toppaper.name], or place your pen in [src]?", "Pick one!", list("Write", "Place pen"))
 		if(!writeonwhat || !Adjacent(user) || user.incapacitated() || HAS_TRAIT(user, TRAIT_HANDS_BLOCKED))
 			return ATTACK_CHAIN_PROCEED
 		switch(writeonwhat)
@@ -155,7 +147,6 @@
 
 	return ..()
 
-
 /obj/item/clipboard/attack_self(mob/user)
 	showClipboard(user)
 
@@ -174,7 +165,7 @@
 		if(isPaperwork(P))
 			P.forceMove_turf()
 			usr.put_in_hands(P, ignore_anim = FALSE)
-			to_chat(usr, "<span class='notice'>You remove [P] from [src].</span>")
+			to_chat(usr, span_notice("You remove [P] from [src]."))
 			checkTopPaper() //So we don't accidentally make the top sheet not be on the clipboard
 	else if(href_list["viewOrWrite"])
 		var/obj/item/P = locate(href_list["viewOrWrite"]) in src
@@ -191,8 +182,8 @@
 		var/obj/item/P = locate(href_list["topPaper"]) in src
 		if(P == toppaper)
 			return
-		to_chat(usr, "<span class='notice'>You flick the pages so that [P] is on top.</span>")
-		playsound(loc, "pageturn", 50, 1)
+		to_chat(usr, span_notice("You flick the pages so that [P] is on top."))
+		playsound(loc, SFX_PAGE_TURN, 50, TRUE)
 		toppaper = P
 	update_icon(UPDATE_OVERLAYS)
 	showClipboard(usr)

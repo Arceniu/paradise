@@ -31,6 +31,7 @@
 		TRAIT_NO_BIOCHIPS,
 		TRAIT_NO_CYBERIMPLANTS,
 		TRAIT_SPECIES_LIMBS,
+		TRAIT_NO_NUTRITION_EFFECTS,
 	)
 	clothing_flags = HAS_SOCKS
 	default_hair_colour = "#000000"
@@ -89,20 +90,19 @@
 
 /datum/species/diona/can_understand(mob/other)
 	if(istype(other, /mob/living/simple_animal/diona))
-		return 1
-	return 0
+		return TRUE
+
+	return FALSE
 
 /datum/species/diona/on_species_gain(mob/living/carbon/human/H)
 	. = ..()
 	H.gender = NEUTER
 	add_verb(H, /mob/living/carbon/human/proc/emote_creak)
 
-
 /datum/species/diona/on_species_loss(mob/living/carbon/human/H)
 	. = ..()
 	remove_verb(H, /mob/living/carbon/human/proc/emote_creak)
 	H.clear_alert("nolight")
-
 
 /datum/species/diona/handle_reagents(mob/living/carbon/human/H, datum/reagent/R)
 

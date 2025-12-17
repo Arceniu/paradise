@@ -4,7 +4,7 @@
 /// An element for atoms that, when dragged and dropped onto a mob, opens a strip panel.
 /datum/element/strippable
 	element_flags = ELEMENT_BESPOKE | ELEMENT_DETACH_ON_HOST_DESTROY
-	id_arg_index = 2
+	argument_hash_start_idx = 2
 
 	/// An assoc list of keys to /datum/strippable_item
 	var/list/items
@@ -61,7 +61,6 @@
 	/// The STRIPPABLE_ITEM_* key
 	var/key
 
-
 /// Gets the item from the given source.
 /datum/strippable_item/proc/get_item(atom/source)
 	return
@@ -71,8 +70,8 @@
 /// This should be used for checking if an item CAN be equipped.
 /// It should not perform the equipping itself.
 /datum/strippable_item/proc/try_equip(atom/source, obj/item/equipping, mob/user)
-	if(HAS_TRAIT(equipping, TRAIT_NODROP) )
-		to_chat(user, span_warning("You can't put [equipping] on [source], it's stuck to your hand!"))
+	if(HAS_TRAIT(equipping, TRAIT_NODROP))
+		to_chat(user, span_warning("Вы не можете надеть [equipping.declent_ru(ACCUSATIVE)] на [source.declent_ru(ACCUSATIVE)] — предмет прилип к вашей руке!"))
 		return FALSE
 
 	if(equipping.item_flags & ABSTRACT)
@@ -84,18 +83,18 @@
 /// Returns TRUE/FALSE depending on if it is allowed.
 /datum/strippable_item/proc/start_equip(atom/source, obj/item/equipping, mob/user)
 	source.visible_message(
-		span_notice("[user] tries to put [equipping] on [source]."),
-		span_notice("[user] tries to put [equipping] on you."),
+		span_notice("[user] пыта[PLUR_ET_YUT(user)]ся надеть [equipping.declent_ru(ACCUSATIVE)] на [source.declent_ru(ACCUSATIVE)]."),
+		span_notice("[user] пыта[PLUR_ET_YUT(user)]ся надеть на вас [equipping.declent_ru(ACCUSATIVE)]."),
 	)
 	if(ishuman(source))
 		var/mob/living/carbon/human/victim_human = source
 		if(!victim_human.has_vision())
-			to_chat(victim_human, span_userdanger("You feel someone trying to put something on you."))
+			to_chat(victim_human, span_userdanger("Вы ощущаете, как кто-то пытается надеть на вас что-то."))
 
 	if(!do_after(user, equipping.put_on_delay, source))
 		return FALSE
 
-	if(QDELETED(equipping) || !user.Adjacent(source) || HAS_TRAIT(equipping, TRAIT_NODROP) )
+	if(QDELETED(equipping) || !user.Adjacent(source) || HAS_TRAIT(equipping, TRAIT_NODROP))
 		return FALSE
 
 	return TRUE
@@ -132,19 +131,19 @@
 
 	if(!in_thief_mode(user))
 		source.visible_message(
-			span_warning("[user] tries to remove [source]'s [item.name]."),
-			span_userdanger("[user] tries to remove your [item.name]."),
-			"You hear rustling."
+			span_warning("[user] пыта[PLUR_ET_YUT(user)]ся снять [item.declent_ru(ACCUSATIVE)] с [source.declent_ru(GENITIVE)]."),
+			span_userdanger("[user] пыта[PLUR_ET_YUT(user)]ся снять с вас [item.declent_ru(ACCUSATIVE)]!"),
+			"Слышно шуршание."
 		)
 
-	to_chat(user, span_danger("You try to remove [source]'s [item.name]..."))
+	to_chat(user, span_danger("Вы пытаетесь снять [item.declent_ru(ACCUSATIVE)] с [source.declent_ru(GENITIVE)]..."))
 	add_attack_logs(user, source, "Attempting stripping of [item]")
 	item.add_fingerprint(user)
 
 	if(ishuman(source))
 		var/mob/living/carbon/human/victim_human = source
 		if(!victim_human.has_vision())
-			to_chat(source, span_userdanger("You feel someone fumble with your belongings."))
+			to_chat(source, span_userdanger("Вы чувствуете, как кто-то копается в ваших вещах."))
 
 	return start_unequip_mob(get_item(source), source, user)
 
@@ -210,7 +209,7 @@
 		return FALSE
 
 	if(!equipping.mob_can_equip(source, item_slot, disable_warning = TRUE))
-		to_chat(user, span_warning("\The [equipping] doesn't fit in that place!"))
+		to_chat(user, span_warning("[equipping] не подходит для этого места!"))
 		return FALSE
 
 	return TRUE
@@ -360,7 +359,8 @@
 		var/key = "[item.icon],[item.icon_state]"
 		if(!(key in base64_cache))
 			base64_cache[key] = icon2base64(icon(item.icon, item.icon_state, dir = SOUTH, frame = 1, moving = FALSE))
-		result["icon"] = base64_cache[key]
+		result["icon"] = item.icon
+		result["icon_state"] = item.icon_state
 		result["name"] = item.name
 
 		var/real_alts = item_data.get_alternate_actions(owner, user)

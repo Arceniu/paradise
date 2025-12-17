@@ -1,6 +1,5 @@
 /obj/structure/AIcore
 	density = TRUE
-	anchored = FALSE
 	name = "AI core"
 	icon = 'icons/mob/ai.dmi'
 	icon_state = "0"
@@ -10,12 +9,11 @@
 	var/obj/item/circuitboard/aicore/circuit = null
 	var/obj/item/mmi/brain = null
 
-/obj/structure/AIcore/Destroy()
+/obj/structure/AIcore/Destroy(force)
 	QDEL_NULL(laws)
 	QDEL_NULL(circuit)
 	QDEL_NULL(brain)
 	return ..()
-
 
 /obj/structure/AIcore/attackby(obj/item/I, mob/user, params)
 	if(user.a_intent == INTENT_HARM)
@@ -92,7 +90,7 @@
 				laws = ai_module.laws
 				return ATTACK_CHAIN_PROCEED_SUCCESS
 
-			if(istype(I, /obj/item/mmi))
+			if(is_mmi(I))
 				add_fingerprint(user)
 				if(brain)
 					to_chat(user, span_warning("There is already [brain] installed into the frame."))
@@ -137,7 +135,6 @@
 				return ATTACK_CHAIN_BLOCKED_ALL
 
 	return ..()
-
 
 /obj/structure/AIcore/crowbar_act(mob/living/user, obj/item/I)
 	if(state !=CIRCUIT_CORE && state != GLASS_CORE && !(state == CABLED_CORE && brain))
@@ -202,7 +199,6 @@
 			to_chat(user, span_notice("You disconnect the monitor."))
 			state = GLASS_CORE
 	update_icon(UPDATE_ICON_STATE)
-
 
 /obj/structure/AIcore/wirecutter_act(mob/living/user, obj/item/I)
 	if(state != CABLED_CORE)
@@ -282,17 +278,18 @@
 
 /client/proc/empty_ai_core_toggle_latejoin()
 	set name = "Toggle AI Core Latejoin"
-	set category = "Admin"
+	set category = STATPANEL_ADMIN_TOGGLES
 
 	var/list/cores = list()
 	for(var/obj/structure/AIcore/deactivated/D in world)
 		cores["[D] ([D.loc.loc])"] = D
 
-	if(!cores.len)
+	if(!length(cores))
 		to_chat(src, "No deactivated AI cores were found.")
 
-	var/id = input("Which core?", "Toggle AI Core Latejoin", null) as null|anything in cores
-	if(!id) return
+	var/id = tgui_input_list(usr, "Which core?", "Toggle AI Core Latejoin", cores, null)
+	if(!id)
+		return
 
 	var/obj/structure/AIcore/deactivated/D = cores[id]
 	if(!D) return
@@ -304,14 +301,12 @@
 		GLOB.empty_playable_ai_cores += D
 		to_chat(src, "\The [id] is now <font color=\"#008000\">available</font> for latejoining AIs.")
 
-
 /*
 This is a good place for AI-related object verbs so I'm sticking it here.
 If adding stuff to this, don't forget that an AI need to cancel_camera() whenever it physically moves to a different location.
 That prevents a few funky behaviors.
 */
 //The type of interaction, the player performing the operation, the AI itself, and the card object, if any.
-
 
 /atom/proc/transfer_ai(interaction, mob/user, mob/living/silicon/ai/AI, obj/item/aicard/card)
 	if(istype(card))
@@ -320,11 +315,10 @@ That prevents a few funky behaviors.
 			return 0
 	return 1
 
-
 /obj/structure/AIcore/transfer_ai(interaction, mob/user, mob/living/silicon/ai/AI, obj/item/aicard/card)
 	if(state != AI_READY_CORE || !..())
 		return
- //Transferring a carded AI to a core.
+//Transferring a carded AI to a core.
 	if(interaction == AI_TRANS_FROM_CARD)
 		AI.control_disabled = FALSE
 		AI.aiRadio.disabledAi = FALSE

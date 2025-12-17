@@ -42,11 +42,17 @@
 /obj/item/organ/internal/cyberimp/eyes/emp_act(severity)
 	if(!owner || emp_proof)
 		return
+
 	if(severity > 1)
 		if(prob(10 * severity))
 			return
+
 	to_chat(owner, span_warning("Static obfuscates your vision!"))
-	owner.flash_eyes(3, visual = TRUE)
+
+	if(HAS_TRAIT(owner, TRAIT_ADVANCED_CYBERIMPLANTS))
+		owner.EyeBlurry(1.5 SECONDS)
+	else
+		owner.flash_eyes(3, visual = TRUE)
 
 /obj/item/organ/internal/cyberimp/eyes/meson
 	name = "Meson scanner implant"
@@ -94,13 +100,13 @@
 	. = ..()
 	if(HUDType)
 		var/datum/atom_hud/H = GLOB.huds[HUDType]
-		H.add_hud_to(M)
+		H.show_to(M)
 
 /obj/item/organ/internal/cyberimp/eyes/hud/remove(mob/living/carbon/M, special = ORGAN_MANIPULATION_DEFAULT)
 	. = ..()
 	if(HUDType)
 		var/datum/atom_hud/H = GLOB.huds[HUDType]
-		H.remove_hud_from(M)
+		H.hide_from(M)
 
 /obj/item/organ/internal/cyberimp/eyes/hud/medical
 	name = "Medical HUD implant"

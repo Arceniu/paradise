@@ -1,37 +1,54 @@
-/proc/GetOppositeDir(var/dir)
+/proc/GetOppositeDir(dir)
 	switch(dir)
-		if(NORTH)     return SOUTH
-		if(SOUTH)     return NORTH
-		if(EAST)      return WEST
-		if(WEST)      return EAST
-		if(SOUTHWEST) return NORTHEAST
-		if(NORTHWEST) return SOUTHEAST
-		if(NORTHEAST) return SOUTHWEST
-		if(SOUTHEAST) return NORTHWEST
+		if(NORTH)
+			return SOUTH
+		if(SOUTH)
+			return NORTH
+		if(EAST)
+			return WEST
+		if(WEST)
+			return EAST
+		if(SOUTHWEST)
+			return NORTHEAST
+		if(NORTHWEST)
+			return SOUTHEAST
+		if(NORTHEAST)
+			return SOUTHWEST
+		if(SOUTHEAST)
+			return NORTHWEST
 	return 0
 
 /proc/random_underwear(gender, species = SPECIES_HUMAN)
 	var/list/pick_list = list()
 	switch(gender)
-		if(MALE)	pick_list = GLOB.underwear_m
-		if(FEMALE)	pick_list = GLOB.underwear_f
-		else		pick_list = GLOB.underwear_list
+		if(MALE)
+			pick_list = GLOB.underwear_m
+		if(FEMALE)
+			pick_list = GLOB.underwear_f
+		else
+			pick_list = GLOB.underwear_list
 	return pick_species_allowed_underwear(pick_list, species)
 
 /proc/random_undershirt(gender, species = SPECIES_HUMAN)
 	var/list/pick_list = list()
 	switch(gender)
-		if(MALE)	pick_list = GLOB.undershirt_m
-		if(FEMALE)	pick_list = GLOB.undershirt_f
-		else		pick_list = GLOB.undershirt_list
+		if(MALE)
+			pick_list = GLOB.undershirt_m
+		if(FEMALE)
+			pick_list = GLOB.undershirt_f
+		else
+			pick_list = GLOB.undershirt_list
 	return pick_species_allowed_underwear(pick_list, species)
 
 /proc/random_socks(gender, species = SPECIES_HUMAN)
 	var/list/pick_list = list()
 	switch(gender)
-		if(MALE)	pick_list = GLOB.socks_m
-		if(FEMALE)	pick_list = GLOB.socks_f
-		else		pick_list = GLOB.socks_list
+		if(MALE)
+			pick_list = GLOB.socks_m
+		if(FEMALE)
+			pick_list = GLOB.socks_f
+		else
+			pick_list = GLOB.socks_list
 	return pick_species_allowed_underwear(pick_list, species)
 
 /proc/pick_species_allowed_underwear(list/all_picks, species)
@@ -42,16 +59,11 @@
 			continue
 		valid_picks += test
 
-	if(!valid_picks.len) valid_picks += "Nude"
+	if(!length(valid_picks)) valid_picks += "Nude"
 
 	return pick(valid_picks)
 
-/proc/random_hair_style(
-	gender, 
-	datum/species/species, 
-	datum/robolimb/robohead = GLOB.all_robolimbs["Morpheus Cyberkinetics"], 
-	mob/living/carbon/human/human
-	)
+/proc/random_hair_style(gender, datum/species/species, datum/robolimb/robohead = GLOB.all_robolimbs["Morpheus Cyberkinetics"], mob/living/carbon/human/human)
 	var/h_style = "Bald"
 	var/list/valid_hairstyles = list()
 
@@ -100,7 +112,7 @@
 			if(species in S.species_allowed) //If the user's head is of a species the facial hair style allows, add it to the list.
 				valid_facial_hairstyles += facialhairstyle
 
-	if(valid_facial_hairstyles.len)
+	if(length(valid_facial_hairstyles))
 		f_style = pick(valid_facial_hairstyles)
 
 	return f_style
@@ -115,7 +127,7 @@
 			continue
 		valid_head_accessories += head_accessory
 
-	if(valid_head_accessories.len)
+	if(length(valid_head_accessories))
 		ha_style = pick(valid_head_accessories)
 
 	return ha_style
@@ -133,6 +145,8 @@
 		if(gender == S.unsuitable_gender)	// If the marking isn't allowed for the user's gender, skip.
 			continue
 		if(!(species in S.species_allowed))	// If the user's head is not of a species the marking style allows, skip it. Otherwise, add it to the list.
+			continue
+		if(!S.pickable) //If our markings are unpickable in normal ways, skip it
 			continue
 		if(location == "tail")
 			if(!body_accessory)
@@ -163,17 +177,17 @@
 					continue
 		valid_markings += marking
 
-	if(valid_markings.len)
+	if(length(valid_markings))
 		m_style = pick(valid_markings)
 
 	return m_style
 
 /**
-  * Returns a random body accessory for a given species name. Can be null based on is_optional argument.
-  *
-  * Arguments:
-  * * species - The name of the species to filter valid body accessories.
-  * * is_optional - Whether *no* body accessory (null) is an option.
+ * Returns a random body accessory for a given species name. Can be null based on is_optional argument.
+ *
+ * Arguments:
+ * * species - The name of the species to filter valid body accessories.
+ * * is_optional - Whether *no* body accessory (null) is an option.
  */
 /proc/random_body_accessory(species = SPECIES_VULPKANIN, is_optional = FALSE)
 	var/list/valid_body_accessories = list()
@@ -194,96 +208,86 @@
 		if(gender==FEMALE)
 			return capitalize(pick(GLOB.first_names_female)) + " " + capitalize(pick(GLOB.last_names_female))
 		else
-			return capitalize(pick(GLOB.first_names_male)) + " " + capitalize(pick(GLOB.last_names))
+			return capitalize(pick(GLOB.first_names_male)) + " " + capitalize(pick(GLOB.last_names_male))
 	else
 		return current_species.get_random_name(gender)
 
 /proc/random_skin_tone(species = SPECIES_HUMAN)
 	if(species == SPECIES_HUMAN || species == SPECIES_DRASK)
 		switch(pick(60;"caucasian", 15;"afroamerican", 10;"african", 10;"latino", 5;"albino"))
-			if("caucasian")		. = -10
-			if("afroamerican")	. = -115
-			if("african")		. = -165
-			if("latino")		. = -55
-			if("albino")		. = 34
-			else				. = rand(-185, 34)
+			if("caucasian")
+				. = -10
+			if("afroamerican")
+				. = -115
+			if("african")
+				. = -165
+			if("latino")
+				. = -55
+			if("albino")
+				. = 34
+			else
+				. = rand(-185, 34)
 		return min(max(. + rand(-25, 25), -185), 34)
 	else if(species == SPECIES_VOX)
 		. = rand(1, 6)
 		return .
 
-/proc/skintone2racedescription(tone, species = SPECIES_HUMAN)
-	if(species == SPECIES_HUMAN)
-		switch(tone)
-			if(30 to INFINITY)		return "albino"
-			if(20 to 30)			return "pale"
-			if(5 to 15)				return "light skinned"
-			if(-10 to 5)			return "white"
-			if(-25 to -10)			return "tan"
-			if(-45 to -25)			return "darker skinned"
-			if(-65 to -45)			return "brown"
-			if(-INFINITY to -65)	return "black"
-			else					return "unknown"
-	else if(species == SPECIES_VOX)
-		switch(tone)
-			if(2)					return "dark green"
-			if(3)					return "brown"
-			if(4)					return "gray"
-			if(5)					return "emerald"
-			if(6)					return "azure"
-			else					return "green"
-	else
-		return "unknown"
-
-/proc/age2agedescription(age)
-	switch(age)
-		if(0 to 1)			return "infant"
-		if(1 to 3)			return "toddler"
-		if(3 to 13)			return "child"
-		if(13 to 19)		return "teenager"
-		if(19 to 30)		return "young adult"
-		if(30 to 45)		return "adult"
-		if(45 to 60)		return "middle-aged"
-		if(60 to 70)		return "aging"
-		if(70 to INFINITY)	return "elderly"
-		else				return "unknown"
-
-/proc/set_criminal_status(mob/living/user, datum/data/record/target_records , criminal_status, comment, user_rank, list/authcard_access = list(), user_name)
+// TODO definise records fields or rewrite
+/proc/set_criminal_status(mob/living/user, datum/data/record/target_records , criminal_status, comment, user_rank, list/authcard_access = list(), user_name, law_level = LAW_LEVEL_BASE)
 	var/status = criminal_status
-	var/their_name = target_records.fields["name"]
-	var/their_rank = target_records.fields["rank"]
+	var/list/fields = target_records.fields
+	var/their_name = fields["name"]
+	var/their_rank = fields["rank"]
+	var/static/list/protected_levels = list(SEC_RECORD_STATUS_ARREST, SEC_RECORD_STATUS_EXECUTE, SEC_RECORD_STATUS_INCARCERATED)
+
 	switch(criminal_status)
-		if("arrest", SEC_RECORD_STATUS_ARREST)
+
+		if(SEC_STATUS_ARREST, SEC_RECORD_STATUS_ARREST)
 			status = SEC_RECORD_STATUS_ARREST
-		if("none", SEC_RECORD_STATUS_NONE)
+
+		if(SEC_STATUS_NONE, SEC_RECORD_STATUS_NONE)
 			status = SEC_RECORD_STATUS_NONE
-		if("execute", SEC_RECORD_STATUS_EXECUTE)
+
+		if(SEC_STATUS_EXECUTE, SEC_RECORD_STATUS_EXECUTE)
 			if((ACCESS_MAGISTRATE in authcard_access) || (ACCESS_ARMORY in authcard_access))
 				status = SEC_RECORD_STATUS_EXECUTE
-				message_admins("[ADMIN_FULLMONTY(usr)] authorized <span class='warning'>EXECUTION</span> for [their_rank] [their_name], with comment: [comment]")
-				usr.investigate_log("[key_name_log(usr)] authorized <span class='warning'>EXECUTION</span> for [their_rank] [their_name], with comment: [comment]", INVESTIGATE_RECORDS)
+				message_admins("[ADMIN_FULLMONTY(usr)] authorized [span_warning("EXECUTION")] for [their_rank] [their_name], with comment: [comment]")
+				usr.investigate_log("[key_name_log(usr)] authorized [span_warning("EXECUTION")] for [their_rank] [their_name], with comment: [comment]", INVESTIGATE_RECORDS)
 			else
-				return 0
-		if("search", SEC_RECORD_STATUS_SEARCH)
-			status = SEC_RECORD_STATUS_SEARCH
-		if("monitor", SEC_RECORD_STATUS_MONITOR)
-			status = SEC_RECORD_STATUS_MONITOR
-		if("demote", SEC_RECORD_STATUS_DEMOTE)
-			message_admins("[ADMIN_FULLMONTY(usr)] set criminal status to <span class='warning'>DEMOTE</span> for [their_rank] [their_name], with comment: [comment]")
-			usr.investigate_log("[key_name_log(usr)] authorized <span class='warning'>DEMOTE</span> for [their_rank] [their_name], with comment: [comment]", INVESTIGATE_RECORDS)
-			status = SEC_RECORD_STATUS_DEMOTE
-		if("incarcerated", SEC_RECORD_STATUS_INCARCERATED)
-			status = SEC_RECORD_STATUS_INCARCERATED
-		if("parolled", SEC_RECORD_STATUS_PAROLLED)
-			status = SEC_RECORD_STATUS_PAROLLED
-		if("released", SEC_RECORD_STATUS_RELEASED)
-			status = SEC_RECORD_STATUS_RELEASED
-	target_records.fields["criminal"] = status
-	log_admin("[key_name_admin(user)] set secstatus of [their_rank] [their_name] to [status], comment: [comment]")
-	target_records.fields["comments"] += "Set to [status] by [user_name || user.name] ([user_rank]) on [GLOB.current_date_string] [station_time_timestamp()], comment: [comment]"
-	update_all_mob_security_hud()
-	return 1
+				return FALSE
 
+		if(SEC_STATUS_SEARCH, SEC_RECORD_STATUS_SEARCH)
+			status = SEC_RECORD_STATUS_SEARCH
+
+		if(SEC_STATUS_MONITOR, SEC_RECORD_STATUS_MONITOR)
+			status = SEC_RECORD_STATUS_MONITOR
+
+		if(SEC_STATUS_DEMOTE, SEC_RECORD_STATUS_DEMOTE)
+			message_admins("[ADMIN_FULLMONTY(usr)] set criminal status to [span_warning("DEMOTE")] for [their_rank] [their_name], with comment: [comment]")
+			usr.investigate_log("[key_name_log(usr)] authorized [span_warning("DEMOTE")] for [their_rank] [their_name], with comment: [comment]", INVESTIGATE_RECORDS)
+			status = SEC_RECORD_STATUS_DEMOTE
+
+		if(SEC_STATUS_INCARCERATED, SEC_RECORD_STATUS_INCARCERATED)
+			status = SEC_RECORD_STATUS_INCARCERATED
+
+		if(SEC_STATUS_PAROLLED, SEC_RECORD_STATUS_PAROLLED)
+			status = SEC_RECORD_STATUS_PAROLLED
+
+		if(SEC_STATUS_RELEASED, SEC_RECORD_STATUS_RELEASED)
+			status = SEC_RECORD_STATUS_RELEASED
+
+	if((fields["criminal"] in protected_levels) && fields["last_modifier_level"] > law_level)
+		if(!user)
+			return
+		to_chat(user, span_warning("Вы не можете изменить криминальный статус. Он установлен кем-то, у кого юридические полномочия выше ваших."))
+		return
+
+	fields["last_modifier_level"] = law_level
+	fields["criminal"] = status
+	log_admin("[key_name_admin(user)] set secstatus of [their_rank] [their_name] to [status], comment: [comment]")
+	fields["comments"] += "Set to [status] by [user_name || user.name] ([user_rank]) on [GLOB.current_date_string] [station_time_timestamp()], comment: [comment]"
+	update_all_mob_security_hud()
+	return TRUE
 
 /**
  * Timed action involving one mob user. Target is optional.
@@ -337,7 +341,7 @@
 	var/atom/target_loc = target?.loc
 
 	var/drifting = FALSE
-	if(SSmove_manager.processing_on(user, SSspacedrift))
+	if(GLOB.move_manager.processing_on(user, SSspacedrift))
 		drifting = TRUE
 
 	var/holding = user.get_active_hand()
@@ -381,7 +385,7 @@
 				. = FALSE
 				break
 
-		if(drifting && (!(timed_action_flags & DA_IGNORE_SPACE_DRIFT) || !SSmove_manager.processing_on(user, SSspacedrift)))
+		if(drifting && (!(timed_action_flags & DA_IGNORE_SPACE_DRIFT) || !GLOB.move_manager.processing_on(user, SSspacedrift)))
 			drifting = FALSE
 			user_loc = user.loc
 
@@ -414,7 +418,6 @@
 
 	SEND_SIGNAL(user, COMSIG_DO_AFTER_ENDED)
 
-
 /proc/is_species(A, species_datum)
 	. = FALSE
 	if(ishuman(A))
@@ -422,17 +425,14 @@
 		if(H.dna && istype(H.dna.species, species_datum))
 			. = TRUE
 
-
 /proc/is_monkeybasic(mob/living/carbon/human/target)
 	return ishuman(target) && target.dna.species.is_monkeybasic	// we deserve a runtime if a human has no DNA
-
 
 /proc/is_evolvedslime(mob/living/carbon/human/target)
 	if(!ishuman(target) || !istype(target.dna.species, /datum/species/slime))
 		return FALSE
 	var/datum/species/slime/species = target.dna.species
 	return species.evolved_slime
-
 
 /proc/spawn_atom_to_turf(spawn_type, target, amount, admin_spawn=FALSE, list/extra_args)
 	var/turf/T = get_turf(target)
@@ -448,8 +448,8 @@
 		if(admin_spawn)
 			X.flags |= ADMIN_SPAWNED
 
-/proc/admin_mob_info(mob/M, mob/user = usr)
-	if(!ismob(M))
+/proc/admin_mob_info(mob/subject, mob/user = usr)
+	if(!ismob(subject))
 		to_chat(user, "This can only be used on instances of type /mob")
 		return
 
@@ -457,50 +457,68 @@
 	var/special_role_description = ""
 	var/health_description = ""
 	var/gender_description = ""
-	var/turf/T = get_turf(M)
+	var/turf/position = get_turf(subject)
 
 	//Location
-	if(isturf(T))
-		if(isarea(T.loc))
-			location_description = "([M.loc == T ? "at coordinates " : "in [M.loc] at coordinates "] [T.x], [T.y], [T.z] in area <b>[T.loc]</b>)"
+	if(isturf(position))
+		if(isarea(position.loc))
+			location_description = "[subject.loc == position ? "at coordinates " : "in [position.loc] at coordinates "] [position.x], [position.y], [position.z] in area <b>[position.loc]</b>"
 		else
-			location_description = "([M.loc == T ? "at coordinates " : "in [M.loc] at coordinates "] [T.x], [T.y], [T.z])"
+			location_description = "[subject.loc == position ? "at coordinates " : "in [position.loc] at coordinates "] [position.x], [position.y], [position.z]"
 
 	//Job + antagonist
-	if(M.mind)
-		special_role_description = "Role: <b>[M.mind.assigned_role]</b>; Antagonist: <font color='red'><b>[M.mind.special_role]</b></font>; Has been rev: [(M.mind.has_been_rev)?"Yes":"No"]"
+	if(subject.mind)
+		special_role_description = "Role: <b>[subject.mind.assigned_role]</b>; [subject.mind.special_role ? "Special role (legacy): <span style='color: orange;'><b>[subject.mind.special_role]</b></span>;" : ""]Antagonist: <span class='red'><b>"
+		// subject.mind.special_role – Legacy code, which is needed because we have a lot of non-datum antags.
+
+		if(subject.mind.antag_datums)
+			var/iterable = 0
+			for(var/datum/antagonist/role in subject.mind.antag_datums)
+				special_role_description += "[role.name]"
+				if(++iterable != length(subject.mind.antag_datums))
+					special_role_description += ", "
+			special_role_description += "</b></span>"
+		else
+			special_role_description += "None</b></span>"
 	else
-		special_role_description = "Role: <i>Mind datum missing</i> Antagonist: <i>Mind datum missing</i>; Has been rev: <i>Mind datum missing</i>;"
+		special_role_description = "Role: <i>Mind datum missing</i> Antagonist: <i>Mind datum missing</i>"
 
 	//Health
-	if(isliving(M))
-		var/mob/living/L = M
+	if(isliving(subject))
+		var/mob/living/lifer = subject
 		var/status
-		switch(M.stat)
+		switch(subject.stat)
 			if(CONSCIOUS)
 				status = "Alive"
 			if(UNCONSCIOUS)
-				status = "<font color='orange'><b>Unconscious</b></font>"
+				status = span_bold(span_orange("Unconscious"))
 			if(DEAD)
-				status = "<font color='red'><b>Dead</b></font>"
-		health_description = "Status = [status]"
-		health_description += "<BR>Oxy: [L.getOxyLoss()] - Tox: [L.getToxLoss()] - Fire: [L.getFireLoss()] - Brute: [L.getBruteLoss()] - Clone: [L.getCloneLoss()] - Brain: [L.getBrainLoss()]"
+				status = span_bold(span_red("Dead"))
+		health_description = "Status: [status]"
+		health_description += "<br>Brute: [lifer.getBruteLoss()] – Burn: [lifer.getFireLoss()] – Toxin: [lifer.getToxLoss()] – Suffocation: [lifer.getOxyLoss()]"
+		health_description += "<br>Brain: [lifer.getBrainLoss()] – Stamina: [lifer.getStaminaLoss()] – Clone: [lifer.getCloneLoss()]"
 	else
 		health_description = "This mob type has no health to speak of."
 
 	//Gender
-	switch(M.gender)
-		if(MALE, FEMALE)
-			gender_description = "[M.gender]"
+	switch(subject.gender)
+		if(MALE, FEMALE, PLURAL)
+			gender_description = "[subject.gender]"
 		else
-			gender_description = "<font color='red'><b>[M.gender]</b></font>"
+			gender_description = "[span_bold(span_red(subject.gender))]"
 
-	to_chat(user, "<b>Info about [M.name]:</b> ")
-	to_chat(user, "Mob type = [M.type]; Gender = [gender_description] Damage = [health_description]")
-	to_chat(user, "Name = <b>[M.name]</b>; Real_name = [M.real_name]; Mind_name = [M.mind?"[M.mind.name]":""]; Key = <b>[M.key]</b>;")
-	to_chat(user, "Location = [location_description];")
-	to_chat(user, "[special_role_description]")
-	to_chat(user, "(<a href='byond://?src=[usr.UID()];priv_msg=[M.client?.ckey]'>PM</a>) ([ADMIN_PP(M,"PP")]) ([ADMIN_VV(M,"VV")]) ([ADMIN_TP(M,"TP")]) ([ADMIN_SM(M,"SM")]) ([ADMIN_FLW(M,"FLW")])")
+	//Full Output
+	var/exportable_text = "[span_bold("Info about [subject.name]:")]<br>"
+	exportable_text += "Key – [span_bold(subject.key)]<br>"
+	exportable_text += "Mob Type – [subject.type]<br>"
+	exportable_text += "Gender – [gender_description]<br>"
+	exportable_text += "[health_description]<br>"
+	exportable_text += "Name: [span_bold(subject.name)] – Real Name: [subject.real_name] – Mind Name: [subject.mind?"[subject.mind.name]":""]<br>"
+	exportable_text += "Location is [location_description]<br>"
+	exportable_text += "[special_role_description]<br>"
+	exportable_text += ADMIN_FULLMONTY_NONAME(subject)
+
+	to_chat(user, chat_box_examine(exportable_text), confidential = TRUE)
 
 // Gets the first mob contained in an atom, and warns the user if there's not exactly one
 /proc/get_mob_in_atom_with_warning(atom/A, mob/user = usr)
@@ -528,24 +546,29 @@
 
 	return locate(/mob) in A
 
+// Suppress the mouse macros
 /mob/proc/LogMouseMacro(verbused, params)
 	if(!client)
 		return
 	if(!client.next_mouse_macro_warning) // Log once
-		log_and_message_admins("attempted to use a mouse macro: [verbused] [html_encode(params)]")
+		log_admin("[key_name(usr)] attempted to use a mouse macro: [verbused] [params]")
+		message_admins("[key_name_admin(usr)] attempted to use a mouse macro: [verbused] [html_encode(params)]")
 	if(client.next_mouse_macro_warning < world.time) // Warn occasionally
-		usr << 'sound/misc/sadtrombone.ogg'
+		SEND_SOUND(usr, sound('sound/misc/sadtrombone.ogg'))
 		client.next_mouse_macro_warning = world.time + 600
+
 /mob/verb/ClickSubstitute(params as command_text)
-	set hidden = 1
+	set hidden = TRUE
 	set name = ".click"
 	LogMouseMacro(".click", params)
+
 /mob/verb/DblClickSubstitute(params as command_text)
-	set hidden = 1
+	set hidden = TRUE
 	set name = ".dblclick"
 	LogMouseMacro(".dblclick", params)
+
 /mob/verb/MouseSubstitute(params as command_text)
-	set hidden = 1
+	set hidden = TRUE
 	set name = ".mouse"
 	LogMouseMacro(".mouse", params)
 
@@ -554,33 +577,12 @@
 		var/mob/living/carbon/human/H = thing
 		H.sec_hud_set_security_status()
 
-
-/proc/getviewsize(view)
-	if(!view) // Just to avoid any runtimes that could otherwise cause constant disconnect loops.
-		stack_trace("Missing value for 'view' in getviewsize(), defaulting to world.view!")
-		view = world.view
-
-	if(isnum(view))
-		var/totalviewrange = (view < 0 ? -1 : 1) + 2 * view
-		return list(totalviewrange, totalviewrange)
-	else
-		var/list/viewrangelist = splittext(view, "x")
-		return list(text2num(viewrangelist[1]), text2num(viewrangelist[2]))
-
-
-/proc/in_view_range(mob/user, atom/A)
-	var/list/view_range = getviewsize(user.client.view)
-	var/turf/source = get_turf(user)
-	var/turf/target = get_turf(A)
-	return ISINRANGE(target.x, source.x - view_range[1], source.x + view_range[1]) && ISINRANGE(target.y, source.y - view_range[1], source.y + view_range[1])
-
-
 //Used in chemical_mob_spawn. Generates a random mob based on a given gold_core_spawnable value.
 /proc/create_random_mob(spawn_location, mob_class = HOSTILE_SPAWN)
 	var/static/list/mob_spawn_meancritters = list() // list of possible hostile mobs
 	var/static/list/mob_spawn_nicecritters = list() // and possible friendly mobs
 
-	if(mob_spawn_meancritters.len <= 0 || mob_spawn_nicecritters.len <= 0)
+	if(length(mob_spawn_meancritters) <= 0 || length(mob_spawn_nicecritters) <= 0)
 		for(var/T in typesof(/mob/living/simple_animal))
 			var/mob/living/simple_animal/SA = T
 			switch(initial(SA.gold_core_spawnable))
@@ -588,14 +590,20 @@
 					mob_spawn_meancritters += T
 				if(FRIENDLY_SPAWN)
 					mob_spawn_nicecritters += T
+		for(var/mob/living/basic/basic_mob as anything in typesof(/mob/living/basic))
+			switch(initial(basic_mob.gold_core_spawnable))
+				if(HOSTILE_SPAWN)
+					mob_spawn_meancritters += basic_mob
+				if(FRIENDLY_SPAWN)
+					mob_spawn_nicecritters += basic_mob
 
 	var/chosen
 	if(mob_class == FRIENDLY_SPAWN)
 		chosen = pick(mob_spawn_nicecritters)
 	else
 		chosen = pick(mob_spawn_meancritters)
-	var/mob/living/simple_animal/C = new chosen(spawn_location)
-	return C
+	var/mob/living/spawned_mob = new chosen(spawn_location)
+	return spawned_mob
 
 //determines the job of a mob, taking into account job transfers
 /proc/determine_role(mob/living/P)
@@ -605,8 +613,8 @@
 	return M.playtime_role ? M.playtime_role : M.assigned_role	//returns current role
 
 /**	checks the security force on station and returns a list of numbers, of the form:
- * 	total, active, dead, antag
- * 	where active is defined as conscious (STAT = 0) and not an antag
+ *	total, active, dead, antag
+ *	where active is defined as conscious (STAT = 0) and not an antag
 */
 /proc/check_active_security_force()
 	var/sec_positions = GLOB.security_positions - JOB_TITLE_JUDGE - JOB_TITLE_BRIGDOC
@@ -628,19 +636,18 @@
 				active++
 	return list(total, active, dead, antag)
 
-
 /**
-  * Safe ckey getter
-  *
-  * Should be used whenever broadcasting public information about a mob,
-  * as this proc will make a best effort to hide the users ckey if they request it.
-  * It will first check the mob for a client, then use the mobs last ckey as a directory lookup.
-  * If a client cant be found to check preferences on, it will just show as DC'd.
-  * This proc should only be used for public facing stuff, not administration related things.
-  *
-  * Arguments:
-  * * M - Mob to get a safe ckey of
-  */
+ * Safe ckey getter
+ *
+ * Should be used whenever broadcasting public information about a mob,
+ * as this proc will make a best effort to hide the users ckey if they request it.
+ * It will first check the mob for a client, then use the mobs last ckey as a directory lookup.
+ * If a client cant be found to check preferences on, it will just show as DC'd.
+ * This proc should only be used for public facing stuff, not administration related things.
+ *
+ * Arguments:
+ * * M - Mob to get a safe ckey of
+ */
 /proc/safe_get_ckey(mob/M)
 	var/client/C = null
 	if(M.client)
@@ -660,3 +667,236 @@
 		out_ckey = "(Disconnected)"
 
 	return out_ckey
+
+GLOBAL_DATUM_INIT(dview_mob, /mob/dview, new)
+
+/// Version of view() which ignores darkness, because BYOND doesn't have it.
+/proc/dview(range = world.view, center, invis_flags = 0)
+	if(!center)
+		return
+
+	GLOB.dview_mob.loc = center
+
+	GLOB.dview_mob.set_invis_see(invis_flags)
+
+	. = view(range, GLOB.dview_mob)
+	GLOB.dview_mob.loc = null
+
+/mob/dview
+	name = "INTERNAL DVIEW MOB"
+	invisibility = INVISIBILITY_ABSTRACT
+	density = FALSE
+	move_force = 0
+	pull_force = 0
+	move_resist = INFINITY
+	simulated = 0
+	var/ready_to_die = FALSE
+
+/mob/dview/Initialize(mapload) //Properly prevents this mob from gaining huds or joining any global lists
+	SHOULD_CALL_PARENT(FALSE)
+	if(flags & INITIALIZED)
+		stack_trace("Warning: [src]([type]) initialized multiple times!")
+	flags |= INITIALIZED
+	return INITIALIZE_HINT_NORMAL
+
+/mob/dview/Destroy(force = FALSE)
+	if(!ready_to_die)
+		stack_trace("ALRIGHT WHICH FUCKER TRIED TO DELETE *MY* DVIEW?")
+
+		if(!force)
+			return QDEL_HINT_LETMELIVE
+
+		log_world("EVACUATE THE SHITCODE IS TRYING TO STEAL MUH JOBS")
+		GLOB.dview_mob = new
+	return ..()
+
+#define FOR_DVIEW(type, range, center, invis_flags) \
+	GLOB.dview_mob.loc = center; \
+	GLOB.dview_mob.set_invis_see(invis_flags); \
+	for(type in view(range, GLOB.dview_mob))
+
+#define FOR_DVIEW_END GLOB.dview_mob.loc = null
+
+/// Facing failed
+#define FACING_FAILED 0
+/// Two mobs are facing the same direction
+#define FACING_SAME_DIR 1
+/// Two mobs are facing each others
+#define FACING_EACHOTHER 2
+/// Two mobs one is facing a person, but the other is perpendicular
+#define FACING_INIT_FACING_TARGET_TARGET_FACING_PERPENDICULAR 3 //Do I win the most informative but also most stupid define award?
+
+///Returns the direction that the initiator and the target are facing
+/proc/check_target_facings(mob/living/initator, mob/living/target)
+	/*This can be used to add additional effects on interactions between mobs depending on how the mobs are facing each other, such as adding a crit damage to blows to the back of a guy's head.
+	Given how click code currently works (Nov '13), the initiating mob will be facing the target mob most of the time
+	That said, this proc should not be used if the change facing proc of the click code is overriden at the same time*/
+	if(!ismob(target) || target.body_position == LYING_DOWN)
+	//Make sure we are not doing this for things that can't have a logical direction to the players given that the target would be on their side
+		return FACING_FAILED
+	if(initator.dir == target.dir) //mobs are facing the same direction
+		return FACING_SAME_DIR
+	if(is_source_facing_target(initator, target) && is_source_facing_target(target, initator)) //mobs are facing each other
+		return FACING_EACHOTHER
+	if(initator.dir + 2 == target.dir || initator.dir - 2 == target.dir || initator.dir + 6 == target.dir || initator.dir - 6 == target.dir) //Initating mob is looking at the target, while the target mob is looking in a direction perpendicular to the 1st
+		return FACING_INIT_FACING_TARGET_TARGET_FACING_PERPENDICULAR
+
+#undef FACING_FAILED
+#undef FACING_SAME_DIR
+#undef FACING_EACHOTHER
+#undef FACING_INIT_FACING_TARGET_TARGET_FACING_PERPENDICULAR
+
+/// Returns a list of all mobs that have an active client
+/proc/get_mob_with_client_list()
+	var/list/mobs_with_clients = list()
+	for(var/mob/mob_instance in GLOB.mob_list)
+		if(mob_instance.client)
+			mobs_with_clients += mob_instance
+	return mobs_with_clients
+
+/// When an AI is activated, it can choose from a list of non-slaved borgs to have as a slave.
+/proc/freeborg()
+	var/selected_borg_name = null
+	var/list/available_borgs = list()
+	for(var/mob/living/silicon/robot/borg in GLOB.player_list)
+		if(borg.stat == DEAD || borg.connected_ai || borg.scrambledcodes || isdrone(borg) || iscogscarab(borg) || isclocker(borg))
+			continue
+		var/borg_name = "[borg.real_name] ([borg.modtype?.name] [borg.braintype])"
+		available_borgs[borg_name] = borg
+
+	if(length(available_borgs))
+		selected_borg_name = tgui_input_list(usr, "Unshackled borg signals detected:", "Borg selection", available_borgs, null)
+		return available_borgs[selected_borg_name]
+
+/// Returns a list of all active AIs that can be slaved to
+/proc/active_ais()
+	. = list()
+	for(var/mob/living/silicon/ai/ai in GLOB.alive_mob_list)
+		if(ai.stat == DEAD)
+			continue
+		if(ai.control_disabled)
+			continue
+		if(isclocker(ai)) // The active AIs list used for uploads. Avoid changing laws even if the AI is fully converted
+			continue
+		. += ai
+	return .
+
+/// Find an active AI with the least number of borgs
+/proc/select_active_ai_with_fewest_borgs()
+	var/mob/living/silicon/ai/selected_ai
+	var/list/active_ais = active_ais()
+	for(var/ai_candidate in active_ais)
+		var/mob/living/silicon/ai/current_ai = ai_candidate
+		if(!selected_ai || (length(selected_ai.connected_robots) > length(current_ai.connected_robots)))
+			selected_ai = current_ai
+
+	return selected_ai
+
+/**
+ * Presents a list of active AIs for selection, or picks one randomly if no user is provided
+ *
+ * Arguments:
+ * * user - The mob making the selection, or null for random selection
+ */
+/proc/select_active_ai(mob/user)
+	var/list/active_ai_list = active_ais()
+	if(length(active_ai_list))
+		if(user)
+			. = tgui_input_list(usr, "AI signals detected:", "AI selection", active_ai_list)
+		else
+			. = pick(active_ai_list)
+	return .
+
+/// Returns a sorted list of mobs by category and status
+/proc/get_sorted_mobs()
+	var/list/all_mobs = getmobs()
+	var/list/ai_mobs = list()
+	var/list/dead_mobs = list()
+	var/list/connected_mobs = list()
+	var/list/has_key_mobs = list()
+	var/list/logged_mobs = list()
+
+	for(var/mob_name in all_mobs)
+		var/mob/mob_instance = all_mobs[mob_name]
+		if(issilicon(mob_instance))
+			ai_mobs |= mob_instance
+		else if(isobserver(mob_instance) || mob_instance.stat == DEAD)
+			dead_mobs |= mob_instance
+		else if(mob_instance.key && mob_instance.client)
+			connected_mobs |= mob_instance
+		else if(mob_instance.key)
+			has_key_mobs |= mob_instance
+		else
+			logged_mobs |= mob_instance
+		all_mobs.Remove(mob_name)
+
+	var/list/sorted_mobs = list()
+	sorted_mobs += ai_mobs
+	sorted_mobs += connected_mobs
+	sorted_mobs += has_key_mobs
+	sorted_mobs += logged_mobs
+	sorted_mobs += dead_mobs
+
+	return sorted_mobs
+
+/// Returns a list of all mobs with their display names as keys
+/proc/getmobs()
+	var/list/all_mobs = sortmobs()
+	var/list/display_names = list()
+	var/list/mob_map = list()
+	var/list/name_counts = list()
+
+	for(var/mob/mob_instance in all_mobs)
+		var/base_name = mob_instance.name
+		if(base_name in display_names)
+			name_counts[base_name]++
+			base_name = "[base_name] ([name_counts[base_name]])"
+		else
+			display_names.Add(base_name)
+			name_counts[base_name] = 1
+
+		if(mob_instance.real_name && mob_instance.real_name != mob_instance.name)
+			base_name += " \[[mob_instance.real_name]\]"
+
+		if(mob_instance.stat == DEAD)
+			if(istype(mob_instance, /mob/dead/observer/))
+				base_name += " \[ghost\]"
+			else
+				base_name += " \[dead\]"
+
+		mob_map[base_name] = mob_instance
+
+	return mob_map
+
+/// Orders mobs by type then by name
+/proc/sortmobs()
+	var/list/mob_list = list()
+	var/list/sorted_mobs = sortAtom(GLOB.mob_list)
+	for(var/mob/living/silicon/ai/mob_instance in sorted_mobs)
+		mob_list.Add(mob_instance)
+		if(mob_instance.eyeobj)
+			mob_list.Add(mob_instance.eyeobj)
+	for(var/mob/living/silicon/pai/mob_instance in sorted_mobs)
+		mob_list.Add(mob_instance)
+	for(var/mob/living/silicon/robot/mob_instance in sorted_mobs)
+		mob_list.Add(mob_instance)
+	for(var/mob/living/carbon/human/mob_instance in sorted_mobs)
+		mob_list.Add(mob_instance)
+	for(var/mob/living/carbon/true_devil/mob_instance in sorted_mobs)
+		mob_list.Add(mob_instance)
+	for(var/mob/living/carbon/brain/mob_instance in sorted_mobs)
+		mob_list.Add(mob_instance)
+	for(var/mob/living/carbon/alien/mob_instance in sorted_mobs)
+		mob_list.Add(mob_instance)
+	for(var/mob/dead/observer/mob_instance in sorted_mobs)
+		mob_list.Add(mob_instance)
+	for(var/mob/new_player/mob_instance in sorted_mobs)
+		mob_list.Add(mob_instance)
+	for(var/mob/living/simple_animal/slime/mob_instance in sorted_mobs)
+		mob_list.Add(mob_instance)
+	for(var/mob/living/simple_animal/mob_instance in sorted_mobs)
+		mob_list.Add(mob_instance)
+	for(var/mob/camera/blob/mob_instance in sorted_mobs)
+		mob_list.Add(mob_instance)
+
+	return mob_list

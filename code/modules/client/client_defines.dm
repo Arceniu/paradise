@@ -1,19 +1,21 @@
 /client
-		//////////////////////
-		//BLACK MAGIC THINGS//
-		//////////////////////
+	/// Client is casted to /datum so that we're able to use datum variables, search for clients through datums, and not need to duplicate code for GCing
 	parent_type = /datum
 		////////////////
 		//ADMIN THINGS//
 		////////////////
-	/// hides the byond verb panel as we use our own custom version
+
+	/// Hides the byond verb panel as we use our own custom version.
 	show_verb_panel = FALSE
 	var/datum/admins/holder = null
 
-	var/last_message	= "" //contains the last message sent by this client - used to protect against copy-paste spamming.
-	var/last_message_count = 0 //contains a number of how many times a message identical to last_message was sent.
-	var/last_message_time = 0 //holds the last time (based on world.time) a message was sent
-	var/datum/pm_tracker/pm_tracker = new()
+	/// Contains the last message sent by this client - used to protect against copy-paste spamming.
+	var/last_message = ""
+	/// Contains a number of how many times a message identical to last_message was sent.
+	var/last_message_count = 0
+	/// Holds the last time (based on world.time) a message was sent.
+	var/last_message_time = 0
+	var/datum/pm_tracker/pm_tracker
 
 		/////////
 		//OTHER//
@@ -75,7 +77,6 @@
 	var/karma_spent = 0
 	var/karma_tab = 0
 
-
 	var/ip_intel = "Disabled"
 
 	var/datum/click_intercept/click_intercept = null
@@ -105,8 +106,11 @@
 	/// Messages currently seen by this client
 	var/list/seen_messages
 
-	/// list of tabs containing spells and abilities
+	/// list of tabs containing spells and abilities //TODO vakons actions: remove if not used
 	var/list/spell_tabs = list()
+
+	/// datum wrapper for client view
+	var/datum/view_data/view_size
 
 	/// our current tab
 	var/stat_tab
@@ -204,6 +208,9 @@
 	/// List of all completed blocking send jobs awaiting acknowledgement by send_asset
 	var/list/completed_asset_jobs = list()
 
+	/// If this client has any windows scaling applied
+	var/window_scaling
+
 	/*
 	ASSET SENDING
 	*/
@@ -212,8 +219,34 @@
 	/// The ID of the last asset job that was properly finished
 	var/last_completed_asset_job = 0
 
-	/// Our object window datum. It stores info about and handles behavior for the object tab
-	var/datum/object_window_info/obj_window
+	/// Loot panel for the client
+	var/datum/lootpanel/loot_panel
+
+	var/tgui_panel_theme = "dark"
+
+	var/list/parallax_layers
+	var/list/parallax_layers_cached
+	var/atom/movable/screen/parallax_home/parallax_rock
+	var/atom/movable/movingmob
+	var/turf/previous_turf
+	/// world.time of when we can state animate()ing parallax again
+	var/dont_animate_parallax
+	/// Direction our current area wants to move parallax
+	var/parallax_movedir = 0
+	/// How many parallax layers to show our client
+	var/parallax_layers_max = 4
+	/// Timers for the area directional animation, one for each layer
+	var/list/parallax_animate_timers
+	/// Do we want to do parallax animations at all?
+	/// Exists to prevent laptop fires
+	var/do_parallax_animations = TRUE
+
+	var/list/ViewMods = list()
+	var/ViewModsActive = FALSE
+	var/ViewPreferedIconSize = 0
+
+	///these persist between logins/logouts during the same round.
+	var/datum/persistent_client/persistent_client
 
 /client/vv_edit_var(var_name, var_value)
 	if(var_name == NAMEOF(src, tos_consent))

@@ -8,8 +8,6 @@
 	desc = "Your personal integrated suit AI that will help you configure yourself for the upcoming mission!"
 	check_flags = NONE
 	charge_type = ADV_ACTION_TYPE_TOGGLE
-	use_itemicon = FALSE
-	icon_icon = 'icons/mob/actions/actions_ninja.dmi'
 	button_icon_state = "spider_green"
 	button_icon = 'icons/mob/actions/actions_ninja.dmi'
 	background_icon_state = "background_green"
@@ -76,16 +74,10 @@
 	var/list/data = list()
 
 	//Превью абилок
-	data["allActionsPreview"] = list()
-	for (var/style in allowed_states)
-		var/icon/action_icon = icon('icons/mob/actions/actions_ninja.dmi', style, SOUTH, frame = 1)
-		data["allActionsPreview"][style] = icon2base64(action_icon)
+	data["actionsIcon"] = 'icons/mob/actions/actions_ninja.dmi'
 
 	//Превью костюмов
-	data["allStylesPreview"] = list()
-	for (var/style in allowed_preview_states)
-		var/icon/costume_icon = icon('icons/mob/ninja_previews.dmi', style, SOUTH, frame = 1)
-		data["allStylesPreview"][style] = icon2base64(costume_icon)
+	data["stylesIcon"] = 'icons/mob/ninja_previews.dmi'
 
 	return data
 
@@ -148,19 +140,20 @@
 				creeping_widow.teach(usr)
 				creeping_widow.my_suit = src
 				creeping_widow.my_energy_katana = energyKatana
-				ninja_datum.purchased_abilities += "<BIG>[bicon(ability_icon)]</BIG>"
+				ninja_datum.purchased_abilities += "<big>[icon2html(ability_icon, ninja)]</big>"
 				addtimer(CALLBACK(src, PROC_REF(toggle_ability_buy_block)), 2 SECONDS)
 				return
 			if(ability == "cloning")
 				ninja_clonable = TRUE
 				to_chat(usr, span_notice("Вы внесены в список устройства для воскрешения на своей базе."))
-				ninja_datum.purchased_abilities += "<BIG>[bicon(ability_icon)]</BIG>"
+				ninja_datum.purchased_abilities += "<big>[icon2html(ability_icon, ninja)]</big>"
 				addtimer(CALLBACK(src, PROC_REF(toggle_ability_buy_block)), 2 SECONDS)
 				return
 			var/action_path = get_suit_ability(ability)
 			LAZYADD(actions_types, action_path)
 			var/datum/action/ninja_action = new action_path(src, action_icon[action_path], action_icon_state[action_path])
 			ninja_action.Grant(usr)
+			LAZYADD(actions, ninja_action)
 			if(istype(ninja_action, /datum/action/item_action/advanced/ninja/ninja_smoke_bomb))
 				LAZYADD(actions_types, /datum/action/item_action/advanced/ninja/ninja_smoke_bomb_toggle_auto)
 				var/datum/action/item_action/advanced/ninja/ninja_smoke_bomb_toggle_auto/smoke_toggle = new(src)
@@ -172,7 +165,7 @@
 				a_boost = ninja_action
 			if(istype(ninja_action, /datum/action/item_action/advanced/ninja/ninjaheal))
 				heal_chems = ninja_action
-			ninja_datum.purchased_abilities += "<BIG>[bicon(ability_icon)]</BIG>"
+			ninja_datum.purchased_abilities += "<big>[icon2html(ability_icon, ninja)]</big>"
 			addtimer(CALLBACK(src, PROC_REF(toggle_ability_buy_block)), 2 SECONDS)
 		if("move")
 			var/destination = params["move"]
@@ -203,7 +196,7 @@
 	else
 		style_preview_icon_state = "ninja_preview_[design_choice]_[scarf_or_hood]_[scarf_or_hood == "scarf" ? "[scarf_design_choice]_" : "" ][color_choice]"
 
-/obj/item/clothing/suit/space/space_ninja/proc/get_suit_ability(var/ability)
+/obj/item/clothing/suit/space/space_ninja/proc/get_suit_ability(ability)
 	if(!ability)
 		return
 	var/return_ability_type

@@ -25,7 +25,7 @@
 		extinguisharea(B, 30)
 
 /datum/blobstrain/reagent/pressurized_slime/proc/extinguisharea(obj/structure/blob/B, probchance)
-	for(var/turf/simulated/T as anything in range(1, B))
+	for(var/turf/simulated/T in range(1, B))
 		if(!istype(T) || iswallturf(T) || ismineralturf(T))
 			continue
 		if(prob(probchance))
@@ -39,7 +39,7 @@
 /datum/reagent/blob/pressurized_slime
 	name = "Сжатая слизь"
 	id = "blob_pressurized_slime"
-	taste_description = "губка"
+	taste_description = "грязной губки для посуды"
 	color = "#AAAABB"
 
 /datum/reagent/blob/pressurized_slime/reaction_mob(mob/living/exposed_mob, methods=REAGENT_TOUCH, reac_volume, show_message, touch_protection, mob/camera/blob/overmind)

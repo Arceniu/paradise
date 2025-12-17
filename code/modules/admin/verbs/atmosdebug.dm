@@ -1,12 +1,12 @@
 /client/proc/atmosscan()
-	set category = "Mapping"
+	set category = STATPANEL_DEBUG_MAPPING
 	set name = "Check Piping"
 	if(!src.holder)
 		to_chat(src, "Only administrators may use this command.")
 		return
-	SSblackbox.record_feedback("tally", "admin_verb", 1, "Check Piping") //If you are copy-pasting this, ensure the 4th parameter is unique to the new proc!
+	BLACKBOX_LOG_ADMIN_VERB("Check Piping")
 
-	if(alert("WARNING: This command should not be run on a live server. Do you want to continue?", "Check Piping", "No", "Yes") == "No")
+	if(tgui_alert(usr, "WARNING: This command should not be run on a live server. Do you want to continue?", "Check Piping", list("No", "Yes")) == "No")
 		return
 
 	//all plumbing - yes, some things might get stated twice, doesn't matter.
@@ -45,20 +45,20 @@
 	to_chat(usr, "Done")
 
 /client/proc/powerdebug()
-	set category = "Mapping"
+	set category = STATPANEL_DEBUG_MAPPING
 	set name = "Check Power"
 	if(!src.holder)
 		to_chat(src, "Only administrators may use this command.")
 		return
-	SSblackbox.record_feedback("tally", "admin_verb", 1, "Check Power") //If you are copy-pasting this, ensure the 4th parameter is unique to the new proc!
+	BLACKBOX_LOG_ADMIN_VERB("Check Power")
 
 	for(var/datum/powernet/PN in SSmachines.powernets)
-		if(!PN.nodes || !PN.nodes.len)
-			if(PN.cables && (PN.cables.len > 1))
+		if(!PN.nodes || !length(PN.nodes))
+			if(PN.cables && (length(PN.cables) > 1))
 				var/obj/structure/cable/C = PN.cables[1]
 				to_chat(usr, "Powernet with no nodes! (number [PN.number]) - example cable at [C.x], [C.y], [C.z] in area [get_area(C.loc)]")
 
-		if(!PN.cables || (PN.cables.len < 10))
-			if(PN.cables && (PN.cables.len > 1))
+		if(!PN.cables || (length(PN.cables) < 10))
+			if(PN.cables && (length(PN.cables) > 1))
 				var/obj/structure/cable/C = PN.cables[1]
 				to_chat(usr, "Powernet with fewer than 10 cables! (number [PN.number]) - example cable at [C.x], [C.y], [C.z] in area [get_area(C.loc)]")

@@ -1,9 +1,23 @@
 /obj/item/organ/internal/ears
 	name = "ears"
-	icon_state = "ears"
+	desc = "Парный орган, отвечающий за аудиальное восприятие окружающей среды и получение информации о положении гуманоида в пространстве. Эти принадлежали человеку."
 	gender = PLURAL
+	icon_state = "ears"
 	parent_organ_zone = BODY_ZONE_HEAD
 	slot = INTERNAL_ORGAN_EARS
+
+/obj/item/organ/internal/ears/get_ru_names()
+	return list(
+		NOMINATIVE = "уши человека",
+		GENITIVE = "ушей человека",
+		DATIVE = "ушам человека",
+		ACCUSATIVE = "уши человека",
+		INSTRUMENTAL = "ушами человека",
+		PREPOSITIONAL = "ушах человека",
+	)
+
+/obj/item/organ/internal/ears/invincible/internal_receive_damage(amount, silent)
+	return FALSE
 
 /obj/item/organ/internal/ears/on_life()
 	if(!iscarbon(owner))
@@ -29,8 +43,6 @@
 			H.AdjustDeaf(-1 SECONDS)
 			heal_internal_damage(0.1)
 
-
-
 /obj/item/organ/internal/ears/has_damage()
 	. = ..()
 	if(.)
@@ -44,19 +56,37 @@
 
 /obj/item/organ/internal/ears/cybernetic
 	name = "cybernetic ears"
-	icon_state = "ears-c"
-	desc = "a basic cybernetic designed to mimic the operation of ears."
+	desc = "Электронное устройство, имитирующее работу органических ушей. Функционально не имеет никаких отличий от органического аналога, кроме производственных затрат."
+	icon_state = "eyes-c"
 	origin_tech = "biotech=4"
 	status = ORGAN_ROBOT
-	pickup_sound = 'sound/items/handling/component_pickup.ogg'
-	drop_sound = 'sound/items/handling/component_drop.ogg'
+	pickup_sound = 'sound/items/handling/pickup/component_pickup.ogg'
+	drop_sound = 'sound/items/handling/drop/component_drop.ogg'
+
+/obj/item/organ/internal/ears/cybernetic/get_ru_names()
+	return list(
+		NOMINATIVE = "кибернетические уши",
+		GENITIVE = "кибернетических ушей",
+		DATIVE = "кибернетическим ушам",
+		ACCUSATIVE = "кибернетические уши",
+		INSTRUMENTAL = "кибернетическими ушами",
+		PREPOSITIONAL = "кибернетических ушах",
+	)
 
 /obj/item/organ/internal/ears/cybernetic/emp_act(severity)
 	if(emp_proof)
 		return
+
 	..()
 	internal_receive_damage(30)
+
 	if(!iscarbon(owner))
 		return
+
 	var/mob/living/carbon/C = owner
-	C.AdjustDeaf(120 SECONDS)
+	var/losstime = 120 SECONDS
+
+	if(HAS_TRAIT(C, TRAIT_ADVANCED_CYBERIMPLANTS))
+		losstime /= 3
+
+	C.AdjustDeaf(losstime)

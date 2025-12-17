@@ -2,7 +2,7 @@
 #define SHORTEN_UPLOAD_DELAY 5 SECONDS
 
 /obj/machinery/computer/aiupload
-	name = "\improper AI upload console"
+	name = "AI upload console"
 	desc = "Используется для манипуляций с законами ИИ."
 	icon_screen = "command"
 	icon_keyboard = "med_key"
@@ -18,10 +18,6 @@
 		)
 	var/timer_id = null
 	var/reg_name = null
-
-	light_color = LIGHT_COLOR_WHITE
-	light_range_on = 2
-
 
 /obj/machinery/computer/aiupload/attackby(obj/item/I, mob/user, params)
 	if(user.a_intent == INTENT_HARM)
@@ -114,7 +110,7 @@
 		return
 
 	var/mob/living/silicon/ai/ai = current
-	if(!atoms_share_level(get_turf(ai), src))
+	if(!are_zs_connected(ai, src))
 		to_chat(user, span_notice("Unable to establish a connection: You're too far away from the target silicon!"))
 		return
 	if(ai.on_the_card)
@@ -204,8 +200,6 @@
 /obj/machinery/computer/aiupload/cyborg
 	name = "cyborg upload console"
 	desc = "Используется для манипуляций с законами киборгов."
-	icon_screen = "command"
-	icon_keyboard = "med_key"
 	req_access = list(ACCESS_ROBOTICS)
 	circuit = /obj/item/circuitboard/borgupload
 
@@ -244,7 +238,7 @@
 		return
 
 	var/mob/living/silicon/robot/robot = current
-	if(!atoms_share_level(get_turf(current), src))
+	if(!are_zs_connected(current, src))
 		to_chat(user, span_notice("Unable to establish a connection: You're too far away from the target silicon!"))
 		return
 	if(robot.stat == DEAD || robot.emagged)
@@ -258,7 +252,7 @@
 
 	var/delay = (installed_module in shorten_delay) ? SHORTEN_UPLOAD_DELAY : NORMAL_UPLOAD_DELAY
 	to_chat(user, span_notice("Upload process has started. ETA: [delay/10] seconds."))
-	reg_name = istype(installed_module, /obj/item/ai_module/syndicate) ? "UNKNOWN" : id.registered_name
+	reg_name = istype(installed_module, /obj/item/ai_module/syndicate) ? uppertext(UNKNOWN_STATUS_RUS) : id.registered_name
 	timer_id = addtimer(CALLBACK(src, TYPE_PROC_REF(/obj/machinery/computer/aiupload, finish_upload), user), delay, TIMER_STOPPABLE)
 
 /obj/machinery/computer/aiupload/cyborg/finish_upload(mob/user)

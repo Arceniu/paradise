@@ -12,17 +12,14 @@
 	var/list/implants_list
 	var/mob/living/carbon/human/occupant
 
-
 /obj/machinery/implantchair/Initialize(mapload)
 	. = ..()
 	add_implants()
-
 
 /obj/machinery/implantchair/Destroy()
 	if(occupant)
 		go_out()
 	return ..()
-
 
 /obj/machinery/implantchair/proc/add_implants()
 	LAZYINITLIST(implants_list)
@@ -32,10 +29,8 @@
 			var/obj/item/implant/mindshield/bio_chip = new(src)
 			LAZYADD(implants_list, bio_chip)
 
-
 /obj/machinery/implantchair/update_icon_state()
 	icon_state = "implantchair[occupant ? "_on" : ""]"
-
 
 /obj/machinery/implantchair/attack_hand(mob/user)
 	add_fingerprint(user)
@@ -43,38 +38,38 @@
 	var/health_text = ""
 	if(occupant)
 		if(occupant.stat == DEAD)
-			health_text = "<FONT color=red>Dead</FONT>"
+			health_text = "<span style='color: red;'>Dead</span>"
 		else if(occupant.health < 0)
-			health_text = "<FONT color=red>[round(occupant.health, 0.1)]</FONT>"
+			health_text = "<span style='color: red;'>[round(occupant.health, 0.1)]</span>"
 		else
 			health_text = "[round(occupant.health, 0.1)]"
-	var/dat = {"<meta charset="UTF-8"><B>Mindshield Implanter Machine</B><BR>"}
-	dat +="<B>Current occupant:</B> [occupant ? "<BR>Name: [occupant]<BR>Health: [health_text]<BR>" : "<FONT color=red>None</FONT>"]<BR>"
+	var/dat = {"<b>Mindshield Implanter Machine</b><br>"}
+	dat +="<b>Current occupant:</b> [occupant ? "<br>Name: [occupant]<br>Health: [health_text]<br>" : "<span style='color: red;'>None</span>"]<br>"
 	var/remaining_time = cooldown_timer ? round(timeleft(cooldown_timer) / 10) : 0
 	var/implants_length = LAZYLEN(implants_list)
 	if(implants_length)
-		dat += "<B>Status:</B> [cooldown_timer ? "<FONT color=red>Recharging... For <B>[remaining_time]</B> more seconds</FONT><BR>" : "<FONT color=green><B>READY</B></FONT>"]<BR>"
+		dat += "<b>Status:</b> [cooldown_timer ? "<span style='color: red;'>Recharging... For <b>[remaining_time]</b> more seconds</span><br>" : "<span style='color: green;'><b>READY</b></span>"]<br>"
 	else
-		dat += "<B>Status:</B> [cooldown_timer ? "<FONT color=red>Replenishing... For <B>[remaining_time]</B> more seconds</FONT><BR>" : "<FONT color=green><B>READY</B></FONT>"]<BR>"
-	dat += "<B>Implants:</B> [implants_length ? "[implants_length]<BR>" : cooldown_timer ? "<FONT color=red>0</FONT><BR>" : "<a href='byond://?src=[UID()];replenish=1'>Replenish</A>"]<BR>"
+		dat += "<b>Status:</b> [cooldown_timer ? "<span style='color: red;'>Replenishing... For <b>[remaining_time]</b> more seconds</span><br>" : "<span style='color: green;'><b>READY</b></span>"]<br>"
+	dat += "<b>Implants:</b> [implants_length ? "[implants_length]<br>" : cooldown_timer ? "<span style='color: red;'>0</span><br>" : "<a href='byond://?src=[UID()];replenish=1'>Replenish</a>"]<br>"
 	if(occupant)
 		if(locate(/obj/item/implant/mindshield) in occupant)
-			dat += "Occupant is already <FONT color=green>implanted</FONT><BR>"
+			dat += "Occupant is already <span style='color: green;'>implanted</span><br>"
 		if(!cooldown_timer && implants_length)
-			dat += "<a href='byond://?src=[UID()];implant=1'>Implant</A><BR>"
-		dat += "<a href='byond://?src=[UID()];eject=1'>Eject Occupant</A><BR>"
-	dat += "<a href='byond://?src=[UID()];refresh=1'>Refresh</A>"
+			dat += "<a href='byond://?src=[UID()];implant=1'>Implant</a><br>"
+		dat += "<a href='byond://?src=[UID()];eject=1'>Eject Occupant</a><br>"
+	dat += "<a href='byond://?src=[UID()];refresh=1'>Refresh</a>"
 	user.set_machine(src)
-	user << browse(dat, "window=implant")
+	var/datum/browser/popup = new(user, "implant", "Mindshield Implanter Machine")
+	popup.set_content(dat)
+	popup.open(TRUE)
 	onclose(user, "implant")
-
 
 /obj/machinery/implantchair/grab_attack(mob/living/grabber, atom/movable/grabbed_thing)
 	. = TRUE
 	if(grabber.grab_state < GRAB_AGGRESSIVE)
 		return .
 	put_mob(grabbed_thing, grabber)
-
 
 /obj/machinery/implantchair/Topic(href, href_list)
 	if(..())
@@ -94,7 +89,6 @@
 
 	updateUsrDialog()
 
-
 /obj/machinery/implantchair/proc/on_cooldown_finish(replenish = FALSE)
 	playsound(loc, 'sound/machines/ping.ogg', 50, TRUE)
 	visible_message(span_notice("[src] is ready to implant."))
@@ -102,7 +96,6 @@
 		add_implants()
 	cooldown_timer = null
 	updateUsrDialog()
-
 
 /obj/machinery/implantchair/proc/implant(mob/living/carbon/human/target)
 	if(!ishuman(target))
@@ -117,10 +110,8 @@
 			return TRUE
 	return FALSE
 
-
 /obj/machinery/implantchair/MouseDrop_T(mob/living/carbon/human/dropping, mob/living/user, params)
 	return put_mob(dropping, user)
-
 
 /obj/machinery/implantchair/proc/put_mob(mob/living/carbon/human/target, mob/living/user)
 	if(!put_mob_check(target, user))
@@ -132,7 +123,6 @@
 	update_icon(UPDATE_ICON_STATE)
 	updateUsrDialog()
 	return TRUE
-
 
 /obj/machinery/implantchair/proc/put_mob_check(mob/living/carbon/human/target, mob/living/user)
 	if(stat & (NOPOWER|BROKEN))
@@ -160,7 +150,6 @@
 		return FALSE
 	return TRUE
 
-
 /obj/machinery/implantchair/proc/go_out(mob/living/carbon/human/user)
 	if(!occupant)
 		return FALSE
@@ -174,17 +163,15 @@
 	update_icon(UPDATE_ICON_STATE)
 	return TRUE
 
-
 /obj/machinery/implantchair/verb/get_out()
-	set name = "Eject occupant"
-	set category = "Object"
+	set name = "Извлечь сидящего"
+	set category = STATPANEL_OBJECT
 	set src in oview(1)
 	go_out(usr)
 
-
 /obj/machinery/implantchair/verb/move_inside()
-	set name = "Move Inside"
-	set category = "Object"
+	set name = "Залезть внутрь"
+	set category = STATPANEL_OBJECT
 	set src in oview(1)
 	put_mob(usr, usr)
 

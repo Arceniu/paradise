@@ -9,7 +9,7 @@
 			msg += "It has loaded a [module.name].\n"
 	var/obj/act_module = get_active_hand()
 	if(act_module)
-		msg += "It is holding [bicon(act_module)] \a [act_module].\n"
+		msg += "It is holding [icon2html(act_module, user)] \a [act_module].\n"
 	msg += "<span class='warning'>"
 
 	//Status effects
@@ -21,12 +21,12 @@
 		if(getBruteLoss() < maxHealth*0.5)
 			msg += "It looks slightly dented.\n"
 		else
-			msg += "<B>It looks severely dented!</B>\n"
+			msg += "<b>It looks severely dented!</b>\n"
 	if(getFireLoss())
 		if(getFireLoss() < maxHealth*0.5)
 			msg += "It looks slightly charred.\n"
 		else
-			msg += "<B>It looks severely burnt and heat-warped!</B>\n"
+			msg += "<b>It looks severely burnt and heat-warped!</b>\n"
 	if(health < -maxHealth*0.5)
 		msg += "It looks barely operational.\n"
 	if(fire_stacks < 0)
@@ -55,14 +55,14 @@
 			else
 				msg += "<span class='warning'>It looks like its system is corrupted beyond repair. There is no hope of recovery.</span>\n"
 	if(inventory_head)
-		msg += "\nНосит [bicon(inventory_head)] [inventory_head.name].\n"
+		msg += "\nНосит [icon2html(inventory_head, user)] [inventory_head.name].\n"
 	msg += "</span>"
 
 	if(print_flavor_text())
 		msg += "\n[print_flavor_text()]\n"
 
 	if(pose)
-		if( findtext(pose,".",length(pose)) == 0 && findtext(pose,"!",length(pose)) == 0 && findtext(pose,"?",length(pose)) == 0 )
+		if(findtext(pose,".",length(pose)) == 0 && findtext(pose,"!",length(pose)) == 0 && findtext(pose,"?",length(pose)) == 0)
 			pose = addtext(pose,".") //Makes sure all emotes end with a period.
 		msg += "\nIt is [pose]"
 

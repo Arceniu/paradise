@@ -1,8 +1,8 @@
 /**
-  * # Syndicate Hub
-  *
-  * Describes and manages the contracts and rewards for a single contractor.
-  */
+ * # Syndicate Hub
+ *
+ * Describes and manages the contracts and rewards for a single contractor.
+ */
 /datum/contractor_hub
 	// Settings
 	/// The number of contracts to generate initially.
@@ -78,8 +78,8 @@
 	return contractor_uplink
 
 /**
-  * Called when the loading animation completes for the first time.
-  */
+ * Called when the loading animation completes for the first time.
+ */
 /datum/contractor_hub/proc/first_login(mob/user)
 	if(!is_user_authorized(user))
 		return
@@ -88,8 +88,8 @@
 	SStgui.update_uis(src)
 
 /**
-  * Regenerates a list of contracts for the contractor to take up.
-  */
+ * Regenerates a list of contracts for the contractor to take up.
+ */
 /datum/contractor_hub/proc/generate_contracts()
 	contracts = list()
 	targets = list()
@@ -126,45 +126,45 @@
 		C.reward_tc[difficulty] += missing
 
 /**
-  * Generates an amount of TC to be used as a contract reward for the given difficulty.
-  *
-  * Arguments:
-  * * total_contracts - The number of contracts being generated.
-  * * difficulty - The difficulty to base the threshold from.
-  */
+ * Generates an amount of TC to be used as a contract reward for the given difficulty.
+ *
+ * Arguments:
+ * * total_contracts - The number of contracts being generated.
+ * * difficulty - The difficulty to base the threshold from.
+ */
 /datum/contractor_hub/proc/calculate_tc_reward(total_contracts, difficulty = EXTRACTION_DIFFICULTY_EASY)
 	ASSERT(total_contracts > 0)
 	return CEILING((difficulty_tc_thresholds[difficulty] / total_contracts) * (1 + (rand(-100, 100) / 100) * tc_variation), 1)
 
 /**
-  * Called when a [/datum/syndicate_contract] has been completed.
-  *
-  * Arguments:
-  * * tc - The final amount of TC to award.
-  * * creds - The final amount of credits to award.
-  */
+ * Called when a [/datum/syndicate_contract] has been completed.
+ *
+ * Arguments:
+ * * tc - The final amount of TC to award.
+ * * creds - The final amount of credits to award.
+ */
 /datum/contractor_hub/proc/on_completion(tc, creds)
 	completed_contracts++
 	reward_tc_available += tc
 	rep += rep_per_completion
 	owner?.initial_account?.credit(creds, pick(list(
-		"CONGRATULATIONS. You are the 10,000th visitor of SquishySlimes.squish. Please find attached your [creds] credits.",
-		"Congratulations on winning your bet in the latest Clown vs. Mime match! Your account was credited with [creds] credits.",
-		"Deer fund beneficiary, We have please to imform you that overdue fund payments has finally is approved and yuor account credited with [creds] creadits.",
-		"Hey bro. How's it going? You bought me a beer a long time ago and I want to pay you back with [creds] creds. Enjoy!",
-		"Thank you for your initial investment of 500 credits! We have credited your account with [creds] as a token of appreciation.",
-		"Your refund request for 100 Dr. Maxman pills with the reason \"I need way more than 100 pills!\" has been received. We have credited your account with [creds] credits.",
-		"Your refund request for your WetSkrell.nt subscription has been received. We have credited your account with [creds] credits.",
+		"ПОЗДРАВЛЯЕМ! Вы стали 10 000-м посетителем сайта SquishySlimes.squish! Прилагаем ваши [creds] кредит[DECL_CREDIT(creds)].",
+		"Поздравляем вас с выигрышем ставки в последнем матче \"Клоун против Мима\"! На ваш счёт было начислено [creds] кредит[DECL_CREDIT(creds)].",
+		"Дорогой бенефициар фонда, сообщаем вам, что оплата по просроченному платежу наконец-то завершена, и на ваш счёт зачислено [creds] кредит[DECL_CREDIT(creds)].",
+		"Привет, брат. Как дела? Ты давно угостил меня пивом, и я хочу отплатить тебе! [creds] кредит[DECL_CREDIT(creds)] твои, наслаждайся!",
+		"Благодарим вас за инвестицию в размере 500 кредитов! В знак признательности мы зачислили на ваш счёт [creds] кредит[DECL_CREDIT(creds)].",
+		"Ваш запрос на возврат 100 таблеток \"Доктор Денчиго\" с причиной \"Мне нужно гораздо больше, чем 100 таблеток!\" был принят. Мы зачислили на ваш счёт [creds] кредит[DECL_CREDIT(creds)].",
+		"Ваш запрос на возврат средств за подписку на WetSkrell.nt был получен. Мы зачислили на ваш счёт [creds] кредит[DECL_CREDIT(creds)].",
 	)))
 	// Clean up
 	current_contract = null
 
 /**
-  * Gives any unclaimed TC to the given mob.
-  *
-  * Arguments:
-  * * M - The mob to give the TC to.
-  */
+ * Gives any unclaimed TC to the given mob.
+ *
+ * Arguments:
+ * * M - The mob to give the TC to.
+ */
 /datum/contractor_hub/proc/claim_tc(mob/living/M)
 	if(reward_tc_available <= 0)
 		return
@@ -174,18 +174,18 @@
 	if(ishuman(M))
 		var/mob/living/carbon/human/H = M
 		if(H.put_in_hands(TC))
-			to_chat(H, "<span class='notice'>Your payment materializes into your hands!</span>")
+			to_chat(H, span_notice("Ваш платеж материализуется в ваших руках!"))
 		else
-			to_chat(M, "<span class='notice'>Your payment materializes on the floor.</span>")
+			to_chat(M, span_notice("Ваш платеж материализуется на полу."))
 	// Update info
 	reward_tc_paid_out += reward_tc_available
 	reward_tc_available = 0
 
 /**
-  * Returns whether the given mob is allowed to connect to the uplink.
-  *
-  * Arguments:
-  * * M - The mob.
-  */
+ * Returns whether the given mob is allowed to connect to the uplink.
+ *
+ * Arguments:
+ * * M - The mob.
+ */
 /datum/contractor_hub/proc/is_user_authorized(mob/living/carbon/user)
 	return user?.mind?.has_antag_datum(/datum/antagonist/contractor)

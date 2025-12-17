@@ -18,8 +18,8 @@
 /obj/item/twohanded/cardboard_cutout/attack_hand(mob/living/user)
 	if(user.a_intent == INTENT_HELP || pushed_over)
 		return ..()
-	user.visible_message("<span class='warning'>[user] толка[pluralize_ru(user.gender,"ет","ют")] [src]!</span>", "<span class='danger'>[pluralize_ru(user.gender,"Ты толкаешь","Вы толкаете")] [src]!</span>")
-	playsound(src, 'sound/weapons/genhit.ogg', 50, 1)
+	user.visible_message(span_warning("[user] толка[PLUR_ET_YUT(user)] [src]!"), span_danger("Вы толкаете [src]!"))
+	playsound(src, 'sound/weapons/genhit.ogg', 50, TRUE)
 	push_over()
 
 /obj/item/twohanded/cardboard_cutout/proc/push_over()
@@ -35,7 +35,7 @@
 	. = ..()
 	if(HAS_TRAIT(src, TRAIT_WIELDED))
 		if(pushed_over)
-			to_chat(user, "<span class='notice'>[pluralize_ru(user.gender,"Ты поднимаешь","Вы поднимаете")] [src].</span>")
+			to_chat(user, span_notice("Вы поднимаете [src]."))
 			desc = initial(desc)
 			icon = initial(icon)
 			icon_state = initial(icon_state) //This resets a cutout to its blank state - this is intentional to allow for resetting
@@ -44,14 +44,13 @@
 		var/image/I = image(icon = src.icon , icon_state = src.icon_state, loc = user)
 		I.override = 1
 		I.color = color
-		user.add_alt_appearance("sneaking_mission", I, GLOB.player_list)
+		add_alt_appearance(/datum/atom_hud/alternate_appearance/basic/everyone, "sneaking_mission", I)
 		return
 	user.remove_alt_appearance("sneaking_mission")
 
 /obj/item/twohanded/cardboard_cutout/dropped(mob/living/user)
 	. = ..()
 	user.remove_alt_appearance("sneaking_mission")
-
 
 /obj/item/twohanded/cardboard_cutout/attackby(obj/item/I, mob/living/user, params)
 	add_fingerprint(user)
@@ -83,11 +82,9 @@
 	if(prob(I.force))
 		push_over()
 
-
-
-/obj/item/twohanded/cardboard_cutout/bullet_act(obj/item/projectile/P)
-	visible_message("<span class='danger'>[src] is hit by [P]!</span>")
-	playsound(src, 'sound/weapons/slice.ogg', 50, 1)
+/obj/item/twohanded/cardboard_cutout/bullet_act(obj/projectile/P)
+	visible_message(span_danger("[src] is hit by [P]!"), projectile_message = TRUE)
+	playsound(src, 'sound/weapons/slice.ogg', 50, TRUE)
 	if(prob(P.damage))
 		push_over()
 
@@ -97,30 +94,30 @@
 	if(istype(crayon, /obj/item/toy/crayon/spraycan))
 		var/obj/item/toy/crayon/spraycan/can = crayon
 		if(can.capped)
-			to_chat(user, "<span class='warning'>The cap is on the spray can remove it first!</span>")
+			to_chat(user, span_warning("The cap is on the spray can remove it first!"))
 			return
 	if(pushed_over)
-		to_chat(user, "<span class='warning'>Right [src] first!</span>")
+		to_chat(user, span_warning("Right [src] first!"))
 		return
 	var/new_appearance = tgui_input_list(user, "Choose a new appearance for [src]", "26th Century Deception", possible_appearances)
 	if(!Adjacent(usr))
-		user.visible_message("<span class='danger'>You need to be closer!</span>")
+		user.visible_message(span_danger("You need to be closer!"))
 		return
 	if(pushed_over)
-		to_chat(user, "<span class='warning'>Right [src] first!</span>")
+		to_chat(user, span_warning("Right [src] first!"))
 		return
 	if(!new_appearance || !crayon)
 		return
 	if(!do_after(user, 1 SECONDS, src, DEFAULT_DOAFTER_IGNORE|DA_IGNORE_HELD_ITEM))
 		return
-	user.visible_message("<span class='notice'>[user] gives [src] a new look.</span>", "<span class='notice'>Voila! You give [src] a new look.</span>")
+	user.visible_message(span_notice("[user] gives [src] a new look."), span_notice("Voila! You give [src] a new look."))
 	alpha = 255
 	icon = initial(icon)
 	if(!deceptive)
 		color = "#FFD7A7"
 	switch(new_appearance)
 		if("Assistant")
-			name = "[pick(GLOB.first_names_male)] [pick(GLOB.last_names)]"
+			name = "[pick(GLOB.first_names_male)] [pick(GLOB.last_names_male)]"
 			desc = "A cardboard cutout of an assistant."
 			icon_state = "cutout_greytide"
 		if("Clown")
@@ -204,10 +201,8 @@
 
 	return 1
 
-
 /obj/item/twohanded/cardboard_cutout/setDir(newdir)
 	return ..(SOUTH)
-
 
 /obj/item/twohanded/cardboard_cutout/adaptive //Purchased by Syndicate agents, these cutouts are indistinguishable from normal cutouts but aren't discolored when their appearance is changed
 	deceptive = TRUE

@@ -9,7 +9,7 @@
 	item_state = "floor_painter"
 	usesound = 'sound/effects/spray2.ogg'
 
-	var/floor_icon
+	var/floor_icon = 'icons/turf/floors.dmi'
 	var/floor_state = "floor"
 	var/floor_dir = SOUTH
 
@@ -43,11 +43,11 @@
 	var/turf/simulated/floor/plasteel/F = A
 
 	if(F.icon_state == floor_state && F.dir == floor_dir)
-		to_chat(user, "<span class='notice'>This is already painted [floor_state] [dir2text(floor_dir)]!</span>")
+		to_chat(user, span_notice("This is already painted [floor_state] [dir2text(floor_dir)]!"))
 		return
 
 	if(!istype(F))
-		to_chat(user, "<span class='warning'>\The [src] can only be used on station flooring.</span>")
+		to_chat(user, span_warning("\The [src] can only be used on station flooring."))
 		return
 
 	playsound(loc, usesound, 30, TRUE)
@@ -56,7 +56,7 @@
 	F.floor_regular_dir = floor_dir
 	F.dir = floor_dir
 
-/obj/item/floor_painter/attack_self(var/mob/user)
+/obj/item/floor_painter/attack_self(mob/user)
 	if(!user)
 		return 0
 	user.set_machine(src)
@@ -70,9 +70,7 @@
 	ui = SStgui.try_update_ui(user, src, ui)
 	if(!ui)
 		ui = new(user, src, "FloorPainter", name)
-		// Disable automatic updates, because:
-		// 1) we are the only user of the item, and don't expect to observe external changes
-		// 2) generating and sending the icon each tick is a bit expensive, and creates small but noticeable lag
+		// Disable automatic updates, because we are the only user of the item, and don't expect to observe external changes
 		ui.set_autoupdate(FALSE)
 		ui.open()
 
@@ -80,23 +78,15 @@
 	var/list/data = list()
 	data["availableStyles"] = allowed_states
 	data["selectedStyle"] = floor_state
-	data["selectedDir"] = dir2text(floor_dir)
-
-	data["directionsPreview"] = list()
-	for(var/dir in GLOB.alldirs)
-		var/icon/floor_icon = icon('icons/turf/floors.dmi', floor_state, dir)
-		data["directionsPreview"][dir2text(dir)] = icon2base64(floor_icon)
+	data["selectedDir"] = floor_dir
 
 	return data
-
 
 /obj/item/floor_painter/ui_static_data(mob/user)
 	var/list/data = list()
 
-	data["allStylesPreview"] = list()
-	for (var/style in allowed_states)
-		var/icon/floor_icon = icon('icons/turf/floors.dmi', style, SOUTH)
-		data["allStylesPreview"][style] = icon2base64(floor_icon)
+	data["icon"] = floor_icon
+	data["availableStyles"] = allowed_states
 
 	return data
 
@@ -106,7 +96,7 @@
 
 	if(action == "select_style")
 		var/new_style = params["style"]
-		if (allowed_states.Find(new_style) != 0)
+		if(allowed_states.Find(new_style) != 0)
 			floor_state = new_style
 
 	if(action == "cycle_style")
@@ -119,8 +109,8 @@
 		floor_state = allowed_states[index]
 
 	if(action == "select_direction")
-		var/dir = text2dir(params["direction"])
-		if (dir != 0)
+		var/dir = params["direction"]
+		if(dir != 0)
 			floor_dir = dir
 
 	SStgui.update_uis(src)

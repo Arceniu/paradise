@@ -75,7 +75,6 @@
 		for(var/mob/living/buckled as anything in climber.buckled_mobs)
 			buckled.pulling?.move_from_pull(buckled, loc, buckled.glide_size)
 
-
 /obj/structure/stairs/vv_edit_var(var_name, var_value)
 	. = ..()
 	if(!.)
@@ -134,8 +133,7 @@
 	desc = "Everything you need to call something a staircase, aside from the stuff you actually step on."
 	icon = 'icons/obj/stairs.dmi'
 	icon_state = "stairs_frame"
-	density = FALSE
-	anchored = FALSE
+	interaction_flags_click = NEED_HANDS | ALLOW_RESTING
 	/// What type of stack will this drop on deconstruction?
 	var/frame_stack = /obj/item/stack/rods
 	/// How much of frame_stack should this drop on deconstruction?
@@ -146,18 +144,13 @@
 	desc = "Everything you need to build a staircase, minus the actual stairs, this one is made of wood."
 	frame_stack = /obj/item/stack/sheet/wood
 
-/obj/structure/stairs_frame/AltClick(mob/user)
-	if(!Adjacent(user))
-		return
-	if(user.incapacitated() || HAS_TRAIT(user, TRAIT_HANDS_BLOCKED))
-		to_chat(user, "<span class='warning'>You can't do that right now!</span>")
-		return
+/obj/structure/stairs_frame/click_alt(mob/user)
 	if(anchored)
-		to_chat(user, "It is fastened to the floor!")
-		return
+		to_chat(user, span_warning("It is fastened to the floor!"))
+		return CLICK_ACTION_BLOCKING
 	add_fingerprint(usr)
 	setDir(turn(dir, 90))
-
+	return CLICK_ACTION_SUCCESS
 
 /obj/structure/stairs_frame/examine(mob/living/carbon/human/user)
 	. = ..()
@@ -191,7 +184,6 @@
 /obj/structure/stairs_frame/deconstruct(disassembled = TRUE)
 	new frame_stack(get_turf(src), frame_stack_amount)
 	qdel(src)
-
 
 /obj/structure/stairs_frame/attackby(obj/item/I, mob/user, params)
 	if(user.a_intent == INTENT_HARM)
@@ -227,7 +219,6 @@
 		return ATTACK_CHAIN_BLOCKED_ALL
 
 	return ..()
-
 
 #undef STAIR_TERMINATOR_AUTOMATIC
 #undef STAIR_TERMINATOR_NO

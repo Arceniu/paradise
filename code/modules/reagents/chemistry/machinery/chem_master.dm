@@ -1,23 +1,27 @@
-#define MAX_PILL_SPRITE 20 //max icon state of the pill sprites
-#define MAX_PATCH_SPRITE 20 //max icon state of the patch sprites
-#define MAX_MULTI_AMOUNT 20 // Max number of pills/patches that can be made at once
-#define MAX_UNITS_PER_PILL 100 // Max amount of units in a pill
-#define MAX_UNITS_PER_PATCH 20 // Max amount of units in a patch
-#define MAX_CUSTOM_NAME_LEN 64 // Max length of a custom pill/condiment/whatever
+// Max icon state of the pill sprites
+#define MAX_PILL_SPRITE 20
+// Max icon state of the patch sprites
+#define MAX_PATCH_SPRITE 20
+// Max number of pills/patches that can be made at once
+#define MAX_MULTI_AMOUNT 20
+// Max amount of units in a pill
+#define MAX_UNITS_PER_PILL 100
+// Max amount of units in a patch
+#define MAX_UNITS_PER_PATCH 20
+// Max length of a custom pill/condiment/whatever
+#define MAX_CUSTOM_NAME_LEN 64
 
 #define CUSTOM_NAME_DISABLED null
 
-#define TRANSFER_TO_DISPOSAL 0
-#define TRANSFER_TO_BEAKER   1
+#define TRANSFER_TO_BEAKER 1
 
 /obj/machinery/chem_master
-	name = "\improper ChemMaster 3000"
-	desc = "Used to turn reagents into pills, patches, and store them in bottles."
+	name = "ChemMaster 3000"
+	desc = "Химическое оборудование, предназначенное для преобразования реагентов в таблетки, пластыри и бутылки."
 	density = TRUE
 	anchored = TRUE
 	icon = 'icons/obj/chemical.dmi'
 	icon_state = "mixer0"
-	use_power = IDLE_POWER_USE
 	idle_power_usage = 20
 	resistance_flags = FIRE_PROOF | ACID_PROOF
 
@@ -35,8 +39,8 @@
 	var/static/list/pill_bottle_wrappers = list(
 		COLOR_RED_LIGHT = "Red",
 		COLOR_GREEN = "Green",
-		COLOR_PALE_BTL_GREEN = "Pale Green",
-		COLOR_CYAN_BLUE = "Light Blue",
+		COLOR_IRISH_GREEN = "Irish Green",
+		COLOR_DARK_CYAN = "Dark Cyan",
 		COLOR_TEAL = "Teal",
 		COLOR_YELLOW = "Yellow",
 		COLOR_ORANGE = "Orange",
@@ -48,6 +52,16 @@
 	)
 	var/list/datum/chemical_production_mode/production_modes = list()
 	var/static/list/bottle_styles
+
+/obj/machinery/chem_master/get_ru_names()
+	return list(
+		NOMINATIVE = "ХимМастер 3000",
+		GENITIVE = "ХимМастера 3000",
+		DATIVE = "ХимМастеру 3000",
+		ACCUSATIVE = "ХимМастер 3000",
+		INSTRUMENTAL = "ХимМастером 3000",
+		PREPOSITIONAL = "ХимМастере 3000",
+	)
 
 /obj/machinery/chem_master/Initialize(mapload)
 	. = ..()
@@ -87,13 +101,18 @@
 	for(var/obj/item/reagent_containers/glass/beaker/B in component_parts)
 		reagents.maximum_volume += B.reagents.maximum_volume
 
-/obj/machinery/chem_master/ex_act(severity)
-	if(severity < 3)
+/obj/machinery/chem_master/examine(mob/user)
+	. = ..()
+	if(panel_open)
+		. += span_notice("Панель техобслуживания открыта.")
+
+/obj/machinery/chem_master/ex_act(severity, target)
+	if(severity > EXPLODE_LIGHT)
 		if(beaker)
-			beaker.ex_act(severity)
+			beaker.ex_act(severity, target)
 		if(loaded_pill_bottle)
-			loaded_pill_bottle.ex_act(severity)
-		..()
+			loaded_pill_bottle.ex_act(severity, target)
+		return ..()
 
 /obj/machinery/chem_master/handle_atom_del(atom/A)
 	..()
@@ -117,7 +136,6 @@
 		return
 	update_icon()
 
-
 /obj/machinery/chem_master/attackby(obj/item/I, mob/user, params)
 	if(user.a_intent == INTENT_HARM)
 		return ..()
@@ -128,17 +146,17 @@
 	if(istype(I, /obj/item/reagent_containers/glass) || istype(I, /obj/item/reagent_containers/food/drinks/drinkingglass))
 		add_fingerprint(user)
 		if(panel_open)
-			to_chat(user, span_warning("Close the maintenance panel first."))
+			balloon_alert(user, "техпанель открыта!")
 			return ATTACK_CHAIN_PROCEED
 		if(!user.drop_transfer_item_to_loc(I, src))
 			return ..()
 		if(beaker)
-			to_chat(user, span_notice("You have swapped [beaker] with [I]."))
+			balloon_alert(user, "ёмкость заменена")
 			beaker.forceMove(drop_location())
 			if(Adjacent(user) && !issilicon(user)) //Prevents telekinesis from putting in hand
 				user.put_in_hands(beaker, ignore_anim = FALSE)
 		else
-			to_chat(user, span_notice("You have inserted [I] into [src]."))
+			balloon_alert(user, "ёмкость установлена")
 		beaker = I
 		SStgui.update_uis(src)
 		update_icon()
@@ -147,23 +165,23 @@
 	if(istype(I, /obj/item/storage/pill_bottle))
 		add_fingerprint(user)
 		if(panel_open)
-			to_chat(user, span_warning("Close the maintenance panel first."))
+			balloon_alert(user, "техпанель открыта!")
 			return ATTACK_CHAIN_PROCEED
 		if(loaded_pill_bottle)
-			to_chat(user, span_warning("The [loaded_pill_bottle.name] is already inserted into [src]."))
+			balloon_alert(user, "слот занят!")
 			return ATTACK_CHAIN_PROCEED
 		if(!user.drop_transfer_item_to_loc(I, src))
 			return ..()
 		loaded_pill_bottle = I
-		to_chat(user, span_notice("You have inserted [I] into the dispenser slot."))
+		balloon_alert(user, "контейнер установлен")
 		SStgui.update_uis(src)
 		return ATTACK_CHAIN_BLOCKED_ALL
 
 	return ..()
 
-
 /obj/machinery/chem_master/crowbar_act(mob/user, obj/item/I)
 	if(!panel_open)
+		balloon_alert(user, "техпанель закрыта!")
 		return
 	if(default_deconstruction_crowbar(user, I))
 		return TRUE
@@ -182,6 +200,7 @@
 
 /obj/machinery/chem_master/wrench_act(mob/user, obj/item/I)
 	if(panel_open)
+		balloon_alert(user, "техпанель открыта!")
 		return
 	return default_unfasten_wrench(user, I, 4 SECONDS)
 
@@ -217,20 +236,20 @@
 			var/datum/reagent/R = reagent_list[idx]
 
 			printing = TRUE
-			visible_message(span_notice("[src] rattles and prints out a sheet of paper."))
-			playsound(loc, 'sound/goonstation/machines/printer_dotmatrix.ogg', 50, 1)
+			visible_message(span_notice("[capitalize(declent_ru(NOMINATIVE))] дребезжит, после чего из окна печати выпадает лист бумаги."))
+			playsound(loc, 'sound/goonstation/machines/printer_dotmatrix.ogg', 50, TRUE)
 
 			var/obj/item/paper/P = new /obj/item/paper(loc)
-			P.info = "<center><b>Chemical Analysis</b></center><br>"
-			P.info += "<b>Time of analysis:</b> [station_time_timestamp()]<br><br>"
-			P.info += "<b>Chemical name:</b> [R.name]<br>"
+			P.info = "<center><b>Химический анализ</b></center><br>"
+			P.info += "<b>Время анализа:</b> [station_time_timestamp()]<br><br>"
+			P.info += "<b>Название реагента:</b> [R.name]<br>"
 			if(istype(R, /datum/reagent/blood))
 				var/datum/reagent/blood/B = R
-				P.info += "<b>Description:</b> N/A<br><b>Blood Type:</b> [B.data["blood_type"]]<br><b>DNA:</b> [B.data["blood_species"]]"
+				P.info += "<b>Описание:</b> Н/Д<br><b>Группа крови:</b> [B.data["blood_type"]]<br><b>ДНК:</b> [B.data["blood_species"]]"
 			else
-				P.info += "<b>Description:</b> [R.description]"
-			P.info += "<br><br><b>Notes:</b><br>"
-			P.name = "Chemical Analysis - [R.name]"
+				P.info += "<b>Описание:</b> [R.description]"
+			P.info += "<br><br><b>Заметки:</b><br>"
+			P.name = "Химический анализ — [R.name]"
 			spawn(50)
 				printing = FALSE
 
@@ -290,6 +309,7 @@
 			if(pill_bottle_wrappers[new_color])
 				loaded_pill_bottle.wrapper_color = new_color
 				loaded_pill_bottle.apply_wrap()
+				playsound(loc, 'sound/effects/spray.ogg', 10, TRUE)
 		else
 			. = FALSE
 
@@ -349,7 +369,7 @@
 /obj/machinery/chem_master/ui_interact(mob/user, datum/tgui/ui = null)
 	ui = SStgui.try_update_ui(user, src, ui)
 	if(!ui)
-		ui = new(user, src, "ChemMaster", name)
+		ui = new(user, src, "ChemMaster", "ХимМастер 3000")
 		ui.open()
 
 /obj/machinery/chem_master/ui_assets(mob/user)
@@ -442,12 +462,12 @@
 	return data
 
 /**
-  * Called in ui_act() to process modal actions
-  *
-  * Arguments:
-  * * action - The action passed by tgui
-  * * params - The params passed by tgui
-  */
+ * Called in ui_act() to process modal actions
+ *
+ * Arguments:
+ * * action - The action passed by tgui
+ * * params - The params passed by tgui
+ */
 /obj/machinery/chem_master/proc/ui_act_modal(action, params, datum/tgui/ui, datum/ui_state/state)
 	. = TRUE
 	var/id = params["id"] // The modal's ID
@@ -475,12 +495,12 @@
 				if("addcustom")
 					if(!beaker || !beaker.reagents.total_volume)
 						return
-					ui_modal_input(src, id, "Please enter the amount to transfer to buffer:", null, arguments, useramount)
+					ui_modal_input(src, id, "Укажите объём вещества для переноса в буфер:", null, arguments, useramount)
 
 				if("removecustom")
 					if(!reagents.total_volume)
 						return
-					ui_modal_input(src, id, "Please enter the amount to transfer to [mode ? "beaker" : "disposal"]:", null, arguments, useramount)
+					ui_modal_input(src, id, "Укажите объём вещества для [mode ? "переноса в ёмкость" : "удаления"]:", null, arguments, useramount)
 				else
 					return FALSE
 
@@ -515,9 +535,19 @@
 		return FALSE
 
 /obj/machinery/chem_master/condimaster
-	name = "\improper CondiMaster 3000"
-	desc = "Used to remove reagents from that single beaker you're using, or create condiment packs and bottles; your choice."
+	name = "CondiMaster 3000"
+	desc = "Химическое оборудование, специализированное под кулинарные нужды. Позволяет создавать пакеты со специями или бутыли, как вы того пожелаете."
 	condi = TRUE
+
+/obj/machinery/chem_master/condimaster/get_ru_names()
+	return list(
+		NOMINATIVE = "КондиМастер 3000",
+		GENITIVE = "КондиМастера 3000",
+		DATIVE = "КондиМастеру 3000",
+		ACCUSATIVE = "КондиМастер 3000",
+		INSTRUMENTAL = "КондиМастером 3000",
+		PREPOSITIONAL = "КондиМастере 3000",
+	)
 
 /obj/machinery/chem_master/condimaster/Initialize(mapload)
 	. = ..()
@@ -556,12 +586,11 @@
 	for(var/i in 1 to sprites_amount)
 		sprites += "[sprite_mask][i]"
 
-
 /datum/chemical_production_mode/proc/get_placeholder_name(datum/reagents/reagents)
 	return get_base_placeholder_name(reagents, clamp(reagents.total_volume / set_items_amount, 0, max_units_per_item))
 
 /datum/chemical_production_mode/proc/get_base_placeholder_name(datum/reagents/reagents, amount_per_item)
-	return "[reagents.get_master_reagent_name()] ([amount_per_item]u)"
+	return "[reagents.get_master_reagent_name()] ([amount_per_item] ед.)"
 
 /**
 	public
@@ -589,12 +618,13 @@
 	var/data = list("count" = count)
 	for(var/i in 1 to count)
 		if(reagents.total_volume <= 0)
-			to_chat(user, span_warning("Not enough reagents to create these items!"))
+			to_chat(user, span_warning("Недостаточно реагентов для создания этого предмета!"))
 			return
 
 		var/obj/item/reagent_containers/P = new item_type(location)
 		if(!isnull(medicine_name))
-			P.name = "[medicine_name][name_suffix]"
+			P.name = "[name_suffix][medicine_name]"
+			P.chem_master_made = TRUE
 		P.pixel_x = rand(-7, 7) // Random position
 		P.pixel_y = rand(-7, 7)
 		configure_item(data, reagents, P)
@@ -606,23 +636,23 @@
 
 /datum/chemical_production_mode/pills
 	mode_id = "pills"
-	production_name = "Pills"
+	production_name = "Таблетки"
 	production_icon = "pills"
 	item_type = /obj/item/reagent_containers/food/pill
 	max_items_amount = MAX_MULTI_AMOUNT
 	max_units_per_item = MAX_UNITS_PER_PILL
-	name_suffix = " pill"
+	name_suffix = "Таблетка - "
 	sprite_mask = "pill"
 	sprites_amount = MAX_PILL_SPRITE
 
 /datum/chemical_production_mode/patches
 	mode_id = "patches"
-	production_name = "Patches"
+	production_name = "Пластыри"
 	production_icon = "plus-square"
 	item_type = /obj/item/reagent_containers/food/pill/patch
 	max_items_amount = MAX_MULTI_AMOUNT
 	max_units_per_item = MAX_UNITS_PER_PATCH
-	name_suffix = " patch"
+	name_suffix = "Пластырь - "
 	sprite_mask = "bandaid"
 	sprites_amount = MAX_PATCH_SPRITE
 
@@ -645,21 +675,21 @@
 
 /datum/chemical_production_mode/bottles
 	mode_id = "chem_bottles"
-	production_name = "Bottles"
+	production_name = "Бутылки"
 	production_icon = "wine-bottle"
 	item_type = /obj/item/reagent_containers/glass/bottle/reagent
-	sprites = list("bottle", "small_bottle", "wide_bottle", "round_bottle", "reagent_bottle")
+	sprites = list("bottle", "wide_bottle", "round_bottle", "reagent_bottle")
 
 	max_items_amount = 5
 	max_units_per_item = 50
-	name_suffix = " bottle"
+	name_suffix = "Бутылка - "
 
 /datum/chemical_production_mode/bottles/get_base_placeholder_name(datum/reagents/reagents, amount_per_item)
 	return reagents.get_master_reagent_name()
 
 /datum/chemical_production_mode/condiment_bottles
 	mode_id = "condi_bottles"
-	production_name = "Bottles"
+	production_name = "Бутылки"
 	production_icon = "wine-bottle"
 	item_type = /obj/item/reagent_containers/food/condiment
 	max_items_amount = 5
@@ -669,20 +699,21 @@
 
 /datum/chemical_production_mode/condiment_packs
 	mode_id = "condi_packets"
-	production_name = "Packet"
+	production_name = "Упаковки для специй"
 	production_icon = "bacon"
 	item_type = /obj/item/reagent_containers/food/condiment/pack
 	max_items_amount = 10
 	max_units_per_item = 10
-	name_suffix = " pack"
+	name_suffix = "Упаковка - "
 
 /datum/chemical_production_mode/condiment_packs/get_base_placeholder_name(datum/reagents/reagents, amount_per_item)
 	return reagents.get_master_reagent_name()
 
 #undef MAX_PILL_SPRITE
+#undef MAX_PATCH_SPRITE
+#undef MAX_MULTI_AMOUNT
+#undef MAX_UNITS_PER_PILL
+#undef MAX_UNITS_PER_PATCH
 #undef MAX_CUSTOM_NAME_LEN
-
 #undef CUSTOM_NAME_DISABLED
-
-#undef TRANSFER_TO_DISPOSAL
 #undef TRANSFER_TO_BEAKER

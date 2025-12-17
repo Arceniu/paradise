@@ -56,7 +56,6 @@ SUBSYSTEM_DEF(cargo_quests)
 
 	return SS_INIT_SUCCESS
 
-
 /datum/controller/subsystem/cargo_quests/proc/roll_start_quests()
 	for(var/I = 1 to NUMBER_OF_CC_QUEST)
 		create_new_quest(pick(centcomm_departaments), easy_mode = TRUE)
@@ -92,12 +91,12 @@ SUBSYSTEM_DEF(cargo_quests)
 		addtimer(CALLBACK(src, PROC_REF(create_new_quest), pick(get_customer_list(quest.customer))), 10 MINUTES)
 	else
 		create_new_quest(pick(get_customer_list(quest.customer)), reroll, quest.quest_difficulty)
-	qdel(quest)
+	QDEL_IN(quest, 0.5 SECONDS)
 
 /datum/controller/subsystem/cargo_quests/proc/create_new_quest(customer, reroll, old_difficulty, easy_mode)
 	var/datum/cargo_quests_storage/new_quest = new()
 	new_quest.customer = customer
-	if(GLOB.security_level > SEC_LEVEL_RED)
+	if(SSsecurity_level.get_current_level_as_number() > SEC_LEVEL_RED)
 		easy_mode = TRUE
 	if(reroll && !easy_mode)
 		new_quest.quest_difficulty = old_difficulty
@@ -177,7 +176,7 @@ SUBSYSTEM_DEF(cargo_quests)
 	//Honestly, I don't want to do another procedure for this
 	if(target_storage.quest_difficulty.bounty_for_difficulty)
 		SScapitalism.total_station_bounty += target_storage.quest_difficulty.bounty_for_difficulty
-		SScapitalism.base_account.credit(target_storage.quest_difficulty.bounty_for_difficulty, "Награда за выполнение корпоративного задания.", "Biesel TCD Terminal #[rand(111,333)]", "Отдел развития Нанотрейзен")
+		SScapitalism.base_account.credit(target_storage.quest_difficulty.bounty_for_difficulty, "Награда за выполнение корпоративного задания.", "Терминал Бизель №[rand(111,333)]", "Отдел развития \"Нанотрейзен\"")
 
 	return max_reward
 
@@ -189,7 +188,6 @@ SUBSYSTEM_DEF(cargo_quests)
 			deltimer(quest.quest_check_timer)
 			quest.quest_check_timer = null
 		qdel(quest)
-
 
 /datum/quest_difficulty
 	var/diff_flag
@@ -236,7 +234,6 @@ SUBSYSTEM_DEF(cargo_quests)
 	min_quest_time = 30
 	max_quest_time = 60
 	bounty_for_difficulty = 1000
-
 
 #undef NUMBER_OF_CC_QUEST
 #undef NUMBER_OF_CORP_QUEST

@@ -1,19 +1,21 @@
-//temporary visual effects
+/// Temporary visual effects.
 /obj/effect/temp_visual
 	icon_state = "nothing"
-	anchored = TRUE
 	layer = ABOVE_MOB_LAYER
 	mouse_opacity = MOUSE_OPACITY_TRANSPARENT
-	var/duration = 10 //in deciseconds
-	var/randomdir = TRUE
+	/// How long before the temp_visual gets deleted.
+	var/duration = 1 SECONDS
+	/// Timer that our duration is stored in.
 	var/timerid
+	/// Gives our effect a random direction on init.
+	var/randomdir = TRUE
 
 /obj/effect/temp_visual/Initialize(mapload)
 	. = ..()
 	if(randomdir)
 		setDir(pick(GLOB.cardinal))
 
-	timerid = QDEL_IN(src, duration)
+	timerid = QDEL_IN_STOPPABLE(src, duration)
 
 /obj/effect/temp_visual/Destroy()
 	. = ..()

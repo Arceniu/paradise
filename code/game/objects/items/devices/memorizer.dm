@@ -3,10 +3,8 @@
 	desc = "If you see this, you're not likely to remember it any time soon."
 	icon = 'icons/obj/device.dmi'
 	icon_state = "memorizer"
-	throwforce = 0
 	w_class = WEIGHT_CLASS_TINY
 	throw_speed = 3
-	throw_range = 7
 	flags = CONDUCT
 
 	var/times_used = 0 //Number of times it's been used.
@@ -17,23 +15,19 @@
 	var/can_overcharge = FALSE //set this to FALSE if you don't want your flash to be overcharge capable
 	var/use_sound = 'sound/weapons/flash.ogg'
 
-
 /obj/item/memorizer/update_icon_state()
 	icon_state = "memorizer[broken ? "burnt" : ""]"
-
 
 /obj/item/memorizer/update_overlays()
 	. = ..()
 	if(overcharged)
 		. += "overcharge"
 
-
 /obj/item/memorizer/proc/clown_check(mob/user)
 	if(user && HAS_TRAIT(user, TRAIT_CLUMSY) && prob(50))
 		memorize_carbon(user, user, 15, FALSE)
 		return FALSE
 	return TRUE
-
 
 /obj/item/memorizer/screwdriver_act(mob/living/user, obj/item/I)
 	. = TRUE
@@ -45,9 +39,8 @@
 	battery_panel = !battery_panel
 	to_chat(user, span_notice("You [battery_panel ? "open" : "close"] the battery compartment on [src]."))
 
-
 /obj/item/memorizer/attackby(obj/item/I, mob/user, params)
-	if(!can_overcharge || !istype(I, /obj/item/stock_parts/cell))
+	if(!can_overcharge || !iscell(I))
 		return ..()
 	add_fingerprint(user)
 	if(!battery_panel)
@@ -64,12 +57,10 @@
 	update_icon(UPDATE_OVERLAYS)
 	qdel(I)
 
-
 /obj/item/memorizer/proc/burn_out() //Made so you can override it if you want to have an invincible flash from R&D or something.
 	broken = TRUE
 	update_icon(UPDATE_ICON_STATE)
-	visible_message("<span class='notice'>The [name] burns out!</span>")
-
+	visible_message(span_boldwarning("[declent_ru(NOMINATIVE)] сгорел[GEND_A_O_I(src)]!"))
 
 /obj/item/memorizer/proc/flash_recharge(mob/user)
 	if(prob(times_used * 2))	//if you use it 5 times in a minute it has a 10% chance to break!
@@ -82,14 +73,13 @@
 	last_used = world.time
 	times_used = max(0, times_used) //sanity
 
-
 /obj/item/memorizer/proc/try_use_flash(mob/user)
 	flash_recharge(user)
 
 	if(broken)
 		return FALSE
 
-	playsound(loc, use_sound, 100, 1)
+	playsound(loc, use_sound, 100, TRUE)
 	flick("[initial(icon_state)]2", src)
 	set_light(2, 1, COLOR_WHITE, l_on = TRUE)
 	addtimer(CALLBACK(src, TYPE_PROC_REF(/atom, set_light_on), FALSE), 2)
@@ -99,7 +89,6 @@
 		return FALSE
 
 	return TRUE
-
 
 /obj/item/memorizer/proc/memorize_carbon(mob/living/carbon/fucking_target, mob/user, power = 10 SECONDS, targeted = TRUE)
 	if(user)
@@ -112,10 +101,13 @@
 				fucking_target.Stun(2 SECONDS)
 				visible_message(span_disarm("[user] erases [fucking_target] memory with the memorizer!"))
 				to_chat(user, span_danger("You erased [fucking_target] memory with the memorizer!"))
-				to_chat(fucking_target, span_danger("<span class='reallybig'>Your memory about last events has been erased!"))
+				to_chat(fucking_target, span_danger(span_reallybig("Your memory about last events has been erased!")))
 				if(fucking_target.weakeyes)
 					fucking_target.Stun(4 SECONDS)
-					fucking_target.visible_message(span_disarm("[fucking_target] gasps and shields [fucking_target.p_their()] eyes!"), span_userdanger("You gasp and shield your eyes!"))
+					fucking_target.visible_message(
+						span_disarm("[fucking_target] gasps and shields [fucking_target.p_their()] eyes!"),
+						span_userdanger("You gasp and shield your eyes!")
+					)
 			else
 				visible_message(span_disarm("[user] fails to erase [fucking_target] memory with the memorizer!"))
 				to_chat(user, span_warning("You fail to erase [fucking_target] memory with the memorizer!"))
@@ -124,7 +116,6 @@
 
 	if(fucking_target.flash_eyes())
 		fucking_target.AdjustConfused(power)
-
 
 /obj/item/memorizer/attack(mob/living/fucking_target, mob/living/user, params, def_zone, skip_attack_anim = FALSE)
 	. = ATTACK_CHAIN_PROCEED
@@ -141,18 +132,22 @@
 		add_attack_logs(user, fucking_target, "Flashed with [src]")
 		if(fucking_target.flash_eyes(affect_silicon = TRUE))
 			fucking_target.Weaken(rand(10 SECONDS, 20 SECONDS))
-			user.visible_message(span_disarm("[user] overloads [fucking_target]'s sensors with the [name]!"), span_danger("You overload [fucking_target]'s sensors with the [name]!"))
+			user.visible_message(
+				span_disarm("[user] overloads [fucking_target]'s sensors with the [name]!"),
+				span_danger("You overload [fucking_target]'s sensors with the [name]!")
+			)
 		return .|ATTACK_CHAIN_SUCCESS
 	user.visible_message(span_disarm("[user] fails to blind [fucking_target] with the [name]!"), span_warning("You fail to blind [fucking_target] with the [name]!"))
-
 
 /obj/item/memorizer/attack_self(mob/living/carbon/user, flag = 0, emp = FALSE)
 	if(!try_use_flash(user))
 		return FALSE
-	user.visible_message("<span class='disarm'>[user]'s [src.name] emits a blinding light!</span>", "<span class='danger'>Your [src.name] emits a blinding light!</span>")
+	user.visible_message(
+		span_disarm("[user]'s [src.name] emits a blinding light!"),
+		span_danger("Your [src.name] emits a blinding light!")
+	)
 	for(var/mob/living/carbon/fucking_target in oviewers(3, get_turf(src)))
 		memorize_carbon(fucking_target, user, 3, FALSE)
-
 
 /obj/item/memorizer/emp_act(severity)
 	if(!try_use_flash())
@@ -183,10 +178,11 @@
 				to_chat(fucking_target, span_danger(span_reallybig("Ваша память о последних недавних событиях была стёрта!")))
 				if(is_taipan(fucking_target.z) && !fucking_target.mind.lost_memory)
 					var/objective = "Вы не помните ничего о последних событиях, так как ваша память была стёрта. \
-					В частности вы не помните о базе синдиката \"Тайпан\", о том как туда добраться и обо всём так или иначе с ней связанным!"
+					В частности вы не помните о базе \"Синдиката\" \"Тайпан\", о том как туда добраться и обо всём так или иначе с ней связанным!"
 					var/datum/objective/custom_objective = new(objective)
 					custom_objective.needs_target = FALSE
 					custom_objective.owner = fucking_target.mind
+					custom_objective.antag_menu_name = "Память стёрта"
 					fucking_target.mind.objectives += custom_objective
 					fucking_target.mind.lost_memory = TRUE
 					var/list/messages = fucking_target.mind.prepare_announce_objectives()

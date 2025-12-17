@@ -3,15 +3,16 @@ GLOBAL_LIST_EMPTY(closets)
 /obj/structure/closet
 	name = "closet"
 	desc = "It's a basic storage unit."
+	gender = MALE
 	icon = 'icons/obj/closet.dmi'
 	icon_state = "closed"
 	density = TRUE
 	layer = LOW_ITEM_LAYER	//Prevents items from dropping on turf visually
 	max_integrity = 200
 	integrity_failure = 50
-	armor = list("melee" = 20, "bullet" = 10, "laser" = 10, "energy" = 0, "bomb" = 10, "bio" = 0, "rad" = 0, "fire" = 70, "acid" = 60)
+	armor = list(MELEE = 20, BULLET = 10, LASER = 10, ENERGY = 0, BOMB = 10, BIO = 0, RAD = 0, FIRE = 70, ACID = 60)
 	pass_flags_self = PASSSTRUCTURE|LETPASSCLICKS
-	pull_push_slowdown = 1.3 // Same as a prone mob
+	interaction_flags_click = NEED_HANDS | ALLOW_RESTING
 
 	/// Special marker for the closet to use default icon_closed/icon_opened states, skipping everything else.
 	var/no_overlays = FALSE
@@ -48,6 +49,8 @@ GLOBAL_LIST_EMPTY(closets)
 	var/storage_capacity = 30 //This is so that someone can't pack hundreds of items in a locker/crate then open it in a populated area to crash clients.
 	var/material_drop = /obj/item/stack/sheet/metal
 	var/material_drop_amount = 2
+	var/ignore_shoves = FALSE
+	var/no_throw_opens = FALSE
 
 // Please dont override this unless you absolutely have to
 /obj/structure/closet/Initialize(mapload)
@@ -61,7 +64,7 @@ GLOBAL_LIST_EMPTY(closets)
 		// therefore solving the issue on mapload. During rounds, everything will happen as normal
 		addtimer(CALLBACK(src, PROC_REF(take_contents)), 0)
 	update_icon() // Set it to the right icon if needed
-	populate_contents() // Spawn all its stuff
+	populate_contents()
 
 // Override this to spawn your things in. This lets you use probabilities, and also doesnt cause init overrides
 /obj/structure/closet/proc/populate_contents()
@@ -110,12 +113,10 @@ GLOBAL_LIST_EMPTY(closets)
 	if(vname in list(NAMEOF(src, locked), NAMEOF(src, welded)))
 		update_appearance()
 
-
 /obj/structure/closet/CanAllowThrough(atom/movable/mover, border_dir)
 	. = ..()
 	if(wall_mounted)
 		return TRUE
-
 
 /obj/structure/closet/proc/can_open()
 	if(welded)
@@ -131,6 +132,10 @@ GLOBAL_LIST_EMPTY(closets)
 
 /obj/structure/closet/throw_impact(atom/hit_atom, datum/thrownthing/throwingdatum)
 	. = ..()
+
+	if(no_throw_opens)
+		return
+
 	if(iswallturf(hit_atom) && prob(20))
 		open()
 
@@ -236,11 +241,9 @@ GLOBAL_LIST_EMPTY(closets)
 	if(!broken && !(obj_flags & NODECONSTRUCT))
 		bust_open()
 
-
 /obj/structure/closet/grab_attack(mob/living/grabber, atom/movable/grabbed_thing)
 	. = TRUE
 	MouseDrop_T(grabbed_thing, grabber)	//act like they were dragged onto the closet
-
 
 /obj/structure/closet/attackby(obj/item/I, mob/user, params)
 	if(opened)
@@ -277,7 +280,6 @@ GLOBAL_LIST_EMPTY(closets)
 
 	return ..()
 
-
 // What happens when the closet is attacked by a random item not on harm mode
 /obj/structure/closet/proc/closed_item_click(mob/user)
 	attack_hand(user)
@@ -285,9 +287,7 @@ GLOBAL_LIST_EMPTY(closets)
 /obj/structure/closet/welder_act(mob/user, obj/item/I)
 	. = TRUE
 	if(!opened && user.loc == src)
-		to_chat(user, "<span class='warning'>You can't weld [src] from inside!</span>")
-		return
-	if(!can_weld_shut)
+		to_chat(user, span_warning("You can't weld [src] from inside!"))
 		return
 	if(!I.tool_use_check(user, 0))
 		return
@@ -298,16 +298,24 @@ GLOBAL_LIST_EMPTY(closets)
 			deconstruct(TRUE)
 			return
 	else
+		if(!can_weld_shut)
+			return
 		var/adjective = welded ? "open" : "shut"
-		user.visible_message("<span class='notice'>[user] begins welding [src] [adjective]...</span>", "<span class='notice'>You begin welding [src] [adjective]...</span>", "<span class='warning'>You hear welding.</span>")
+		user.visible_message(
+			span_notice("[user] begins welding [src] [adjective]..."),
+			span_notice("You begin welding [src] [adjective]..."),
+			span_warning("You hear welding.")
+		)
 		if(I.use_tool(src, user, 15, volume = I.tool_volume))
 			if(opened)
-				to_chat(user, "<span class='notice'>Keep [src] shut while doing that!</span>")
+				to_chat(user, span_notice("Keep [src] shut while doing that!"))
 				return
-			user.visible_message("<span class='notice'>[user] welds [src] [adjective]!</span>", "<span class='notice'>You weld [src] [adjective]!</span>")
+			user.visible_message(
+				span_notice("[user] welds [src] [adjective]!"),
+				span_notice("You weld [src] [adjective]!")
+			)
 			welded = !welded
 			update_icon()
-
 
 /obj/structure/closet/MouseDrop_T(atom/movable/O, mob/living/user, params)
 	. = ..()
@@ -317,7 +325,7 @@ GLOBAL_LIST_EMPTY(closets)
 		return
 	if(user.incapacitated() || HAS_TRAIT(user, TRAIT_HANDS_BLOCKED))
 		return
-	if((!( istype(O, /atom/movable) ) || O.anchored || get_dist(user, src) > 1 || get_dist(user, O) > 1 || user.contents.Find(src)))
+	if((!( istype(O, /atom/movable)) || O.anchored || get_dist(user, src) > 1 || get_dist(user, O) > 1 || user.contents.Find(src)))
 		return
 	if(user.loc==null) // just in case someone manages to get a closet into the blue light dimension, as unlikely as that seems
 		return
@@ -331,7 +339,10 @@ GLOBAL_LIST_EMPTY(closets)
 		user.stop_pulling()
 	step_towards(O, loc)
 	if(user != O)
-		user.visible_message("<span class='danger'>[user] stuffs [O] into [src]!</span>", "<span class='danger'>You stuff [O] into [src]!</span>")
+		user.visible_message(
+			span_danger("[user] stuffs [O] into [src]!"),
+			span_danger("You stuff [O] into [src]!")
+		)
 	add_fingerprint(user)
 	return TRUE
 
@@ -344,11 +355,11 @@ GLOBAL_LIST_EMPTY(closets)
 		return
 
 	if(!open())
-		to_chat(user, "<span class='notice'>It won't budge!</span>")
+		to_chat(user, span_notice("It won't budge!"))
 		if(!lastbang)
 			lastbang = 1
 			for(var/mob/M in hearers(src, null))
-				to_chat(M, text("<FONT size=[]>BANG, bang!</FONT>", max(0, 5 - get_dist(src, M))))
+				to_chat(M, "<span style='font-size: [max(0, 5 - get_dist(src, M))];'>BANG, bang!</span>")
 			spawn(30)
 				lastbang = 0
 
@@ -376,21 +387,16 @@ GLOBAL_LIST_EMPTY(closets)
 		add_fingerprint(usr)
 		toggle(usr)
 	else
-		to_chat(usr, "<span class='warning'>This mob type can't use this verb.</span>")
-
+		to_chat(usr, span_warning("This mob type can't use this verb."))
 
 /obj/structure/closet/update_icon(updates = ALL)
 	if(no_overlays)
 		return ..(UPDATE_ICON_STATE)
 	return ..()
 
-
 /obj/structure/closet/update_icon_state()
 	if(no_overlays)
 		icon_state = opened ? icon_opened : icon_closed
-
-
-
 
 /obj/structure/closet/update_overlays()
 	. = ..()
@@ -409,14 +415,12 @@ GLOBAL_LIST_EMPTY(closets)
 		if(welded)
 			. += mutable_appearance(icon, "welded", CLOSET_OLAY_LAYER_WELDED)
 
-
 /**
  * Additional overlays for contents inside the closet. Usefull when the door is transparent.
  */
 /obj/structure/closet/proc/apply_contents_overlays()
 	RETURN_TYPE(/list)
 	. = list()
-
 
 // Objects that try to exit a locker by stepping were doing so successfully,
 // and due to an oversight in turf/Enter() were going through walls.  That
@@ -427,7 +431,7 @@ GLOBAL_LIST_EMPTY(closets)
 		return FALSE
 	return TRUE
 
-/obj/structure/closet/container_resist(var/mob/living/L)
+/obj/structure/closet/container_resist(mob/living/L)
 	var/breakout_time = 2 //2 minutes by default
 	if(opened)
 		if(L.loc == src)
@@ -444,10 +448,9 @@ GLOBAL_LIST_EMPTY(closets)
 	//		breakout_time++ //Harder to get out of welded lockers than locked lockers
 
 	//okay, so the closet is either welded or locked... resist!!!
-	to_chat(L, "<span class='warning'>You lean on the back of \the [src] and start pushing the door open. (this will take about [breakout_time] minutes)</span>")
+	to_chat(L, span_warning("You lean on the back of \the [src] and start pushing the door open. (this will take about [breakout_time] minutes)"))
 	for(var/mob/O in viewers(usr.loc))
-		O.show_message("<span class='danger'>The [src] begins to shake violently!</span>", 1)
-
+		O.show_message(span_danger("The [src] begins to shake violently!"), 1)
 
 	spawn(0)
 		if(do_after(L, breakout_time * 6 MINUTES, src))
@@ -461,9 +464,9 @@ GLOBAL_LIST_EMPTY(closets)
 			//Well then break it!
 			welded = FALSE
 			update_icon()
-			to_chat(usr, "<span class='warning'>You successfully break out!</span>")
+			to_chat(usr, span_warning("You successfully break out!"))
 			for(var/mob/O in viewers(L.loc))
-				O.show_message("<span class='danger'>\the [usr] successfully broke out of \the [src]!</span>", 1)
+				O.show_message(span_danger("\the [usr] successfully broke out of \the [src]!"), 1)
 			if(istype(loc, /obj/structure/bigDelivery)) //nullspace ect.. read the comment above
 				var/obj/structure/bigDelivery/BD = loc
 				BD.attack_hand(usr)
@@ -472,22 +475,17 @@ GLOBAL_LIST_EMPTY(closets)
 				loc_as_obj.container_resist(L)
 			open()
 
-/obj/structure/closet/tesla_act(var/power)
-	..()
-	visible_message("<span class='danger'>[src] is blown apart by the bolt of electricity!</span>", "<span class='danger'>You hear a metallic screeching sound.</span>")
-	qdel(src)
-
 /obj/structure/closet/get_remote_view_fullscreens(mob/user)
 	if(user.stat == DEAD || !(user.sight & (SEEOBJS|SEEMOBS)))
 		user.overlay_fullscreen("remote_view", /atom/movable/screen/fullscreen/impaired, 1)
 
-/obj/structure/closet/ex_act(severity)
+/obj/structure/closet/ex_act(severity, target)
 	contents_explosion()
-	..()
+	return ..()
 
-/obj/structure/closet/proc/contents_explosion(severity)
+/obj/structure/closet/proc/contents_explosion(severity, target)
 	for(var/atom/A in contents)
-		A.ex_act(severity)
+		A.ex_act(severity, target)
 		CHECK_TICK
 
 /obj/structure/closet/singularity_act()
@@ -501,15 +499,18 @@ GLOBAL_LIST_EMPTY(closets)
 	// Its okay to silently teleport mobs out of lockers, since the only thing affected is their contents list.
 	return
 
-
-/obj/structure/closet/AltClick(mob/living/simple_animal/hostile/gorilla/gorilla)
-	if(istype(gorilla) && !gorilla.incapacitated() && !HAS_TRAIT(gorilla, TRAIT_HANDS_BLOCKED) && Adjacent(gorilla))
+/obj/structure/closet/click_alt(mob/living/simple_animal/hostile/gorilla/gorilla)
+	if(istype(gorilla))
 		gorilla.face_atom(src)
 		toggle()
 		gorilla.oogaooga()
+		return CLICK_ACTION_SUCCESS
 	return ..()
 
 /obj/structure/closet/shove_impact(mob/living/target, mob/living/attacker)
+	if(ignore_shoves)
+		return ..()
+
 	if(opened && can_close())
 		target.forceMove(src)
 		visible_message(
@@ -523,7 +524,7 @@ GLOBAL_LIST_EMPTY(closets)
 
 	if(locked && allowed(target))
 		locked = !locked
-		visible_message("<span class='danger'>[attacker] shoves [target] against [src], knocking the lock [locked ? null : "un"]locked!</span>")
+		visible_message(span_danger("[attacker] shoves [target] against [src], knocking the lock [locked ? null : "un"]locked!"))
 		target.Knockdown(3 SECONDS)
 		playsound(loc, pick(togglelock_sound), 15, TRUE, -3)
 		update_icon()
@@ -531,7 +532,7 @@ GLOBAL_LIST_EMPTY(closets)
 
 	if(!opened && can_open())
 		open()
-		visible_message("<span class='danger'>[attacker] shoves [target] against [src], knocking it open!</span>")
+		visible_message(span_danger("[attacker] shoves [target] against [src], knocking it open!"))
 		target.Knockdown(3 SECONDS)
 		return TRUE
 
@@ -548,7 +549,6 @@ GLOBAL_LIST_EMPTY(closets)
 	var/materials = list(MAT_METAL = 5000, MAT_PLASMA = 2500, MAT_TITANIUM = 500, MAT_BLUESPACE = 500)
 	var/transparent = FALSE
 
-
 /obj/structure/closet/bluespace/Initialize(mapload)
 	. = ..()
 	var/static/list/loc_connections = list(
@@ -556,7 +556,6 @@ GLOBAL_LIST_EMPTY(closets)
 		COMSIG_ATOM_ENTERED = PROC_REF(on_entered),
 	)
 	AddElement(/datum/element/connect_loc, loc_connections)
-
 
 /obj/structure/closet/bluespace/proc/UpdateTransparency()
 	var/transparency = FALSE
@@ -567,10 +566,8 @@ GLOBAL_LIST_EMPTY(closets)
 	transparent = transparency
 	update_icon()
 
-
 /obj/structure/closet/bluespace/update_icon_state()
 	icon_state = "[initial(icon_state)][transparent ? "_trans" : ""]"
-
 
 /obj/structure/closet/bluespace/update_overlays()
 	. = list()
@@ -587,7 +584,6 @@ GLOBAL_LIST_EMPTY(closets)
 		else
 			. += mutable_appearance(icon, "[initial(icon_state)]_open", CLOSET_OLAY_LAYER_DOOR)
 
-
 /obj/structure/closet/bluespace/proc/on_entered(datum/source, atom/movable/arrived, atom/old_loc, list/atom/old_locs)
 	SIGNAL_HANDLER
 
@@ -595,15 +591,12 @@ GLOBAL_LIST_EMPTY(closets)
 		transparent = TRUE
 		update_icon()
 
-
 /obj/structure/closet/bluespace/proc/on_exited(datum/source, atom/movable/departed, atom/newLoc)
 	SIGNAL_HANDLER
 
 	UpdateTransparency()
 
-
 /obj/structure/closet/bluespace/Moved(atom/old_loc, movement_dir, forced, list/old_locs, momentum_change = TRUE)
 	. = ..()
 	if(loc)
 		UpdateTransparency()
-

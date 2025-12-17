@@ -1,13 +1,15 @@
 /datum/antagonist/contractor_support
-	name = "Contractor Support Unit"
+	name = "Агент поддержки Контрактника"
 	roundend_category = "Contractor Support"
 	special_role = SPECIAL_ROLE_TRAITOR
+	antag_menu_name = "Поддержка Контрактника"
 
 /datum/antagonist/contractor_support/on_gain()
 	var/datum/objective/generic_objective = new
 
-	generic_objective.explanation_text = "Выполняйте приказы, получаемые от назначенного вам контрактника. Помогайте другим агентам в этом районе миссии.<br>"
+	generic_objective.explanation_text = "Выполняйте приказы, получаемые от назначенного вам Контрактника. Помогайте другим агентам в этом районе.<br>"
 	generic_objective.completed = TRUE
+	generic_objective.antag_menu_name = "Помогать Контрактнику"
 
 	objectives += generic_objective
 	update_contractor_support_icons()
@@ -19,9 +21,8 @@
 	traitorhud.join_hud(owner.current, null)
 	set_antag_hud(owner.current, "hudsupport")
 
-
 /datum/outfit/contractor_partner
-	name = "Contractor Support Unit"
+	name = "Агент поддержки Контрактника"
 
 	uniform = /obj/item/clothing/under/chameleon
 	suit = /obj/item/clothing/suit/chameleon
@@ -35,13 +36,14 @@
 	r_pocket = /obj/item/restraints/handcuffs/cable
 
 	backpack_contents = list(
-		/obj/item/storage/box/survival_syndi = 1,
+		/obj/item/storage/box/survival/survival_syndi = 1,
 		/obj/item/clothing/mask/chameleon = 1,
 		/obj/item/storage/fancy/cigarettes/cigpack_syndicate = 1,
 		/obj/item/lighter = 1,
 		/obj/item/melee/baton/security/cattleprod = 1,
-		/obj/item/stock_parts/cell/super = 1
+		/obj/item/stock_parts/cell/super = 1,
 	)
+
 /datum/outfit/contractor_partner/post_equip(mob/living/carbon/human/partner, visualsOnly)
 	. = ..()
 	var/obj/item/clothing/mask/cigarette/syndicate/cig = partner.get_item_by_slot(ITEM_SLOT_MASK)
@@ -50,6 +52,3 @@
 	var/obj/item/card/id/I = partner.wear_id
 	if(istype(I))
 		apply_to_card(I, partner, get_syndicate_access("Syndicate Agent"), name)
-
-
-

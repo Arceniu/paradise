@@ -26,13 +26,11 @@
 #define FAST 2
 #define SLOW 1
 
-
 /obj/machinery/power/compressor
 	name = "compressor"
 	desc = "The compressor stage of a gas turbine generator."
 	icon = 'icons/obj/pipes_and_stuff/atmospherics/pipes.dmi'
 	icon_state = "compressor"
-	anchored = TRUE
 	density = TRUE
 	resistance_flags = FIRE_PROOF
 	var/obj/machinery/power/turbine/turbine
@@ -46,13 +44,11 @@
 	var/efficiency
 	var/rpm_threshold = NONE
 
-
 /obj/machinery/power/turbine
 	name = "gas turbine generator"
 	desc = "A gas turbine used for backup power generation."
 	icon = 'icons/obj/pipes_and_stuff/atmospherics/pipes.dmi'
 	icon_state = "turbine"
-	anchored = TRUE
 	density = TRUE
 	resistance_flags = FIRE_PROOF
 	var/opened = 0
@@ -94,15 +90,10 @@
 	if(!turbine)
 		stat |= BROKEN
 
-
-#define COMPFRICTION 5e5
-#define COMPSTARTERLOAD 2800
-
-
 // Crucial to make things work!!!!
 // OLD FIX - explanation given down below.
 // /obj/machinery/power/compressor/CanPass(atom/movable/mover, turf/target, height=0)
-// 		return !density
+//		return !density
 
 /obj/machinery/power/compressor/locate_machinery()
 	if(turbine)
@@ -117,7 +108,6 @@
 		E += M.rating
 	efficiency = E / 6
 
-
 /obj/machinery/power/compressor/attackby(obj/item/I, mob/user, params)
 	if(user.a_intent == INTENT_HARM)
 		return ..()
@@ -126,7 +116,6 @@
 		return ATTACK_CHAIN_PROCEED_SUCCESS
 
 	return ..()
-
 
 /obj/machinery/power/compressor/wrench_act(mob/living/user, obj/item/I)
 	. = default_change_direction_wrench(user, I)
@@ -142,7 +131,6 @@
 		to_chat(user, span_warning("The turbine is not connected."))
 		stat |= BROKEN
 
-
 /obj/machinery/power/compressor/crowbar_act(mob/user, obj/item/I)
 	if(default_deconstruction_crowbar(user, I))
 		return TRUE
@@ -153,6 +141,8 @@
 
 /obj/machinery/power/compressor/CanAtmosPass(turf/T, vertical)
 	return !density
+
+#define COMPFRICTION 5e5
 
 /obj/machinery/power/compressor/process()
 	if(!turbine)
@@ -176,7 +166,6 @@
 
 	rpm = max(0, rpm - (rpm*rpm)/(COMPFRICTION*efficiency))
 
-
 	if(starter && !(stat & NOPOWER))
 		use_power(2800)
 		if(rpm<1000)
@@ -184,7 +173,6 @@
 	else
 		if(rpm<1000)
 			rpmtarget = 0
-
 
 	var/new_rpm_threshold
 	switch(rpm)
@@ -203,6 +191,7 @@
 		rpm_threshold = new_rpm_threshold
 		update_icon(UPDATE_OVERLAYS)
 
+#undef COMPFRICTION
 
 /obj/machinery/power/compressor/update_overlays()
 	. = ..()
@@ -210,13 +199,8 @@
 		return
 	. += image(icon, icon_state = "comp-o[rpm_threshold]", layer = FLY_LAYER)
 
-
 // These are crucial to working of a turbine - the stats modify the power output. TurbGenQ modifies how much raw energy can you get from
 // rpms, TurbGenG modifies the shape of the curve - the lower the value the less straight the curve is.
-
-#define TURBPRES 9000000
-#define TURBGENQ 100000
-#define TURBGENG 0.5
 
 /obj/machinery/power/turbine/Initialize(mapload)
 	. = ..()
@@ -253,8 +237,10 @@
 /obj/machinery/power/turbine/CanAtmosPass(turf/T, vertical)
 	return !density
 
-/obj/machinery/power/turbine/process()
+#define TURBGENQ 100000
+#define TURBGENG 0.5
 
+/obj/machinery/power/turbine/process()
 	if(!compressor)
 		stat = BROKEN
 
@@ -290,6 +276,8 @@
 
 	updateDialog()
 
+#undef TURBGENQ
+#undef TURBGENG
 
 /obj/machinery/power/turbine/update_overlays()
 	. = ..()
@@ -297,14 +285,12 @@
 		return
 	. += image(icon, icon_state = "turb-o", layer = FLY_LAYER)
 
-
 /obj/machinery/power/turbine/attack_hand(mob/user)
 
 	if(..())
 		return
 
 	interact(user)
-
 
 /obj/machinery/power/turbine/attackby(obj/item/I, mob/user, params)
 	if(user.a_intent == INTENT_HARM)
@@ -315,10 +301,8 @@
 
 	return ..()
 
-
 /obj/machinery/power/turbine/screwdriver_act(mob/living/user, obj/item/I)
 	return default_deconstruction_screwdriver(user, initial(icon_state), initial(icon_state), I)
-
 
 /obj/machinery/power/turbine/wrench_act(mob/living/user, obj/item/I)
 	. = default_change_direction_wrench(user, I)
@@ -334,29 +318,27 @@
 		to_chat(user, span_warning("The compressor is not connected."))
 		stat |= BROKEN
 
-
 /obj/machinery/power/turbine/crowbar_act(mob/living/user, obj/item/I)
 	return default_deconstruction_crowbar(user, I)
 
-
 /obj/machinery/power/turbine/interact(mob/user)
 
-	if( !Adjacent(user)  || (stat & (NOPOWER|BROKEN)) && (!istype(user, /mob/living/silicon)) )
+	if(!Adjacent(user)  || (stat & (NOPOWER|BROKEN)) && (!istype(user, /mob/living/silicon)))
 		user.unset_machine(src)
-		user << browse(null, "window=turbine")
+		close_window(user, "turbine")
 		return
 
-	var/t = "<TT><B>Gas Turbine Generator</B><HR><PRE>"
+	var/t = "<tt><b>Gas Turbine Generator</b><hr><pre>"
 
-	t += "Generated power : [round(lastgen)] W<BR><BR>"
+	t += "Generated power : [round(lastgen)] W<br><br>"
 
-	t += "Turbine: [round(compressor.rpm)] RPM<BR>"
+	t += "Turbine: [round(compressor.rpm)] RPM<br>"
 
-	t += "Starter: [ compressor.starter ? "<a href='byond://?src=[UID()];str=1'>Off</A> <B>On</B>" : "<B>Off</B> <a href='byond://?src=[UID()];str=1'>On</A>"]"
+	t += "Starter: [ compressor.starter ? "<a href='byond://?src=[UID()];str=1'>Off</a> <b>On</b>" : "<b>Off</b> <a href='byond://?src=[UID()];str=1'>On</a>"]"
 
-	t += "</PRE><HR><a href='byond://?src=[UID()];close=1'>Close</A>"
+	t += "</pre><hr><a href='byond://?src=[UID()];close=1'>Close</a>"
 
-	t += "</TT>"
+	t += "</tt>"
 	var/datum/browser/popup = new(user, "turbine", name, 420, 240, src)
 	popup.set_content(t)
 	popup.open()
@@ -367,29 +349,23 @@
 	if(..())
 		return
 
-	if( href_list["close"] )
-		usr << browse(null, "window=turbine")
+	if(href_list["close"])
+		close_window(usr, "turbine")
 		usr.unset_machine(src)
 		return
 
-	else if( href_list["str"] )
+	else if(href_list["str"])
 		if(compressor)
 			compressor.starter = !compressor.starter
 
 	updateDialog()
-
-
-
-
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // COMPUTER NEEDS A SERIOUS REWRITE.
 
-
-
-/obj/machinery/computer/turbine_computer/Initialize()
+/obj/machinery/computer/turbine_computer/Initialize(mapload)
 	. = ..()
 	spawn(10)
 		locate_machinery()
@@ -397,7 +373,7 @@
 /obj/machinery/computer/turbine_computer/locate_machinery()
 	compressor = locate(/obj/machinery/power/compressor) in range(5, src)
 
-/obj/machinery/computer/turbine_computer/attack_hand(var/mob/user as mob)
+/obj/machinery/computer/turbine_computer/attack_hand(mob/user as mob)
 	if(..())
 		return
 
@@ -405,24 +381,24 @@
 
 /obj/machinery/computer/turbine_computer/interact(mob/user)
 
-	var/dat = {"<!DOCTYPE html><meta charset="UTF-8">"}
-	if(compressor && compressor.turbine)
-		dat += "<BR><B>Gas turbine remote control system</B><HR>"
+	var/dat = ""
+	if(compressor?.turbine)
+		dat += "<br><b>Gas turbine remote control system</b><hr>"
 		if(compressor.stat || compressor.turbine.stat)
-			dat += "[compressor.stat ? "<B>Compressor is inoperable</B><BR>" : "<B>Turbine is inoperable</B>"]"
+			dat += "[compressor.stat ? "<b>Compressor is inoperable</b><br>" : "<b>Turbine is inoperable</b>"]"
 		else
-			dat += {"Turbine status: [ src.compressor.starter ? "<a href='byond://?src=[UID()];str=1'>Off</A> <B>On</B>" : "<B>Off</B> <a href='byond://?src=[UID()];str=1'>On</A>"]
-			\n<BR>
-			\nTurbine speed: [src.compressor.rpm]rpm<BR>
-			\nPower currently being generated: [src.compressor.turbine.lastgen]W<BR>
-			\nInternal gas temperature: [src.compressor.gas_contained.temperature]K<BR>
-			\n</PRE><HR><a href='byond://?src=[UID()];close=1'>Close</A>
-			\n<BR>
-			\n"}
+			dat += {"Turbine status: [ src.compressor.starter ? "<a href='byond://?src=[UID()];str=1'>Off</a> <b>On</b>" : "<b>Off</b> <a href='byond://?src=[UID()];str=1'>On</a>"]
+			<br>
+			Turbine speed: [src.compressor.rpm]rpm<br>
+			Power currently being generated: [src.compressor.turbine.lastgen]W<br>
+			Internal gas temperature: [src.compressor.gas_contained.temperature]K<br>
+			</pre><hr><a href='byond://?src=[UID()];close=1'>Close</a>
+			<br>
+			"}
 	else
-		dat += "<B>There is [!compressor ? "no compressor" : " compressor[!compressor.turbine ? " but no turbine" : ""]"].</B><BR>"
+		dat += "<b>There is [!compressor ? "no compressor" : " compressor[!compressor.turbine ? " but no turbine" : ""]"].</b><br>"
 		if(!compressor)
-			dat += "<a href='byond://?src=[UID()];search=1'>Search for compressor</A>"
+			dat += "<a href='byond://?src=[UID()];search=1'>Search for compressor</a>"
 
 	var/datum/browser/popup = new(user, "turbinecomputer", name, 420, 240, src)
 	popup.set_content(dat)
@@ -433,11 +409,11 @@
 	if(..())
 		return
 
-	else if( href_list["str"] )
-		if(compressor && compressor.turbine)
+	else if(href_list["str"])
+		if(compressor?.turbine)
 			compressor.starter = !compressor.starter
-	else if( href_list["close"] )
-		usr << browse(null, "window=turbinecomputer")
+	else if(href_list["close"])
+		close_window(usr, "turbinecomputer")
 		usr.unset_machine(src)
 		return
 	else if(href_list["search"])
@@ -454,4 +430,3 @@
 #undef VERY_FAST
 #undef FAST
 #undef SLOW
-

@@ -10,15 +10,13 @@
 	force_threshold = 8
 	melee_damage_lower = 18
 	melee_damage_upper = 18
-	obj_damage = 40
 	speed = 0
 	friendly = "pokes"
-	attacktext = "slashes"
+	attacktext = "порезал"
 	attack_sound = 'sound/weapons/bladeslice.ogg'
 	tts_seed = "Earth"
 	atmos_requirements = list("min_oxy" = 0, "max_oxy" = 0, "min_tox" = 0, "max_tox" = 0, "min_co2" = 0, "max_co2" = 0, "min_n2" = 0, "max_n2" = 0)
 	pressure_resistance = 100
-	a_intent = INTENT_HARM
 	stop_automated_movement = TRUE
 	nightvision = 8
 	pass_flags = PASSTABLE
@@ -57,20 +55,18 @@
 		playsound(loc, 'sound/weapons/clash.ogg', 50, TRUE)
 		L.apply_damage(25, STAMINA)
 		src.do_attack_animation(target)
-		target.visible_message("<span class='danger'>[src] hits [target] with flat of the sword!</span>", \
-						"<span class='userdanger'>[src] hits you with flat of the sword!</span>")
+		target.visible_message(span_danger("[src] hits [target] with flat of the sword!"), \
+						span_userdanger("[src] hits you with flat of the sword!"))
 		add_attack_logs(src, target, "Knocks")
 	else
 		..()
-
 
 /mob/living/simple_animal/hostile/clockwork/marauder/CanAttack(atom/the_target)
 	if(isclocker(the_target))
 		return FALSE
 	return ..()
 
-
-/mob/living/simple_animal/hostile/clockwork/marauder/bullet_act(obj/item/projectile/P)
+/mob/living/simple_animal/hostile/clockwork/marauder/bullet_act(obj/projectile/P)
 	if(deflect_projectile(P))
 		return
 	return ..()
@@ -78,9 +74,9 @@
 /mob/living/simple_animal/hostile/clockwork/marauder/ratvar_act()
 	return
 
-/mob/living/simple_animal/hostile/clockwork/marauder/proc/deflect_projectile(obj/item/projectile/P)
+/mob/living/simple_animal/hostile/clockwork/marauder/proc/deflect_projectile(obj/projectile/P)
 	var/final_deflection_chance = deflect_chance
-	var/energy_projectile = istype(P, /obj/item/projectile/energy) || istype(P, /obj/item/projectile/beam)
+	var/energy_projectile = istype(P, /obj/projectile/energy) || istype(P, /obj/projectile/beam)
 	if(GetOppositeDir(dir) != P.dir) //if projectile hits into his eyes, nor behind or side.
 		return FALSE
 	if(P.nodamage || P.damage_type == STAMINA)
@@ -88,12 +84,12 @@
 	else if(!energy_projectile) //Flat 30% chance against energy projectiles; ballistic projectiles are 30% - (damage of projectile)%, min. 10%
 		final_deflection_chance = max(10, deflect_chance - P.damage)
 	if(prob(final_deflection_chance))
-		visible_message("<span class='danger'>[src] deflects [P] with their shield!</span>", \
-		"<span class='danger'>You block [P] with your shield!</span>")
+		visible_message(span_danger("[src] deflects [P] with their shield!"), \
+		span_danger("You block [P] with your shield!"), projectile_message = TRUE)
 		if(energy_projectile)
 			playsound(src, 'sound/weapons/effects/searwall.ogg', 50, TRUE)
 		else
-			playsound(src, "ricochet", 50, TRUE)
+			playsound(src, SFX_RICOCHET, 50, TRUE)
 		return TRUE
 	return FALSE
 
@@ -118,9 +114,8 @@
 					a_intent = INTENT_HELP
 				else if(a_intent == INTENT_HARM)
 					a_intent = INTENT_DISARM
-		if(hud_used && hud_used.action_intent)
+		if(hud_used?.action_intent)
 			hud_used.action_intent.icon_state = "[a_intent]"
-
 
 /*MOUSE*/
 /mob/living/simple_animal/mouse/clockwork
@@ -154,10 +149,10 @@
 	var/obj/structure/cable/C = locate() in F
 	if(C && prob(30))
 		if(C.avail())
-			visible_message("<span class='warning'>[src] chews through [C]. [src] sparks for a moment!</span>")
-			playsound(src, 'sound/effects/sparks2.ogg', 100, 1)
+			visible_message(span_warning("[src] chews through [C]. [src] sparks for a moment!"))
+			playsound(src, 'sound/effects/sparks2.ogg', 100, TRUE)
 		else
-			visible_message("<span class='warning'>[src] chews through [C].</span>")
+			visible_message(span_warning("[src] chews through [C]."))
 		investigate_log("was chewed through by a clock mouse in [get_area(F)]([F.x], [F.y], [F.z] - [ADMIN_JMP(F)])","wires")
 		C.deconstruct()
 
@@ -168,8 +163,8 @@
 	return
 
 /mob/living/simple_animal/mouse/clockwork/get_scooped(mob/living/carbon/grabber)
-	to_chat(grabber, "<span class='warning'>You try to pick up [src], but they slip out of your grasp!</span>")
-	to_chat(src, "<span class='warning'>[src] tries to pick you up, but you wriggle free of their grasp!</span>")
+	to_chat(grabber, span_warning("You try to pick up [src], but they slip out of your grasp!"))
+	to_chat(src, span_warning("[src] tries to pick you up, but you wriggle free of their grasp!"))
 
 /mob/living/simple_animal/mouse/clockwork/decompile_act(obj/item/matter_decompiler/C, mob/user)
 	return

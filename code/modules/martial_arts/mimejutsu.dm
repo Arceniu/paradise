@@ -20,14 +20,14 @@
 		add_attack_logs(attacker, defender, "Melee attacked with martial-art [src] : aggressively grabbed", ATKLOG_ALL)
 	return TRUE
 
-/datum/martial_art/mimejutsu/harm_act(var/mob/living/carbon/human/A, var/mob/living/carbon/human/D)
+/datum/martial_art/mimejutsu/harm_act(mob/living/carbon/human/A, mob/living/carbon/human/D)
 	MARTIAL_ARTS_ACT_CHECK
 	A.do_attack_animation(D, ATTACK_EFFECT_KICK)
 	var/bonus_damage = 15
 	D.apply_damage(bonus_damage, BRUTE)
 	if(prob(30))
 		D.Weaken(2 SECONDS)
-	playsound(get_turf(A), 'sound/weapons/blunthit_mimejutsu.ogg', 10, 1, -1)
+	playsound(get_turf(A), 'sound/weapons/blunthit_mimejutsu.ogg', 10, TRUE, -1)
 	objective_damage(A, D, bonus_damage, BRUTE)
 	add_attack_logs(A, D, "Melee attacked with [src]", ATKLOG_ALL)
 	return TRUE
@@ -44,18 +44,29 @@
 			D.Jitter(4 SECONDS)
 			D.apply_damage(5, BRUTE)
 			objective_damage(A, D, 5, BRUTE)
-	playsound(D, 'sound/weapons/punchmiss.ogg', 10, 1, -1)
+	playsound(D, 'sound/weapons/punchmiss.ogg', 10, TRUE, -1)
 	add_attack_logs(A, D, "Melee attacked with martial-art [src]", ATKLOG_ALL)
 	return TRUE
 
 /obj/item/mimejutsu_scroll
 	name = "Mimejutsu manual"
-	desc =	"An old manual of the martial art of mimes."
+	desc =	"Старое пособие по боевому искусству мимов."
 	icon = 'icons/obj/library.dmi'
 	icon_state = "mimemanual"
+	item_state = "mimemanual"
 	var/used = FALSE
 
-/obj/item/mimejutsu_scroll/attack_self(mob/user as mob)
+/obj/item/mimejutsu_scroll/get_ru_names()
+	return list(
+		NOMINATIVE = "мануал Мимдзютсю",
+		GENITIVE = "мануала Мимдзютсю",
+		DATIVE = "мануалу Мимдзютсю",
+		ACCUSATIVE = "мануал Мимдзютсю",
+		INSTRUMENTAL = "мануалом Мимдзютсю",
+		PREPOSITIONAL = "мануале Мимдзютсю",
+	)
+
+/obj/item/mimejutsu_scroll/attack_self(mob/user)
 	if(!ishuman(user))
 		return
 	if(!used)
@@ -64,9 +75,9 @@
 		F.teach(H)
 		to_chat(H, span_boldannounceic("..."))
 		used = TRUE
-		desc = "An old manual of the martial art of mimes. The pages are blank."
+		desc = "Старое пособие по боевому искусству мимов, но страницы его пусты."
 	else
-		to_chat(user, "<span class='notice'>You must dedicate yourself to silence first.</span>")
+		to_chat(user, span_warning("Сначала вы должны принять обет молчания!"))
 
 /datum/martial_art/mimejutsu/explaination_header(user)
 	to_chat(user, "<b><i>...</i></b>")

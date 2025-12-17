@@ -10,22 +10,16 @@
 
 /obj/item/mouse_drag_pointer = MOUSE_ACTIVE_POINTER
 
-
 /obj/item/beach_ball
 	icon = 'icons/misc/beach.dmi'
 	icon_state = "ball"
 	name = "beach ball"
 	item_state = "beachball"
-	density = FALSE
-	anchored = FALSE
 	w_class = WEIGHT_CLASS_TINY
-	force = 0.0
-	throwforce = 0.0
 	throw_speed = 1
 	throw_range = 20
 	flags = CONDUCT
 	item_flags = NO_PIXEL_RANDOM_DROP
-
 
 /obj/item/mouse_jetpack
 	name = "improvised mouse jetpack"
@@ -33,7 +27,6 @@
 	icon_state = "jetpack_mouse"
 	icon = 'icons/obj/tank.dmi'
 	w_class = WEIGHT_CLASS_SMALL
-
 
 /obj/item/syndicate_reverse_card
 	name = "playing card"
@@ -52,7 +45,7 @@
 /obj/item/syndicate_reverse_card/update_name()
 	. = ..()
 	if(used)
-		name = "\improper 'Red Reverse' card"
+		name = "'Red Reverse' card"
 
 /obj/item/syndicate_reverse_card/examine(mob/user)
 	. = ..()
@@ -62,8 +55,8 @@
 /obj/item/syndicate_reverse_card/hit_reaction(mob/living/carbon/human/owner, atom/movable/hitby, attack_text = "the attack", final_block_chance = 0, damage = 0, attack_type = ITEM_ATTACK)
 	if(attack_type != PROJECTILE_ATTACK)
 		return FALSE //this means the attack goes through
-	if(istype(hitby, /obj/item/projectile))
-		var/obj/item/projectile/P = hitby
+	if(istype(hitby, /obj/projectile))
+		var/obj/projectile/P = hitby
 		if(P?.firer && P.firer_source_atom && (P.firer != P.firer_source_atom)) //if the projectile comes from YOU, like your spit or some shit, you can't steal that bro. Also protects mechs
 			if(iscarbon(P.firer)) //You can't switcharoo with turrets or simplemobs, or borgs
 				return switcharoo(P.firer, owner, P.firer_source_atom)
@@ -86,4 +79,3 @@
 	used = TRUE
 	update_appearance(UPDATE_NAME|UPDATE_ICON_STATE)
 	return TRUE
-

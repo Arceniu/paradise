@@ -53,9 +53,8 @@
 	/// for if we're an ammo casing being fired
 	var/mob/living/shooter
 
-
-/datum/component/pellet_cloud/Initialize(projectile_type=/obj/item/projectile/shrapnel, magnitude=5)
-	if(!isammocasing(parent) && !isgrenade(parent) && !issupplypod(parent))
+/datum/component/pellet_cloud/Initialize(projectile_type=/obj/projectile/shrapnel, magnitude=5)
+	if(!isammocasing(parent) && !isgrenade(parent) && !issupplypod(parent) && !ismortarcasing(parent))
 		return COMPONENT_INCOMPATIBLE
 
 	if(magnitude < 1)
@@ -66,7 +65,7 @@
 
 	if(isammocasing(parent))
 		num_pellets = magnitude
-	else if(isgrenade(parent) || issupplypod(parent))
+	else if(isgrenade(parent) || issupplypod(parent) || ismortarcasing(parent))
 		radius = magnitude
 
 /datum/component/pellet_cloud/Destroy(force)
@@ -86,9 +85,11 @@
 		RegisterSignal(parent, COMSIG_GRENADE_DETONATE, PROC_REF(create_blast_pellets))
 	else if(issupplypod(parent))
 		RegisterSignal(parent, COMSIG_SUPPLYPOD_LANDED, PROC_REF(create_blast_pellets))
+	else if(ismortarcasing(parent))
+		RegisterSignal(parent, COMSIG_MORTAR_DETONATE, PROC_REF(create_blast_pellets))
 
 /datum/component/pellet_cloud/UnregisterFromParent()
-	UnregisterSignal(parent, list(COMSIG_PREQDELETED, COMSIG_FIRE_CASING, COMSIG_GRENADE_DETONATE, COMSIG_GRENADE_ARMED, COMSIG_MOVABLE_MOVED, COMSIG_ITEM_DROPPED))
+	UnregisterSignal(parent, list(COMSIG_PREQDELETED, COMSIG_FIRE_CASING, COMSIG_GRENADE_DETONATE, COMSIG_MORTAR_DETONATE, COMSIG_GRENADE_ARMED, COMSIG_MOVABLE_MOVED, COMSIG_ITEM_DROPPED))
 
 /**
  * create_casing_pellets() is for directed pellet clouds for ammo casings that have multiple pellets (buckshot and scatter lasers for instance)
@@ -116,11 +117,11 @@
 				spread = round((i / num_pellets - 0.5) * distro)
 
 		RegisterSignal(shell.BB, COMSIG_PROJECTILE_SELF_ON_HIT, PROC_REF(pellet_hit))
-		RegisterSignals(shell.BB, list(COMSIG_PROJECTILE_RANGE_OUT, COMSIG_QDELETING), PROC_REF(pellet_range))
+		RegisterSignal(shell.BB, list(COMSIG_PROJECTILE_RANGE_OUT, COMSIG_QDELETING), PROC_REF(pellet_range))
 		shell.BB.damage = original_damage
 		pellets += shell.BB
 		var/turf/current_loc = get_turf(fired_from)
-		if (!istype(target_loc) || !istype(current_loc) || !(shell.BB))
+		if(!istype(target_loc) || !istype(current_loc) || !(shell.BB))
 			return
 		INVOKE_ASYNC(shell, TYPE_PROC_REF(/obj/item/ammo_casing, throw_proj), target, target_loc, shooter, params, spread, fired_from)
 
@@ -149,7 +150,7 @@
 		return
 
 	var/list/all_the_turfs_were_gonna_lacerate = RANGE_TURFS(radius, A) - RANGE_TURFS(radius-1, A)
-	num_pellets = all_the_turfs_were_gonna_lacerate.len + pellet_delta
+	num_pellets = length(all_the_turfs_were_gonna_lacerate) + pellet_delta
 
 	for(var/T in all_the_turfs_were_gonna_lacerate)
 		INVOKE_ASYNC(src, PROC_REF(pew), T)
@@ -211,7 +212,7 @@
 			break
 
 ///One of our pellets hit something, record what it was and check if we're done (terminated == num_pellets)
-/datum/component/pellet_cloud/proc/pellet_hit(obj/item/projectile/P, atom/movable/firer, atom/target, Angle, hit_zone)
+/datum/component/pellet_cloud/proc/pellet_hit(obj/projectile/P, atom/movable/firer, atom/target, Angle, hit_zone)
 	SIGNAL_HANDLER
 
 	pellets -= P
@@ -233,7 +234,7 @@
 		finalize()
 
 ///One of our pellets disappeared due to hitting their max range (or just somehow got qdel'd), remove it from our list and check if we're done (terminated == num_pellets)
-/datum/component/pellet_cloud/proc/pellet_range(obj/item/projectile/P)
+/datum/component/pellet_cloud/proc/pellet_range(obj/projectile/P)
 	SIGNAL_HANDLER
 	pellets -= P
 	terminated++
@@ -243,8 +244,8 @@
 
 /// Minor convenience function for creating each shrapnel piece with circle explosions, mostly stolen from the MIRV component
 /datum/component/pellet_cloud/proc/pew(atom/target, landmine_victim)
-	
-	var/obj/item/projectile/P = new projectile_type(get_turf(parent))
+
+	var/obj/projectile/P = new projectile_type(get_turf(parent))
 
 	//Shooting Code:
 	P.spread = 0
@@ -254,12 +255,15 @@
 	P.suppressed = TRUE// set the projectiles to make no message so we can do our own aggregate message
 	P.preparePixelProjectile(target, target, parent)
 	RegisterSignal(P, COMSIG_PROJECTILE_SELF_ON_HIT, PROC_REF(pellet_hit))
-	RegisterSignals(P, list(COMSIG_PROJECTILE_RANGE_OUT, COMSIG_QDELETING), PROC_REF(pellet_range))
+	RegisterSignal(P, list(COMSIG_PROJECTILE_RANGE_OUT, COMSIG_QDELETING), PROC_REF(pellet_range))
 	pellets += P
 	P.fire()
 
 ///All of our pellets are accounted for, time to go target by target and tell them how many things they got hit by.
 /datum/component/pellet_cloud/proc/finalize()
+	for(var/mob/living/martyr as anything in purple_hearts)
+		if(martyr.stat == DEAD && martyr.client)
+			martyr.client.give_award(/datum/award/achievement/misc/lookoutsir, martyr)
 	UnregisterSignal(parent, COMSIG_PREQDELETED)
 	if(queued_delete)
 		qdel(parent)
@@ -318,7 +322,6 @@
 	targets_hit -= target
 	LAZYREMOVE(bodies, target)
 	LAZYREMOVE(purple_hearts, target)
-
 
 #undef CLOUD_POSITION_DAMAGE
 #undef CLOUD_POSITION_W_BONUS

@@ -35,7 +35,6 @@
 	icon_state = "paintkit_earth"
 	desc = "A kit containing all the needed tools and parts to turn a Ripley into an old Mercenaries APLU."
 
-
 	new_name = "APLU \"Strike the Earth!\""
 	new_desc = "Looks like an over worked, under maintained Ripley with some horrific damage."
 	new_icon = "earth"
@@ -193,7 +192,6 @@
 
 /obj/item/paintkit/firefighter_aluminizer
 	name = "APLU \"Aluminizer\" customisation kit"
-	icon_state = "paintkit"
 	desc = "A kit containing all the needed tools and parts to paint a Firefighter white"
 
 	new_name = "Aluminizer"
@@ -356,7 +354,7 @@
 /obj/item/paintkit/ashed
 	name = "Ashed customisation kit"
 	icon_state = "paintkit_ash"
-	desc = "Набор, позволяющий вам переделать многие экзокостюмы в их более шахтерский аналог! По крайней мере, расцветкой."
+	desc = "Набор, позволяющий вам переделать многие экзокостюмы в их более шахтёрский аналог! По крайней мере, расцветкой."
 
 	new_name = "Ashed Mech"
 	name_prefix = "Ashed"
@@ -369,17 +367,14 @@
 	icon_states["[MECH_TYPE_DURAND]"] = "asheddurand"
 	icon_states["[MECH_TYPE_PHAZON]"]= "ashedphazon"
 
-
 /obj/item/paintkit/lockermech_ashed
 	name = "Ashed customisation kit"
 	icon_state = "paintkit_ash"
-	desc = "Набор, позволяющий вам переделать шкафомех в его более шахтерский аналог! По крайней мере, расцветкой."
+	desc = "Набор, позволяющий вам переделать шкафомех в его более шахтёрский аналог! По крайней мере, расцветкой."
 
 	name_prefix = "Ashed"
 	new_icon = "ashedlockermech"
 	allowed_types = MECH_TYPE_LOCKER
-
-
 
 // Universal paintkit
 /obj/item/universal_paintkit
@@ -410,7 +405,6 @@
 
 	INVOKE_ASYNC(src, PROC_REF(choose_paint), user, mech, possibilities)
 	return ATTACK_CHAIN_BLOCKED_ALL
-
 
 /obj/item/universal_paintkit/proc/choose_paint(mob/living/user, obj/mecha/mech, list/possibilities)
 	var/choice = tgui_input_list(user, "Pick your skin for mech.", "Paints", possibilities)

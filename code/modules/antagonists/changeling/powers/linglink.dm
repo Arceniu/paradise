@@ -4,9 +4,7 @@
 	helptext = "If we find a human mad enough to support our cause, this can be a helpful tool to stay in touch."
 	button_icon_state = "hivemind_link"
 	power_type = CHANGELING_INNATE_POWER
-	chemical_cost = 0
 	req_human = TRUE
-
 
 /datum/action/changeling/linglink/can_sting(mob/living/carbon/user, ignore_linking = FALSE)
 	if(!..())
@@ -46,12 +44,11 @@
 
 	return TRUE
 
-
 /datum/action/changeling/linglink/sting_action(mob/user)
 	var/mob/living/carbon/human/target = user.pulling
 	cling.is_linking = TRUE
 
-	var/time = input(user, "На сколько минут вы хотите предоставить жертве связь? Учтите, что связь не продержится больше двух часов.", "Hivemind", FALSE) as num|null
+	var/time = tgui_input_number(user, "На сколько минут вы хотите предоставить жертве связь? Учтите, что связь не продержится больше двух часов.", "Hivemind", FALSE)
 
 	if(isnull(time) || time == 0)
 		to_chat(user, span_danger("Вы отказались от идеи связать ваши разумы."))
@@ -95,7 +92,6 @@
 	SSblackbox.record_feedback("nested tally", "changeling_powers", 1, list("[name]"))
 
 	return TRUE
-
 
 /datum/action/changeling/linglink/proc/remove_language(mob/target, mob/user)
 	if(QDELETED(target))

@@ -12,7 +12,6 @@
 	message = "Блоб врезается в вас и отбрасывает в сторону"
 	reagent = /datum/reagent/blob/b_sorium
 
-
 /datum/blobstrain/reagent/b_sorium/damage_reaction(obj/structure/blob/B, damage, damage_type, damage_flag)
 	if(prob(damage))
 		reagent_vortex(B, TRUE, damage * 0.7)
@@ -21,7 +20,7 @@
 /datum/reagent/blob/b_sorium
 	name = "Сорий"
 	id = "blob_sorium"
-	taste_description = "толчок"
+	taste_description = "толчков"
 	color = "#B68D00"
 
 /datum/reagent/blob/b_sorium/reaction_mob(mob/living/exposed_mob, methods=REAGENT_TOUCH, reac_volume, show_message, touch_protection, mob/camera/blob/overmind)
@@ -35,10 +34,10 @@
 	var/turf/pull = get_turf(M)
 	if(!setting_type)
 		new /obj/effect/temp_visual/implosion(pull)
-		playsound(pull, 'sound/effects/whoosh.ogg', 25, 1) //credit to Robinhood76 of Freesound.org for this.
+		playsound(pull, 'sound/effects/whoosh.ogg', 25, TRUE) //credit to Robinhood76 of Freesound.org for this.
 	else
-		new /obj/effect/temp_visual/shockwave(pull)
-		playsound(pull, 'sound/effects/bang.ogg', 25, 1)
+		new /obj/effect/temp_visual/shockwave_old(pull)
+		playsound(pull, 'sound/effects/bang.ogg', 25, TRUE)
 	var/range_power = clamp(round(volume/5, 1), 1, 5)
 	for(var/atom/movable/X in range(range_power,pull))
 		if(iseffect(X))
@@ -65,5 +64,4 @@
 							sleep(2)
 							if(!step_towards(X, pull))
 								break
-
 

@@ -54,7 +54,7 @@
 	user.unset_machine()
 	for(var/atom/movable/screen/plane_master/plane_static in user.hud_used?.get_true_plane_masters(CAMERA_STATIC_PLANE))
 		plane_static.hide_plane(user)
-	playsound(src, 'sound/machines/terminal_off.ogg', 25, 0)
+	playsound(src, 'sound/machines/terminal_off.ogg', 25, FALSE)
 
 /obj/machinery/computer/camera_advanced/check_eye(mob/user)
 	if((stat & (NOPOWER|BROKEN)) || (!Adjacent(user) && !user.has_unlimited_silicon_privilege) || !user.has_vision() || user.incapacitated())
@@ -89,7 +89,7 @@
 		for(var/obj/machinery/camera/C in GLOB.cameranet.cameras)
 			if(!C.can_use())
 				continue
-			if(C.network&networks)
+			if(length(networks & C.network))
 				camera_location = get_turf(C)
 				break
 		if(camera_location)
@@ -103,7 +103,6 @@
 	else
 		give_eye_control(user)
 		eyeobj.setLoc(get_turf(eyeobj.loc))
-
 
 /obj/machinery/computer/camera_advanced/proc/give_eye_control(mob/user)
 	GrantActions(user)
@@ -197,7 +196,7 @@
 	return TRUE
 
 /datum/action/innate/camera_off
-	name = "End Camera View"
+	name = "Закрыть обзор камеры"
 	button_icon_state = "camera_off"
 
 /datum/action/innate/camera_off/Activate()
@@ -209,7 +208,7 @@
 	console.remove_eye_control(target)
 
 /datum/action/innate/camera_jump
-	name = "Jump To Camera"
+	name = "Переключиться на камеру"
 	button_icon_state = "camera_jump"
 
 /datum/action/innate/camera_jump/Activate()
@@ -230,25 +229,23 @@
 
 	for(var/obj/machinery/camera/netcam in L)
 		var/list/tempnetwork = netcam.network&origin.networks
-		if(tempnetwork.len)
+		if(length(tempnetwork))
 			T[text("[][]", netcam.c_tag, (netcam.can_use() ? null : " (Deactivated)"))] = netcam
 
-
-	playsound(origin, 'sound/machines/terminal_prompt.ogg', 25, 0)
+	playsound(origin, 'sound/machines/terminal_prompt.ogg', 25, FALSE)
 	var/camera = tgui_input_list(target, "Choose which camera you want to view", "Cameras", T)
 	var/obj/machinery/camera/final = T[camera]
-	playsound(origin, "terminal_type", 25, 0)
+	playsound(origin, SFX_TERMINAL_TYPE, 25, FALSE)
 	if(final)
-		playsound(origin, 'sound/machines/terminal_prompt_confirm.ogg', 25, 0)
+		playsound(origin, 'sound/machines/terminal_prompt_confirm.ogg', 25, FALSE)
 		remote_eye.setLoc(get_turf(final))
 		C.overlay_fullscreen("flash", /atom/movable/screen/fullscreen/flash/noise)
 		C.clear_fullscreen("flash", 3) //Shorter flash than normal since it's an ~~advanced~~ console!
 	else
-		playsound(origin, 'sound/machines/terminal_prompt_deny.ogg', 25, 0)
+		playsound(origin, 'sound/machines/terminal_prompt_deny.ogg', 25, FALSE)
 
 /datum/action/innate/camera_multiz_up
-	name = "Move up a floor"
-	button_icon = 'icons/mob/actions/actions.dmi'
+	name = "На этаж выше"
 	button_icon_state = "move_up"
 
 /datum/action/innate/camera_multiz_up/Activate()
@@ -256,13 +253,12 @@
 		return
 	var/mob/camera/aiEye/remote/remote_eye = owner.remote_control
 	if(remote_eye.zMove(UP))
-		to_chat(owner, span_notice("You move upwards."))
+		to_chat(owner, span_notice("Вы поднимаетесь выше."))
 	else
-		to_chat(owner, span_notice("You couldn't move upwards!"))
+		to_chat(owner, span_notice("Не удалось подняться!"))
 
 /datum/action/innate/camera_multiz_down
-	name = "Move down a floor"
-	button_icon = 'icons/mob/actions/actions.dmi'
+	name = "На этаж ниже"
 	button_icon_state = "move_down"
 
 /datum/action/innate/camera_multiz_down/Activate()
@@ -270,6 +266,6 @@
 		return
 	var/mob/camera/aiEye/remote/remote_eye = owner.remote_control
 	if(remote_eye.zMove(DOWN))
-		to_chat(owner, span_notice("You move downwards."))
+		to_chat(owner, span_notice("Вы опускаетесь ниже."))
 	else
-		to_chat(owner, span_notice("You couldn't move downwards!"))
+		to_chat(owner, span_notice("Не удалось опуститься!"))

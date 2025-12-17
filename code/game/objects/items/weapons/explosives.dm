@@ -9,13 +9,11 @@
 	det_time = 10 SECONDS
 	display_timer = 0
 	origin_tech = "syndicate=1"
-	toolspeed = 1
 	var/atom/target
 	var/mutable_appearance/image_overlay
 	var/obj/item/assembly_holder/nadeassembly
 	var/assemblyattacher
 	var/notify_admins = TRUE
-
 
 /obj/item/grenade/plastic/Initialize(mapload)
 	. = ..()
@@ -25,12 +23,10 @@
 	)
 	AddElement(/datum/element/connect_loc, loc_connections)
 
-
 /obj/item/grenade/plastic/Destroy()
 	QDEL_NULL(nadeassembly)
 	target = null
 	return ..()
-
 
 /obj/item/grenade/plastic/attackby(obj/item/I, mob/user, params)
 	if(istype(I, /obj/item/assembly_holder))
@@ -53,7 +49,6 @@
 		return ATTACK_CHAIN_BLOCKED_ALL
 	return ..()
 
-
 /obj/item/grenade/plastic/wirecutter_act(mob/living/user, obj/item/I)
 	if(!nadeassembly)
 		return FALSE
@@ -65,11 +60,9 @@
 	nadeassembly = null
 	update_icon(UPDATE_ICON_STATE)
 
-
 //assembly stuff
 /obj/item/grenade/plastic/receive_signal()
 	prime()
-
 
 /obj/item/grenade/plastic/proc/on_entered(datum/source, atom/movable/arrived, atom/old_loc, list/atom/old_locs)
 	SIGNAL_HANDLER
@@ -77,17 +70,15 @@
 	if(nadeassembly)
 		nadeassembly.assembly_crossed(arrived, old_loc)
 
-
 /obj/item/grenade/plastic/on_found(mob/finder)
 	if(nadeassembly)
 		nadeassembly.on_found(finder)
-
 
 /obj/item/grenade/plastic/attack_self(mob/user)
 	if(nadeassembly)
 		nadeassembly.attack_self(user)
 		return
-	var/newtime = input(usr, "Please set the timer (in seconds).", "Timer", det_time/10) as null|num
+	var/newtime = tgui_input_number(usr, "Please set the timer (in seconds).", "Timer", det_time/10)
 	if(isnull(newtime) || !user.is_in_active_hand(src))
 		return
 	newtime = newtime SECONDS
@@ -98,41 +89,47 @@
 	det_time = newtime
 	to_chat(user, "Timer set for [newtime / 10] seconds.")
 
-
 /obj/item/grenade/plastic/afterattack(atom/movable/AM, mob/user, flag, params)
 	if(!flag)
 		return
+
 	if(iscarbon(AM))
-		to_chat(user, "<span class='warning'>You can't get the [src] to stick to [AM]!</span>")
+		to_chat(user, span_warning("You can't get the [src] to stick to [AM]!"))
 		return
+
 	if(isobserver(AM))
-		to_chat(user, "<span class='warning'>Your hand just phases through [AM]!</span>")
+		to_chat(user, span_warning("Your hand just phases through [AM]!"))
 		return
-	to_chat(user, "<span class='notice'>You start planting [src].[isnull(nadeassembly) ? " The timer is set to [det_time/10]..." : ""]</span>")
+
+	to_chat(user, span_notice("You start planting [src].[isnull(nadeassembly) ? " The timer is set to [det_time / 10]..." : ""]"))
 
 	if(!do_after(user, 5 SECONDS * toolspeed, AM, category = DA_CAT_TOOL))
 		return
-
 	if(!user.drop_item_ground(src))
 		return
+	attach(AM, user)
 
+/obj/item/grenade/plastic/proc/attach(atom/movable/AM, mob/user, silent)
 	target = AM
 	do_pickup_animation(AM)
 	loc = null
+
 	if(notify_admins)
 		message_admins("[ADMIN_LOOKUPFLW(user)] planted [src.name] on [target.name] at [ADMIN_COORDJMP(target)] with [det_time/10] second fuse")
 		add_game_logs("planted [name] on [target.name] at [COORD(target)] with [det_time/10] second fuse", user)
 
 	target.add_persistent_overlay(image_overlay, BOMB_OVERLAY_ID)
-	if(!nadeassembly)
-		to_chat(user, "<span class='notice'>You plant the bomb. Timer counting down from [det_time/10].</span>")
-		addtimer(CALLBACK(src, PROC_REF(prime)), det_time)
 
+	if(!nadeassembly)
+		if(!silent)
+			to_chat(user, span_notice("You plant the bomb. Timer counting down from [det_time / 10]."))
+
+		addtimer(CALLBACK(src, PROC_REF(prime)), det_time)
 
 /obj/item/grenade/plastic/suicide_act(mob/user)
 	message_admins("[ADMIN_LOOKUPFLW(user)] suicided with [src.name] at [ADMIN_COORDJMP(user)]")
 	add_game_logs("suicided with [name] at [COORD(user)]", user)
-	user.visible_message("<span class='suicide'>[user] activates the [name] and holds it above [user.p_their()] head! It looks like [user.p_theyre()] going out with a bang!</span>")
+	user.visible_message(span_suicide("[user] activates the [name] and holds it above [user.p_their()] head! It looks like [user.p_theyre()] going out with a bang!"))
 	var/message_say = "FOR NO RAISIN!"
 	if(user.mind)
 		if(user.mind.special_role)
@@ -160,13 +157,11 @@
 	user.gib()
 	return OBLITERATION
 
-
 /obj/item/grenade/plastic/update_icon_state()
 	if(nadeassembly)
 		icon_state = "[item_state]1"
 	else
 		icon_state = "[item_state]0"
-
 
 //////////////////////////
 ///// The Explosives /////
@@ -192,7 +187,7 @@
 		location = get_atom_on_turf(src)
 	if(location)
 		explosion(location, devastation_range = devastation_range, heavy_impact_range = heavy_impact_range, light_impact_range = light_impact_range, flash_range = flash_range, cause = src)
-		location.ex_act(2, target)
+		location.ex_act(EXPLODE_HEAVY, target)
 	if(istype(target, /mob))
 		var/mob/M = target
 		M.gib()
@@ -220,14 +215,14 @@
 	else
 		location = get_atom_on_turf(src)
 	if(location)
-		if(target && target.density)
+		if(target?.density)
 			var/turf/T = get_step(location, aim_dir)
-			explosion(get_step(T, aim_dir),0,0,3, cause = "Dir. X4")
+			explosion(get_step(T, aim_dir), devastation_range = 0, heavy_impact_range = 0, light_impact_range = 3, cause = "Dir. X4")
 			explosion(T,0,2,0, cause = src)
-			location.ex_act(2, target)
+			location.ex_act(EXPLODE_HEAVY, target)
 		else
-			explosion(location, 0, 2, 3, cause = src)
-			location.ex_act(2, target)
+			explosion(location, devastation_range = 0, heavy_impact_range = 2, light_impact_range = 3, cause = src)
+			location.ex_act(EXPLODE_HEAVY, target)
 	if(istype(target, /mob))
 		var/mob/M = target
 		M.gib()
@@ -253,13 +248,13 @@
 	else
 		location = get_turf(src)
 	if(location)
-		if(target && target.density)
+		if(target?.density)
 			var/turf/T = get_step(location, aim_dir)
-			explosion(get_step(T, aim_dir),0,0,3, cause = src)
-			location.ex_act(2, target)
+			explosion(get_step(T, aim_dir), devastation_range = 0, heavy_impact_range = 0, light_impact_range = 3, cause = src)
+			location.ex_act(EXPLODE_HEAVY, target)
 		else
-			explosion(location, 0, 0, 3, cause = src)
-			location.ex_act(2, target)
+			explosion(location, devastation_range = 0, heavy_impact_range = 0, light_impact_range = 3, cause = src)
+			location.ex_act(EXPLODE_HEAVY, target)
 	if(istype(target, /mob))
 		var/mob/M = target
 		M.gib()
@@ -275,7 +270,7 @@
 
 /obj/item/grenade/plastic/c4_shaped/flash/prime()
 	var/turf/T
-	if(target && target.density)
+	if(target?.density)
 		T = get_step(get_turf(target), aim_dir)
 	else if(target)
 		T = get_turf(target)
@@ -302,25 +297,24 @@
 	else
 		location = get_turf(src)
 	if(location)
-		var/datum/effect_system/smoke_spread/smoke = new
-		smoke.set_up(8,0, location, aim_dir)
-		if(target && target.density)
+		var/datum/effect_system/fluid_spread/smoke/smoke = new
+		smoke.set_up(amount = 8, location = location)
+		if(target?.density)
 			var/turf/T = get_step(location, aim_dir)
 			for(var/turf/simulated/wall/W in range(1, location))
 				W.thermitemelt(time = 3 SECONDS)
 			addtimer(CALLBACK(GLOBAL_PROC, /proc/explosion, T, 0, 0, 2), 3)
-			addtimer(CALLBACK(smoke, TYPE_PROC_REF(/datum/effect_system/smoke_spread, start)), 3)
+			addtimer(CALLBACK(smoke, TYPE_PROC_REF(/datum/effect_system/fluid_spread/smoke, start)), 3)
 		else
 			var/turf/T = get_step(location, aim_dir)
 			addtimer(CALLBACK(GLOBAL_PROC, /proc/explosion, T, 0, 0, 2), 3)
-			addtimer(CALLBACK(smoke, TYPE_PROC_REF(/datum/effect_system/smoke_spread, start)), 3)
+			addtimer(CALLBACK(smoke, TYPE_PROC_REF(/datum/effect_system/fluid_spread/smoke, start)), 3)
 
 	if(isliving(target))
 		var/mob/living/M = target
 		M.adjust_fire_stacks(2)
 		M.IgniteMob()
 	qdel(src)
-
 
 #undef BOMB_OVERLAY_ID
 

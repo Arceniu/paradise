@@ -1,7 +1,3 @@
-#define TURRET_PRIORITY_TARGET 2
-#define TURRET_SECONDARY_TARGET 1
-#define TURRET_NOT_TARGET 0
-
 /obj/machinery/porta_turret/tag
 	// Reasonable defaults, in case someone manually spawns us
 	var/lasercolor = "r"	//Something to do with lasertag turrets, blame Sieve for not adding a comment.
@@ -25,7 +21,7 @@
 	. = ..()
 	icon_state = "[lasercolor]grey_target_prism"
 
-/obj/machinery/porta_turret/tag/weapon_setup(var/obj/item/gun/energy/E)
+/obj/machinery/porta_turret/tag/weapon_setup(obj/item/gun/energy/E)
 	return
 
 /obj/machinery/porta_turret/tag/ui_data(mob/user)
@@ -57,21 +53,21 @@
 		else
 			icon_state = "[lasercolor]grey_target_prism"
 
-/obj/machinery/porta_turret/tag/bullet_act(obj/item/projectile/P)
+/obj/machinery/porta_turret/tag/bullet_act(obj/projectile/P)
 	..()
 	if(!disabled)
 		if(lasercolor == "b")
-			if(istype(P, /obj/item/projectile/beam/lasertag/redtag))
+			if(istype(P, /obj/projectile/beam/lasertag/redtag))
 				disabled  = TRUE
 				spawn(100)
 					disabled  = FALSE
 		else if(lasercolor == "r")
-			if(istype(P, /obj/item/projectile/beam/lasertag/bluetag))
+			if(istype(P, /obj/projectile/beam/lasertag/bluetag))
 				disabled  = TRUE
 				spawn(100)
 					disabled  = FALSE
 
-/obj/machinery/porta_turret/tag/assess_living(var/mob/living/L)
+/obj/machinery/porta_turret/tag/assess_living(mob/living/L)
 	if(!L)
 		return TURRET_NOT_TARGET
 
@@ -87,7 +83,6 @@
 		if("r")
 			target_suit = /obj/item/clothing/suit/bluetag
 			target_weapon = /obj/item/gun/energy/laser/tag/blue
-
 
 	if(target_suit)//Lasertag turrets target the opposing team, how great is that? -Sieve
 		if((istype(L.r_hand, target_weapon)) || (istype(L.l_hand, target_weapon)))

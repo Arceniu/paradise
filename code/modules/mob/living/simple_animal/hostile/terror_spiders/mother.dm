@@ -10,8 +10,7 @@
 
 /mob/living/simple_animal/hostile/poison/terror_spider/mother
 	name = "Mother of Terror"
-	desc = "An enormous spider. Tiny spiderlings are crawling all over it. Their beady little eyes all stare at you. The horror!"
-	ai_target_method = TS_DAMAGE_SIMPLE
+	desc = "Огромный паук. По нему ползают крошечные паучки. Их маленькие глазки-бусинки смотрят на вас. Ужас!"
 	icon_state = "terror_mother"
 	icon_living = "terror_mother"
 	icon_dead = "terror_mother_dead"
@@ -23,12 +22,24 @@
 	ventcrawler_trait = null
 	spider_tier = TS_TIER_3
 	spider_opens_doors = 2
-	special_abillity = list(/obj/effect/proc_holder/spell/aoe/conjure/build/terror_jelly,
-							/obj/effect/proc_holder/spell/aoe/terror_healing/greater)
-	spider_intro_text = "Будучи Матерью Ужаса, ваша задача - массовое исцеление пауков. Вы пассивно исцеляете всех пауков вокруг вас и наносите наносите урон гуманоидам. Вы также можете создавать желе, употребив которое, пауки быстро исцеляются. Ваша вторая способность действует аналогично желе, но работает по области для всех пауков в радиусе вашей видимости!"
+	special_abillity = list(
+		/obj/effect/proc_holder/spell/aoe/conjure/build/terror_jelly,
+		/obj/effect/proc_holder/spell/aoe/terror_healing/greater,
+	)
+	spider_intro_text = "Будучи Матерью Ужаса, ваша задача — массовое исцеление пауков. Вы пассивно исцеляете всех пауков вокруг вас и наносите наносите урон гуманоидам. Вы также можете создавать желе, употребив которое, пауки быстро исцеляются. Ваша вторая способность действует аналогично желе, но работает по области для всех пауков в радиусе вашей видимости!"
 	var/datum/action/innate/terrorspider/ventsmash/ventsmash_action
 	var/datum/action/innate/terrorspider/remoteview/remoteview_action
 	tts_seed = "Deathwhisper"
+
+/mob/living/simple_animal/hostile/poison/terror_spider/mother/get_ru_names()
+	return list(
+		NOMINATIVE = "Мать Ужаса",
+		GENITIVE = "Матери Ужаса",
+		DATIVE = "Матери Ужаса",
+		ACCUSATIVE = "Мать Ужаса",
+		INSTRUMENTAL = "Матерью Ужаса",
+		PREPOSITIONAL = "Матери Ужаса",
+	)
 
 /mob/living/simple_animal/hostile/poison/terror_spider/mother/New()
 	..()
@@ -57,7 +68,6 @@
 		if(L.stat != DEAD)
 			L.apply_damages(tox = 3, stamina = 3)
 
-
 /mob/living/simple_animal/hostile/poison/terror_spider/mother/consume_jelly(obj/structure/spider/royaljelly/J)
-	to_chat(src, "<span class='warning'>Mothers cannot consume royal jelly.</span>")
+	to_chat(src, span_warning("Матери Ужаса не могут употреблять королевское желе."))
 	return

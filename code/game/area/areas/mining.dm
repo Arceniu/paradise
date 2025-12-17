@@ -10,14 +10,12 @@
 	name = "Mine"
 	icon_state = "explored"
 	always_unpowered = TRUE
-	requires_power = TRUE
 	poweralm = FALSE
 	power_environ = FALSE
 	power_equip = FALSE
 	power_light = FALSE
 	outdoors = TRUE
 	ambientsounds = MINING_SOUNDS
-	flags = NONE
 	min_ambience_cooldown = 70 SECONDS
 	max_ambience_cooldown = 220 SECONDS
 
@@ -28,48 +26,16 @@
 	name = "Mine"
 	icon_state = "unexplored"
 	always_unpowered = TRUE
-	requires_power = TRUE
 	poweralm = FALSE
 	power_environ = FALSE
 	power_equip = FALSE
 	power_light = FALSE
 	outdoors = TRUE
 	ambientsounds = MINING_SOUNDS
-	flags = NONE
 	sound_environment = SOUND_AREA_ASTEROID
 	min_ambience_cooldown = 70 SECONDS
 	max_ambience_cooldown = 220 SECONDS
-
-/area/mine/unexplored/cere
-	sound_environment = SOUND_AREA_ASTEROID
-	ignore_gravgen = TRUE
-
-/area/mine/unexplored/cere/ai
-	name = "AI Asteroid"
-
-/area/mine/unexplored/cere/cargo
-	name = "Cargo Asteroid"
-
-/area/mine/unexplored/cere/civilian
-	name = "Civilian Asteroid"
-
-/area/mine/unexplored/cere/command
-	name = "Command Asteroid"
-
-/area/mine/unexplored/cere/docking
-	name = "Docking Asteroid"
-
-/area/mine/unexplored/cere/engineering
-	name = "Engineering Asteroid"
-
-/area/mine/unexplored/cere/medical
-	name = "Medical Asteroid"
-
-/area/mine/unexplored/cere/research
-	name = "Research Asteroid"
-
-/area/mine/unexplored/cere/orbiting
-	name = "Near Station Asteroids"
+	holomap_should_draw = FALSE
 
 /area/mine/lobby
 	name = "Mining Station"
@@ -112,9 +78,6 @@
 /area/mine/west_outpost
 	name = "West Mining Outpost"
 
-/area/mine/laborcamp
-	name = "Labor Camp"
-
 /area/mine/laborcamp/security
 	name = "Labor Camp Security"
 	icon_state = "security"
@@ -122,8 +85,6 @@
 
 /area/mine/podbay
 	name = "Mining Podbay"
-
-
 
 /**********************Lavaland Areas**************************/
 
@@ -141,17 +102,16 @@
 	power_environ = FALSE
 	power_equip = FALSE
 	power_light = FALSE
-	requires_power = TRUE
 	ambientsounds = MINING_SOUNDS
 	min_ambience_cooldown = 70 SECONDS
 	max_ambience_cooldown = 220 SECONDS
 	area_flags = NONE
+	holomap_should_draw = FALSE
 
 /area/lavaland/underground
 	name = "Lavaland Caves"
 	icon_state = "unexplored"
 	always_unpowered = TRUE
-	requires_power = TRUE
 	poweralm = FALSE
 	power_environ = FALSE
 	power_equip = FALSE

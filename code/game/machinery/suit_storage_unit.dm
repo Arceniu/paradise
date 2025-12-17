@@ -40,7 +40,6 @@
 	var/list/occupant_typecache //if set, turned into typecache in Initialize, other wise, defaults to mob/living typecache
 	var/atom/movable/occupant = null
 
-
 /obj/machinery/suit_storage_unit/standard_unit
 	suit_type    = /obj/item/clothing/suit/space/eva
 	helmet_type  = /obj/item/clothing/head/helmet/space/eva
@@ -129,6 +128,13 @@
 	storage_type = /obj/item/gps/mining
 	req_access = list(ACCESS_MINING_STATION)
 
+/obj/machinery/suit_storage_unit/mining_medic
+	name = "mining medical suit storage unit"
+	suit_type = /obj/item/clothing/suit/hooded/explorer/mining
+	mask_type = /obj/item/clothing/mask/gas/mining_medic
+	storage_type = /obj/item/gps/mining
+	req_access = list(ACCESS_MEDICAL)
+
 /obj/machinery/suit_storage_unit/cmo
 	suit_type    = /obj/item/clothing/suit/space/hardsuit/medical
 	storage_type = /obj/item/tank/internals/oxygen
@@ -170,18 +176,15 @@
 
 /obj/machinery/suit_storage_unit/syndicate
 	name = "syndicate suit storage unit"
-	suit_type   	 = /obj/item/clothing/suit/space/hardsuit/syndi
-	mask_type    	= /obj/item/clothing/mask/gas/syndicate
-	storage_type 	= /obj/item/tank/jetpack/oxygen/harness
+	suit_type  	 = /obj/item/clothing/suit/space/hardsuit/syndi
+	mask_type   	= /obj/item/clothing/mask/gas/syndicate
+	storage_type	= /obj/item/tank/jetpack/oxygen/harness
 	req_access = list(ACCESS_SYNDICATE)
 	safeties = FALSE	//in a syndicate base, everything can be used as a murder weapon at a moment's notice.
 
 /obj/machinery/suit_storage_unit/syndicate/comms
-	name = "syndicate suit storage unit"
 	suit_type = /obj/item/clothing/suit/space/hardsuit/syndi/elite/comms
-	mask_type = /obj/item/clothing/mask/gas/syndicate
 	magboots_type = /obj/item/clothing/shoes/magboots/syndie/advance
-	storage_type = /obj/item/tank/jetpack/oxygen/harness
 	req_access = list(ACCESS_SYNDICATE_COMMS_OFFICER)
 
 /obj/machinery/suit_storage_unit/ert
@@ -219,7 +222,7 @@
 	helmet_type = /obj/item/clothing/head/radiation
 
 //copied from /obj/effect/nasavoidsuitspawner
-/obj/machinery/suit_storage_unit/telecoms/Initialize()
+/obj/machinery/suit_storage_unit/telecoms/Initialize(mapload)
 	switch(pick(list("red", "green", "ntblue", "purple", "yellow", "ltblue")))
 		if("red")
 			helmet_type = /obj/item/clothing/head/helmet/space/nasavoid
@@ -239,15 +242,11 @@
 		if("ltblue")
 			helmet_type =  /obj/item/clothing/head/helmet/space/nasavoid/ltblue
 			suit_type = /obj/item/clothing/suit/space/nasavoid/ltblue
-	..()
-
-
-/obj/machinery/suit_storage_unit/New()
-	..()
-	wires = new(src)
-
-/obj/machinery/suit_storage_unit/Initialize()
 	. = ..()
+
+/obj/machinery/suit_storage_unit/Initialize(mapload)
+	. = ..()
+	wires = new(src)
 	if(suit_type)
 		suit = new suit_type(src)
 	if(helmet_type)
@@ -272,7 +271,6 @@
 /obj/machinery/suit_storage_unit/examine(mob/user)
 	. = ..()
 	. += " There's a warning label dangling from the control pad that reads:<br>[span_danger("\"BIOLOGICAL SUBJECTS ARE STRICTLY PROHIBITED IN THE CONFINES OF THE UNIT.\"")]"
-
 
 /obj/machinery/suit_storage_unit/update_overlays()
 	. = ..()
@@ -300,7 +298,6 @@
 	if(!locked)
 		. += "[icon_state]_unlocked"
 
-
 /obj/machinery/suit_storage_unit/attackby(obj/item/I, mob/user, params)
 	if(shocked && shock(user, 100))
 		add_fingerprint(user)
@@ -324,7 +321,6 @@
 
 	return ..()
 
-
 /obj/machinery/suit_storage_unit/screwdriver_act(mob/user, obj/item/I)
 	if(!I.use_tool(src, user, 0, volume = 0))
 		return
@@ -334,12 +330,11 @@
 			return
 	default_deconstruction_screwdriver(user, "[icon_state]_panel", "[initial(icon_state)]", I)
 
-
 /obj/machinery/suit_storage_unit/proc/store_item(obj/item/I, mob/user)
 	. = FALSE
 	if(panel_open)
 		return .
-	if(istype(I, /obj/item/clothing/suit/space) && !suit)
+	if((istype(I, /obj/item/clothing/suit/space) || istype(I, suit_type)) && !suit)
 		. = user.drop_transfer_item_to_loc(I, src)
 		if(.)
 			suit = I
@@ -355,11 +350,10 @@
 		. = user.drop_transfer_item_to_loc(I, src)
 		if(.)
 			magboots = I
-	else if((istype(I, /obj/item/tank)) && !storage)
+	else if((istype(I, /obj/item/tank) || istype(I, storage_type)) && !storage)
 		. = user.drop_transfer_item_to_loc(I, src)
 		if(.)
 			storage = I
-
 
 /obj/machinery/suit_storage_unit/power_change(forced = FALSE)
 	..() //we don't check parent return here because `is_operational` cares about other flags in stat
@@ -367,7 +361,6 @@
 		open_machine()
 		dump_contents()
 	update_icon(UPDATE_OVERLAYS)
-
 
 /obj/machinery/suit_storage_unit/proc/dump_contents()
 	dropContents()
@@ -418,7 +411,6 @@
 	close_machine(target)
 	add_fingerprint(user)
 
-
 /obj/machinery/suit_storage_unit/proc/cook()
 	if(uv_cycles)
 		uv_cycles--
@@ -437,7 +429,7 @@
 		locked = FALSE
 		if(uv_super)
 			visible_message(span_warning("[src]'s door creaks open with a loud whining noise. A cloud of foul black smoke escapes from its chamber."))
-			playsound(src, 'sound/machines/airlock_alien_prying.ogg', 50, 1)
+			playsound(src, 'sound/machines/airlock_alien_prying.ogg', 50, TRUE)
 			qdel(helmet)
 			qdel(mask)
 			qdel(magboots)
@@ -454,7 +446,7 @@
 				visible_message(span_notice("[src]'s door slides open. The glowing yellow lights dim to a gentle green."))
 			else
 				visible_message(span_warning("[src]'s door slides open, barraging you with the nauseating smell of charred flesh."))
-			playsound(src, 'sound/machines/airlock_close.ogg', 25, 1)
+			playsound(src, 'sound/machines/airlock_close.ogg', 25, TRUE)
 		if(occupant)
 			dump_contents()
 		update_icon(UPDATE_OVERLAYS)
@@ -478,7 +470,7 @@
 		span_notice("You start kicking against the doors... (this will take about [DisplayTimeText(breakout_time)].)"), \
 		span_italics("You hear a thump from [src]."))
 	if(do_after(user,(breakout_time), src))
-		if(!user || user.stat != CONSCIOUS || user.loc != src )
+		if(!user || user.stat != CONSCIOUS || user.loc != src)
 			return
 		user.visible_message(span_warning("[user] successfully broke out of [src]!"), \
 			span_notice("You successfully break out of [src]!"))
@@ -691,8 +683,8 @@
 	eject_occupant()
 
 /obj/machinery/suit_storage_unit/verb/get_out()
-	set name = "Eject Suit Storage Unit"
-	set category = "Object"
+	set name = "Извлечь находящегося внутри"
+	set category = STATPANEL_OBJECT
 	set src in oview(1)
 
 	if(usr.stat)
@@ -704,8 +696,8 @@
 	return
 
 /obj/machinery/suit_storage_unit/verb/move_inside()
-	set name = "Hide in Suit Storage Unit"
-	set category = "Object"
+	set name = "Спрятаться внутри"
+	set category = STATPANEL_OBJECT
 	set src in oview(1)
 
 	if(usr.incapacitated() || HAS_TRAIT(usr, TRAIT_HANDS_BLOCKED) || usr.buckled) //are you cuffed, dying, lying, stunned or other
@@ -750,8 +742,8 @@
 	SStgui.update_uis(src)
 	if(user)
 		to_chat(user, span_warning("You burn the locking mechanism, unlocking it forever."))
-	do_sparks(5, 0, loc)
-	playsound(loc, "sparks", 50, TRUE, SHORT_RANGE_SOUND_EXTRARANGE)
+	do_sparks(5, FALSE, loc)
+	playsound(loc, SFX_SPARKS, 50, TRUE, SHORT_RANGE_SOUND_EXTRARANGE)
 
 /obj/machinery/suit_storage_unit/shove_impact(mob/living/target, mob/living/attacker)
 	if(target.incapacitated() || HAS_TRAIT(target, TRAIT_HANDS_BLOCKED) || target.buckled)

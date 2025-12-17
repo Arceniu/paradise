@@ -26,11 +26,14 @@
 		TRAIT_VIRUSIMMUNE,
 		TRAIT_NO_GERMS,
 		TRAIT_IGNOREDAMAGESLOWDOWN,
+		TRAIT_SUPERMATTERIMMUNE,
 	)
+	bodyflags = HAS_BODY_MARKINGS
 	dies_at_threshold = TRUE
+	ignore_critical_condition = TRUE // Nucleations do not suffer from complex critical condition
 	var/touched_supermatter = FALSE
 
-	speciesbox = /obj/item/storage/box/survival_nucleation
+	speciesbox = /obj/item/storage/box/survival/species/nucleation
 
 	//Default styles for created mobs.
 	default_hair = "Nucleation Crystals"
@@ -45,7 +48,6 @@
 		INTERNAL_ORGAN_RESONANT_CRYSTAL = /obj/item/organ/internal/nucleation/resonant_crystal,
 	)
 
-
 	meat_type = /obj/item/reagent_containers/food/snacks/meat/humanoid/nucleation
 
 	age_sheet = list(
@@ -55,18 +57,15 @@
 		JOB_MIN_AGE_COMMAND = 30,
 	)
 
-
 /datum/species/nucleation/on_species_gain(mob/living/carbon/human/H)
 	. = ..()
 	H.light_color = "#afaf21"
 	H.set_light_range(2)
 
-
 /datum/species/nucleation/on_species_loss(mob/living/carbon/human/H)
 	. = ..()
 	H.light_color = null
 	H.set_light_on(FALSE)
-
 
 /datum/species/nucleation/handle_reagents(mob/living/carbon/human/H, datum/reagent/R)
 	if(R.id == "radium")
@@ -78,15 +77,18 @@
 			return FALSE //Что бы не выводилось больше одного, который уже вывелся за счет прока
 	return ..()
 
-/datum/species/nucleation/handle_death(gibbed, mob/living/carbon/human/H)
-	if(H.health <= HEALTH_THRESHOLD_DEAD || !H.surgeries.len) // Needed to prevent brain gib on surgery debrain
-		death_explosion(H)
+/datum/species/nucleation/handle_death(gibbed, mob/living/carbon/human/human)
+	if(human.health <= HEALTH_THRESHOLD_DEAD) // Needed to prevent brain gib on surgery debrain
+		death_explosion(human)
 		return
-	H.adjustBruteLoss(15)
-	H.do_jitter_animation(1000, 8)
 
-/datum/species/nucleation/proc/death_explosion(mob/living/carbon/human/H)
-	var/turf/T = get_turf(H)
-	H.visible_message("<span class='warning'>Тело [H] взрывается, оставляя после себя множество микроскопических кристаллов!</span>")
-	explosion(T, 0, 0, 3, 6, cause = H) // Create a small explosion burst upon death
-	qdel(H)
+	human.adjustBruteLoss(15)
+	human.do_jitter_animation(1000, 8)
+
+/datum/species/nucleation/proc/death_explosion(mob/living/carbon/human/human)
+	var/turf/turf = get_turf(human)
+
+	human.visible_message(span_warning("Тело [human] взрывается, оставляя после себя множество микроскопических кристаллов!"))
+	explosion(turf, devastation_range = 0, heavy_impact_range = 0, light_impact_range = 3, flash_range = 6, cause = human) // Create a small explosion burst upon death
+
+	qdel(human)

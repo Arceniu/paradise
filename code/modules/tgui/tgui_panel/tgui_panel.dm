@@ -60,6 +60,7 @@
 	// window.send_asset(get_asset_datum(/datum/asset/spritesheet/emoji))
 	request_telemetry()
 	addtimer(CALLBACK(src, PROC_REF(on_initialize_timed_out)), 5 SECONDS)
+	window.send_message("testTelemetryCommand")
 
 /**
  * private
@@ -68,7 +69,9 @@
  */
 /datum/tgui_panel/proc/on_initialize_timed_out()
 	// Currently does nothing but sending a message to old chat.
-	SEND_TEXT(client, span_userdanger("<h1>Failed to load fancy chat, click <a href='byond://?src=[UID()];reload_tguipanel=1'>HERE</a> to attempt to reload it.</h1>"))// users often miss this text, thinking it is wiki-page, so this text should be BIG
+	// Users often miss this text, thinking it is wiki-page, so this text should be BIG
+	SEND_TEXT(client, span_userdanger("<h1>Failed to load fancy chat, click <a href='byond://?src=[UID()];reload_tguipanel=1'>HERE</a> to attempt to reload it.<br>\
+	<a href='https://discord.com/channels/617003227182792704/756409070721957918/1435670788748607599'>ИНСТРУКЦИЯ</a> из Discord по восстановлению работы чата, если перезагрузка не помогает!</h1>"))
 
 /**
  * private
@@ -92,6 +95,11 @@
 			),
 		))
 		return TRUE
+
+	if(type == "theme")
+		client.tgui_panel_theme = payload["theme"]
+		return TRUE
+
 	if(type == "audio/setAdminMusicVolume")
 		client.admin_music_volume = payload["volume"]
 		return TRUE

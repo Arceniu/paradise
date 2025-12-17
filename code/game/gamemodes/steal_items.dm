@@ -11,7 +11,6 @@ GLOBAL_LIST_INIT(potential_theft_objectives_collect, subtypesof(/datum/theft_obj
 
 GLOBAL_LIST_INIT(ungibbable_items_types, get_ungibbable_items_types())
 
-
 /proc/get_ungibbable_items_types()
 	var/types = list()
 
@@ -29,7 +28,6 @@ GLOBAL_LIST_INIT(ungibbable_items_types, get_ungibbable_items_types())
 	types += /mob/living/simple_animal/diona // Possible diona brains
 
 	return types
-
 
 /proc/get_theft_targets_station(typepath, subtypes = TRUE, list/blacklist)
 	var/list/typecache = list()
@@ -56,7 +54,6 @@ GLOBAL_LIST_INIT(ungibbable_items_types, get_ungibbable_items_types())
 					. |= obj_check
 				CHECK_TICK
 
-
 /datum/theft_objective
 	var/id
 	var/name = "this objective is impossible, yell at a coder"
@@ -72,24 +69,24 @@ GLOBAL_LIST_INIT(ungibbable_items_types, get_ungibbable_items_types())
 	/// Range to a steal target if its not an item.
 	var/range_distance = 2
 
+/datum/theft_objective/proc/get_antag_menu_name()
+	return name
 
 /datum/theft_objective/proc/check_completion(list/owners)
 	for(var/datum/mind/player in owners)
 		if(!player.current)
 			continue
 
-		for(var/obj/item/item in player.current.GetAllContents())
+		for(var/obj/item/item in player.current.get_all_contents())
 			if((istype(item, typepath) || (item.type in altitems)) && check_special_completion(item))
 				return TRUE
 
 	return FALSE
 
-
 /datum/theft_objective/proc/generate_explanation_text(datum/objective/steal/steal_objective)
 	steal_objective.explanation_text = "Украсть [name]. Последнее местоположение было в [generate_location_text()]. "
 	if(length(protected_jobs) && job_possession)
 		steal_objective.explanation_text += "Также стоит проверить у [jointext(protected_jobs, ", ")]."
-
 
 /datum/theft_objective/proc/generate_location_text()
 	if(location_override)
@@ -99,20 +96,17 @@ GLOBAL_LIST_INIT(ungibbable_items_types, get_ungibbable_items_types())
 		return "[get_area(check)]"
 	return "неизвестной зоне"
 
-
 /**
  * This proc is to be used for not granting objectives if a special requirement other than job is not met.
  */
 /datum/theft_objective/proc/check_objective_conditions()
 	return TRUE
 
-
 /**
  * For objectives with special checks (is that slime extract unused? does that intellicard have an ai in it? etcetc)
  */
 /datum/proc/check_special_completion(obj/item/I)
 	return TRUE
-
 
 //==========================
 //========Highrisk========
@@ -125,6 +119,12 @@ GLOBAL_LIST_INIT(ungibbable_items_types, get_ungibbable_items_types())
 	name = "the captain's antique laser gun"
 	typepath = /obj/item/gun/energy/laser/captain
 	protected_jobs = list(JOB_TITLE_CAPTAIN)
+
+/datum/theft_objective/highrisk/secgl_x4
+	id = "secgl_x4"
+	name = "the security grenade launcher GL-08-4"
+	typepath = /obj/item/gun/projectile/bombarda/secgl/x4
+	protected_jobs = list(JOB_TITLE_HOS)
 
 /datum/theft_objective/highrisk/captains_jetpack
 	id = "cap_jetpack"
@@ -189,7 +189,6 @@ GLOBAL_LIST_INIT(ungibbable_items_types, get_ungibbable_items_types())
 	protected_jobs = list(JOB_TITLE_CHIEF)
 	altitems = list(/obj/item/photo)
 
-
 /datum/theft_objective/highrisk/blueprints/check_special_completion(obj/item/I)
 	if(istype(I, /obj/item/areaeditor/blueprints/ce))
 		return TRUE
@@ -223,7 +222,6 @@ GLOBAL_LIST_INIT(ungibbable_items_types, get_ungibbable_items_types())
 	typepath = /obj/item/documents //Any set of secret documents. Doesn't have to be NT's
 	altitems = list(/obj/item/folder/documents)
 
-
 /datum/theft_objective/highrisk/documents/check_special_completion(obj/item/I)
 	if(istype(I, /obj/item/documents))
 		return TRUE
@@ -241,10 +239,10 @@ GLOBAL_LIST_INIT(ungibbable_items_types, get_ungibbable_items_types())
 	typepath = /obj/item/reagent_containers/hypospray/CMO
 	protected_jobs = list(JOB_TITLE_CMO)
 
-/datum/theft_objective/highrisk/ablative
-	id = "ablative_armor"
-	name = "an ablative armor vest"
-	typepath = /obj/item/clothing/suit/armor/laserproof
+/datum/theft_objective/highrisk/reflector
+	id = "reflector_armor"
+	name = "a reflector coat"
+	typepath = /obj/item/clothing/suit/armor/reflector
 	protected_jobs = list(JOB_TITLE_HOS, JOB_TITLE_WARDEN)
 
 /datum/theft_objective/highrisk/krav
@@ -269,7 +267,6 @@ GLOBAL_LIST_INIT(ungibbable_items_types, get_ungibbable_items_types())
 	location_override = "the Vault. You can use the box and instructions provided to remove the core, with some extra tools"
 	special_equipment = /obj/item/storage/box/syndie_kit/nuke
 
-
 //==========================
 //==========Unique==========
 //==========================
@@ -285,7 +282,6 @@ GLOBAL_LIST_INIT(ungibbable_items_types, get_ungibbable_items_types())
 	id = "docs_blue"
 	name = "the \"Blue\" secret documents"
 	typepath = /obj/item/documents/syndicate/blue
-
 
 //==========================
 //========Hard Thief========
@@ -339,8 +335,6 @@ GLOBAL_LIST_INIT(ungibbable_items_types, get_ungibbable_items_types())
 	id = "cap_flask"
 	typepath = /obj/item/reagent_containers/food/drinks/flask/gold
 	name = "капитанскую золотую фляжку"
-
-
 
 //==========================
 //=======Medium Thief=======
@@ -425,13 +419,11 @@ GLOBAL_LIST_INIT(ungibbable_items_types, get_ungibbable_items_types())
 	typepath = /obj/item/clothing/head/helmet/skull/Yorick
 	name = "череп Йорика"
 
-
 //==========================
 //========Structures========
 //==========================
 /datum/theft_objective/structure
 	flags = THEFT_FLAG_STRUCTURE
-
 
 /datum/theft_objective/structure/check_completion(list/owners)
 	for(var/datum/mind/player in owners)
@@ -443,7 +435,6 @@ GLOBAL_LIST_INIT(ungibbable_items_types, get_ungibbable_items_types())
 				return TRUE
 
 	return FALSE
-
 
 /datum/theft_objective/structure/clown_statue
 	id = "structure_clown"
@@ -473,7 +464,6 @@ GLOBAL_LIST_INIT(ungibbable_items_types, get_ungibbable_items_types())
 /datum/theft_objective/animal
 	flags = THEFT_FLAG_ANIMAL
 
-
 /datum/theft_objective/animal/check_completion(list/owners)
 	for(var/datum/mind/player in owners)
 		if(!player.current)
@@ -483,13 +473,12 @@ GLOBAL_LIST_INIT(ungibbable_items_types, get_ungibbable_items_types())
 			if(istype(check, typepath) && check.stat != DEAD)
 				return TRUE
 
-		var/list/all_contents = player.current.GetAllContents()
+		var/list/all_contents = player.current.get_all_contents()
 		for(var/mob/living/animal in all_contents)
 			if(istype(animal, typepath) && animal.stat != DEAD)
 				return TRUE
 
 	return FALSE
-
 
 /datum/theft_objective/animal/ian
 	id = "animal_ian"
@@ -570,9 +559,9 @@ GLOBAL_LIST_INIT(ungibbable_items_types, get_ungibbable_items_types())
 	protected_jobs = list(JOB_TITLE_CHIEF)
 
 /datum/theft_objective/animal/representative
-	id = "animal_hamster_alex"
-	typepath = /mob/living/simple_animal/mouse/hamster/Representative
-	name = "хомяка по кличке Представитель Алексей"
+	id = "animal_mouse_rep"
+	typepath = /mob/living/simple_animal/mouse/wooly/rep
+	name = "лохматую мышь по кличке Господин Мышкин."
 
 /datum/theft_objective/animal/brain
 	id = "animal_brain"
@@ -586,13 +575,11 @@ GLOBAL_LIST_INIT(ungibbable_items_types, get_ungibbable_items_types())
 	name = "опоссума по кличке Ключик"
 	protected_jobs = list(JOB_TITLE_CHIEF, JOB_TITLE_ENGINEER, JOB_TITLE_ATMOSTECH)
 
-
 /datum/theft_objective/animal/mars
 	id = "animal_mars"
 	typepath = /mob/living/simple_animal/hostile/gorilla/cargo_domestic/mars
 	name = "гориллу по кличке Марс"
 	protected_jobs = list(JOB_TITLE_QUARTERMASTER, JOB_TITLE_CARGOTECH)
-
 
 //==========================
 //========Collection========
@@ -610,7 +597,6 @@ GLOBAL_LIST_INIT(ungibbable_items_types, get_ungibbable_items_types())
 	var/required_amount = 0
 	var/list/wanted_items = list()
 
-
 /datum/theft_objective/collect/New()
 	if(min == max)
 		required_amount = min
@@ -619,14 +605,10 @@ GLOBAL_LIST_INIT(ungibbable_items_types, get_ungibbable_items_types())
 
 	make_collection()
 
+/datum/theft_objective/collect/get_antag_menu_name()
+	return get_collection(need_br = TRUE)
 
-/datum/theft_objective/collect/proc/make_collection()
-	if(subtype)
-		type_list = subtypesof(subtype)
-
-	if(!length(type_list))
-		return
-
+/datum/theft_objective/collect/proc/get_collection(need_br = TRUE)
 	var/list/possible_type_list = type_list.Copy()
 	var/temp_name = "Собрать: "
 	for(var/i in 1 to required_amount)
@@ -637,15 +619,23 @@ GLOBAL_LIST_INIT(ungibbable_items_types, get_ungibbable_items_types())
 		var/atom/item_typepath = pick_n_take(possible_type_list)
 		wanted_items |= item_typepath
 
-		if(i % 2 == 0)	//notes split
+		if(need_br && (i % 2 == 0))	//notes split
 			temp_name += "<br>"
 		temp_name += "[initial(item_typepath.name)][i < required_amount ? ", " : "."]"
-	name = temp_name
 
+	return temp_name
+
+/datum/theft_objective/collect/proc/make_collection()
+	if(subtype)
+		type_list = subtypesof(subtype)
+
+	if(!length(type_list))
+		return
+
+	name = get_collection(need_br = TRUE)
 
 /datum/theft_objective/collect/generate_explanation_text(datum/objective/steal/steal_objective)
 	steal_objective.explanation_text = name
-
 
 /datum/theft_objective/collect/check_completion(list/owners)
 	if(!length(wanted_items))
@@ -660,7 +650,7 @@ GLOBAL_LIST_INIT(ungibbable_items_types, get_ungibbable_items_types())
 		if(!length(temp_items))
 			break
 
-		for(var/obj/item/item in player.current.GetAllContents())
+		for(var/obj/item/item in player.current.get_all_contents())
 			var/is_found = FALSE
 			for(var/wanted_type in temp_items)
 				if(istype(item, wanted_type))
@@ -677,7 +667,6 @@ GLOBAL_LIST_INIT(ungibbable_items_types, get_ungibbable_items_types())
 				break
 
 	return collect_amount >= required_amount
-
 
 //=======Collect Types=======
 /datum/theft_objective/collect/figure
@@ -732,7 +721,7 @@ GLOBAL_LIST_INIT(ungibbable_items_types, get_ungibbable_items_types())
 		/obj/item/clothing/head/beret/purple/rd,
 		/obj/item/clothing/head/hopcap,
 		/obj/item/clothing/head/powdered_wig,
-		)
+	)
 
 /datum/theft_objective/collect/clothes
 	id = "collect_clothes"
@@ -765,7 +754,7 @@ GLOBAL_LIST_INIT(ungibbable_items_types, get_ungibbable_items_types())
 		/obj/item/clothing/mask/gas/mime,
 		/obj/item/clothing/under/rank/internalaffairs,
 		/obj/item/clothing/suit/storage/internalaffairs,
-		)
+	)
 
 /datum/theft_objective/collect/encryption_keys
 	id = "collect_encryption_keys"
@@ -791,13 +780,12 @@ GLOBAL_LIST_INIT(ungibbable_items_types, get_ungibbable_items_types())
 		/obj/item/encryptionkey/heads/blueshield,
 		/obj/item/encryptionkey/headset_cargo,
 		/obj/item/encryptionkey/headset_service,
-		)
-
+		/obj/item/encryptionkey/headset_mining_medic,
+	)
 
 //=====Collection Number=====
 /datum/theft_objective/collect/number
 	steal_same_types = TRUE
-
 
 /datum/theft_objective/collect/number/make_collection()
 	wanted_items |= typepath

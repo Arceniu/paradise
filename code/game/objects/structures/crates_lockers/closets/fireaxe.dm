@@ -18,7 +18,6 @@
 	var/operating = FALSE
 	var/has_axe = null // Use a string over a boolean value to make the sprite names more readable
 
-
 /obj/structure/closet/fireaxecabinet/Destroy()
 	if(!obj_integrity)
 		if(fireaxe)
@@ -28,12 +27,10 @@
 			QDEL_NULL(fireaxe)
 	return ..()
 
-
 /obj/structure/closet/fireaxecabinet/populate_contents()
 	fireaxe = new(src)
 	has_axe = "full"
 	update_icon(UPDATE_ICON_STATE)	// So its initial icon doesn't show it without the fireaxe
-
 
 /obj/structure/closet/fireaxecabinet/examine(mob/user)
 	. = ..()
@@ -41,7 +38,6 @@
 		. += span_notice("Use a multitool to lock/unlock it.")
 	else
 		. += span_notice("It is damaged beyond repair.")
-
 
 /obj/structure/closet/fireaxecabinet/multitool_act(mob/living/user, obj/item/I)
 	if(smashed)
@@ -70,7 +66,6 @@
 	locked = TRUE
 	update_icon(UPDATE_ICON_STATE)
 	to_chat(user, span_caution("You re-enable the locking modules."))
-
 
 /obj/structure/closet/fireaxecabinet/attackby(obj/item/I, mob/living/user, params)
 	. = ATTACK_CHAIN_BLOCKED_ALL
@@ -123,7 +118,6 @@
 
 	operate_panel()
 
-
 /obj/structure/closet/fireaxecabinet/attack_hand(mob/user)
 	if(locked)
 		to_chat(user, span_warning("The cabinet won't budge!"))
@@ -145,7 +139,6 @@
 
 	operate_panel()
 
-
 /obj/structure/closet/fireaxecabinet/blob_act(obj/structure/blob/B)
 	if(fireaxe)
 		fireaxe.forceMove(loc)
@@ -160,7 +153,6 @@
 		update_icon(UPDATE_ICON_STATE)
 		return
 	attack_hand(user)
-
 
 /obj/structure/closet/fireaxecabinet/attack_ai(mob/user)
 	if(smashed)
@@ -185,7 +177,6 @@
 	do_animate()
 	operating = FALSE
 
-
 /obj/structure/closet/fireaxecabinet/proc/do_animate()
 	if(!localopened)
 		flick("fireaxe_[has_axe]_closing", src)
@@ -194,26 +185,20 @@
 	sleep(1 SECONDS)
 	update_icon(UPDATE_ICON_STATE)
 
-
 /obj/structure/closet/fireaxecabinet/update_icon_state()
 	if(localopened && !smashed)
 		icon_state = "fireaxe_[has_axe]_open"
 	else
 		icon_state = "fireaxe_[has_axe]_[hitstaken]hits"
 
-
 /obj/structure/closet/fireaxecabinet/open()
 	return
-
 
 /obj/structure/closet/fireaxecabinet/close()
 	return
 
-
 /obj/structure/closet/fireaxecabinet/welder_act(mob/user, obj/item/I) //A bastion of sanity in a sea of madness
 	return
-
-
 
 //mining "fireaxe"
 /obj/structure/fishingrodcabinet
@@ -222,27 +207,24 @@
 	icon = 'icons/obj/closet.dmi'
 	icon_state = "fishingrod"
 	anchored = TRUE
-	var/obj/item/twohanded/fishingrod/olreliable //what the fuck?
-
+	var/obj/item/twohanded/fishing_rod/olreliable //what the fuck?
 
 /obj/structure/fishingrodcabinet/Initialize(mapload)
 	. = ..()
 	olreliable = new(src)
 	update_icon(UPDATE_OVERLAYS)
 
-
 /obj/structure/fishingrodcabinet/update_overlays()
 	. = ..()
 	if(olreliable)
 		. += "rod"
 
-
 /obj/structure/fishingrodcabinet/attackby(obj/item/I, mob/living/user, params)
 	if(user.a_intent == INTENT_HARM)
 		return ..()
 
-	if(istype(I, /obj/item/twohanded/fishingrod))
-		var/obj/item/twohanded/fishingrod/rod = I
+	if(istype(I, /obj/item/twohanded/fishing_rod))
+		var/obj/item/twohanded/fishing_rod/rod = I
 		if(HAS_TRAIT(rod, TRAIT_WIELDED))
 			to_chat(user, span_warning("Unwield [rod] first."))
 			return ATTACK_CHAIN_PROCEED
@@ -254,7 +236,6 @@
 		return ATTACK_CHAIN_BLOCKED_ALL
 
 	return ..()
-
 
 /obj/structure/fishingrodcabinet/blob_act(obj/structure/blob/B)
 	if(olreliable)
@@ -272,3 +253,73 @@
 	olreliable = null
 	update_icon(UPDATE_OVERLAYS)
 
+/obj/structure/closet/sechammercabinet
+	name = "tactical sledgehammer cabinet"
+	desc = "Стойка, предназначенная для хранения тактической кувалды. Надпись гласит: \"Для особых случаев\"."
+	icon_state = "sechammer_full"
+	anchored = TRUE
+	density = FALSE
+	no_overlays = TRUE
+	armor = list(MELEE = 50, BULLET = 20, LASER = 0, ENERGY = 100, BOMB = 10, RAD = 100, FIRE = 90, ACID = 50)
+	var/obj/item/twohanded/sechammer/sledgehammer
+	opened = TRUE
+
+/obj/structure/closet/sechammercabinet/get_ru_names()
+	return list(
+		NOMINATIVE = "стойка для тактической кувалды",
+		GENITIVE = "стойки для тактической кувалды",
+		DATIVE = "стойке для тактической кувалды",
+		ACCUSATIVE = "стойку для тактической кувалды",
+		INSTRUMENTAL = "стойкой для тактической кувалды",
+		PREPOSITIONAL = "стойке для тактической кувалды",
+	)
+
+/obj/structure/closet/sechammercabinet/Destroy()
+	if(!obj_integrity)
+		if(sledgehammer)
+			sledgehammer.forceMove(loc)
+			sledgehammer = null
+		else
+			QDEL_NULL(sledgehammer)
+	return ..()
+
+/obj/structure/closet/sechammercabinet/populate_contents()
+	sledgehammer = new(src)
+	update_icon(UPDATE_ICON_STATE)	// So its initial icon doesn't show it without the fireaxe
+
+/obj/structure/closet/sechammercabinet/attackby(obj/item/I, mob/living/user, params)
+	if(user.a_intent == INTENT_HARM)
+		return ..()
+
+	if(istype(I, /obj/item/twohanded/sechammer))
+		var/obj/item/twohanded/sechammer/hammer = I
+		if(!user.drop_transfer_item_to_loc(hammer, src))
+			return ..()
+		balloon_alert(user, "кувалда закреплена")
+		sledgehammer = hammer
+		update_icon(UPDATE_ICON_STATE)
+		return ATTACK_CHAIN_BLOCKED_ALL
+
+	return ..()
+
+/obj/structure/closet/sechammercabinet/attack_hand(mob/user)
+	if(!sledgehammer)
+		return
+
+	add_fingerprint(user)
+	sledgehammer.forceMove_turf()
+	user.put_in_hands(sledgehammer, ignore_anim = FALSE)
+	balloon_alert(user, "кувалда извлечена")
+	sledgehammer = null
+	update_icon(UPDATE_ICON_STATE)
+
+/obj/structure/closet/sechammercabinet/blob_act(obj/structure/blob/B)
+	if(sledgehammer)
+		sledgehammer.forceMove(loc)
+	qdel(src)
+
+/obj/structure/closet/sechammercabinet/update_icon_state()
+	if(sledgehammer)
+		icon_state = "sechammer_full"
+	else
+		icon_state = "sechammer_empty"

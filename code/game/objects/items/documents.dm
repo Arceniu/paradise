@@ -4,7 +4,6 @@
 	icon = 'icons/obj/bureaucracy.dmi'
 	icon_state = "docs_generic"
 	item_state = "paper"
-	throwforce = 0
 	w_class = WEIGHT_CLASS_TINY
 	throw_range = 1
 	throw_speed = 1
@@ -13,6 +12,10 @@
 	resistance_flags = INDESTRUCTIBLE | LAVA_PROOF | FIRE_PROOF | ACID_PROOF
 	var/sell_multiplier = 0
 	var/sell_interest = NONE
+
+/obj/item/documents/Initialize(mapload)
+	. = ..()
+	AddElement(/datum/element/high_value_item)
 
 /obj/item/documents/nanotrasen
 	desc = "\"Top Secret\" Nanotrasen documents printed on special copy-protected paper. It is filled with complex diagrams and lists of names, dates and coordinates."

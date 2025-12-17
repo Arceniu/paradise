@@ -14,32 +14,28 @@ NOTE: there are two lists of areas in the end of this file: centcom and station 
 
 Numbers in the order will be used to indicate the direction of the sector
 This applies to all STANDARD station areas
-1 West-North  2 North   3 East-North
-4 West        5 Central 6 East
-7 West-South  9 South   10 East-South
+1 West-North	2 North		3 East-North
+4 West			5 Central	6 East
+7 West-South	9 South		10 East-South
 */
 
 /*-----------------------------------------------------------------------------*/
-
 
 /area/admin
 	name = "Admin Room"
 	icon_state = "start"
 	requires_power = FALSE
 	static_lighting = FALSE
-	base_lighting_color = COLOR_WHITE
 	base_lighting_alpha = 255
 	hide_attacklogs = TRUE
 	has_gravity = STANDARD_GRAVITY
 	area_flags = NONE
-
 
 /area/adminconstruction
 	name = "Admin Testing Area"
 	icon_state = "start"
 	requires_power = FALSE
 	static_lighting = FALSE
-	base_lighting_color = COLOR_WHITE
 	base_lighting_alpha = 255
 	hide_attacklogs = TRUE
 	has_gravity = STANDARD_GRAVITY
@@ -47,10 +43,8 @@ This applies to all STANDARD station areas
 
 /area/space
 	icon_state = "space"
-	requires_power = TRUE
 	always_unpowered = TRUE
 	static_lighting = FALSE
-	base_lighting_color = COLOR_WHITE
 	base_lighting_alpha = 255
 	power_light = FALSE
 	power_equip = FALSE
@@ -67,7 +61,6 @@ This applies to all STANDARD station areas
 
 /area/space/planetary
 	icon_state = "space_planet"
-	use_starlight = FALSE
 	static_lighting = TRUE
 	ambientsounds = list('sound/ambience/ambimine.ogg')
 	sound_environment = SOUND_AREA_ASTEROID
@@ -81,6 +74,11 @@ This applies to all STANDARD station areas
 /area/space/firereset(obj/source)
 	return
 
+/area/game_test
+	name = "Game Test Area"
+	icon_state = "test_room"
+	requires_power = FALSE
+
 //These are shuttle areas, they must contain two areas in a subgroup if you want to move a shuttle from one
 //place to another. Look at escape shuttle for example.
 //All shuttles show now be under shuttle since we have smooth-wall code.
@@ -90,15 +88,14 @@ This applies to all STANDARD station areas
 	requires_power = FALSE
 	valid_territory = FALSE
 	has_gravity = STANDARD_GRAVITY
-	static_lighting = TRUE
 	sound_environment = SOUND_ENVIRONMENT_ROOM
+	holomap_should_draw = FALSE
 
 /area/shuttle/arrival
 	name = "Arrival Shuttle"
-/*
-/area/shuttle/arrival/pre_game //dont have this, but at once...
-	icon_state = "shuttle2"
-*/
+	holomap_should_draw = TRUE
+	holomap_color = HOLOMAP_AREACOLOR_ARRIVALS
+
 /area/shuttle/arrival/station
 	icon_state = "shuttle"
 
@@ -230,11 +227,8 @@ This applies to all STANDARD station areas
 	area_flags = NONE
 
 /area/shuttle/specops/centcom
-	name = "Special Ops Shuttle"
-	icon_state = "shuttlered"
 
 /area/shuttle/specops/station
-	name = "Special Ops Shuttle"
 	icon_state = "shuttlered2"
 
 /area/shuttle/syndicate_elite
@@ -245,11 +239,8 @@ This applies to all STANDARD station areas
 	area_flags = NONE
 
 /area/shuttle/syndicate_elite/mothership
-	name = "Syndicate Elite Shuttle"
-	icon_state = "shuttlered"
 
 /area/shuttle/syndicate_elite/station
-	name = "Syndicate Elite Shuttle"
 	icon_state = "shuttlered2"
 
 /area/shuttle/syndicate_sit
@@ -275,10 +266,8 @@ This applies to all STANDARD station areas
 
 /area/shuttle/administration/centcom
 	name = "Nanotrasen Vessel Centcom"
-	icon_state = "shuttlered"
 
 /area/shuttle/administration/station
-	name = "Nanotrasen Vessel"
 	icon_state = "shuttlered2"
 
 /area/shuttle/thunderdome
@@ -318,7 +307,6 @@ This applies to all STANDARD station areas
 	icon_state = "shuttle2"
 
 /area/shuttle/research/outpost
-	icon_state = "shuttle"
 
 /area/shuttle/vox
 	name = "Vox Skipjack"
@@ -326,7 +314,6 @@ This applies to all STANDARD station areas
 	area_flags = NONE
 
 /area/shuttle/vox/station
-	name = "Vox Skipjack"
 	icon_state = "yellow"
 
 /area/shuttle/salvage
@@ -336,51 +323,39 @@ This applies to all STANDARD station areas
 
 /area/shuttle/salvage/start
 	name = "Middle of Nowhere"
-	icon_state = "yellow"
 
 /area/shuttle/salvage/arrivals
 	name = "Space Station Auxiliary Docking"
-	icon_state = "yellow"
 
 /area/shuttle/salvage/derelict
 	name = "Derelict Station"
-	icon_state = "yellow"
 
 /area/shuttle/salvage/djstation
 	name = "Ruskie DJ Station"
-	icon_state = "yellow"
 
 /area/shuttle/salvage/north
 	name = "North of the Station"
-	icon_state = "yellow"
 
 /area/shuttle/salvage/east
 	name = "East of the Station"
-	icon_state = "yellow"
 
 /area/shuttle/salvage/south
 	name = "South of the Station"
-	icon_state = "yellow"
 
 /area/shuttle/salvage/commssat
 	name = "The Communications Satellite"
-	icon_state = "yellow"
 
 /area/shuttle/salvage/mining
 	name = "South-West of the Mining Asteroid"
-	icon_state = "yellow"
 
 /area/shuttle/salvage/abandoned_ship
 	name = "Abandoned Ship"
-	icon_state = "yellow"
 
 /area/shuttle/salvage/clown_asteroid
 	name = "Clown Asteroid"
-	icon_state = "yellow"
 
 /area/shuttle/salvage/trading_post
 	name = "Trading Post"
-	icon_state = "yellow"
 
 /area/shuttle/salvage/transit
 	name = "hyperspace"
@@ -427,6 +402,7 @@ This applies to all STANDARD station areas
 
 /area/shuttle/pirate_corvette
 	name = "Pirate Corvette"
+	requires_power = TRUE
 	icon_state = "shuttle"
 	area_flags = NONE
 
@@ -434,15 +410,13 @@ This applies to all STANDARD station areas
 	name = "Hyperspace"
 	desc = "Weeeeee"
 	static_lighting = FALSE
-	base_lighting_color = COLOR_WHITE
 	base_lighting_alpha = 255
 
+/area/airtunnel1/ // referenced in airtunnel.dm:759
 
-/area/airtunnel1/      // referenced in airtunnel.dm:759
+/area/dummy/ // Referenced in engine.dm:261
 
-/area/dummy/           // Referenced in engine.dm:261
-
-/area/start            // will be unused once kurper gets his login interface patch done
+/area/start // will be unused once kurper gets his login interface patch done
 	name = "start area"
 	icon_state = "start"
 	requires_power = FALSE
@@ -459,7 +433,6 @@ This applies to all STANDARD station areas
 	icon_state = "centcom"
 	requires_power = FALSE
 	static_lighting = FALSE
-	base_lighting_color = COLOR_WHITE
 	base_lighting_alpha = 255
 	nad_allowed = TRUE
 	has_gravity = STANDARD_GRAVITY
@@ -505,9 +478,6 @@ This applies to all STANDARD station areas
 /area/centcom/evac
 	name = "Centcom Evacuation Emergency Shuttle"
 	icon_state = "centcom_evac"
-	static_lighting = FALSE
-	base_lighting_alpha = 255
-	base_lighting_color = COLOR_WHITE
 
 /area/centcom/specops
 	name = "Centcom Special Operations Forces"
@@ -579,16 +549,12 @@ This applies to all STANDARD station areas
 	has_gravity = STANDARD_GRAVITY
 	static_lighting = FALSE
 	base_lighting_alpha = 255
-	base_lighting_color = COLOR_WHITE
 	nad_allowed = TRUE
 	ambientsounds = HIGHSEC_SOUNDS
 	area_flags = NONE
 
 /area/syndicate_mothership/outside
 	name = "Syndicate Controlled Territory"
-	static_lighting = FALSE
-	base_lighting_color = COLOR_WHITE
-	base_lighting_alpha = 255
 	icon_state = "syndie-outside"
 
 /area/syndicate_mothership/control
@@ -616,11 +582,9 @@ This applies to all STANDARD station areas
 /area/ussp_ship
 	name = "USSP Ship Project 28u"
 	icon_state = "ussp_ship"
-	requires_power = TRUE
 	has_gravity = STANDARD_GRAVITY
 	static_lighting = FALSE
 	base_lighting_alpha = 255
-	base_lighting_color = COLOR_WHITE
 	ambientsounds = HIGHSEC_SOUNDS
 	area_flags = NONE
 
@@ -632,7 +596,6 @@ This applies to all STANDARD station areas
 	requires_power = FALSE
 	has_gravity = STANDARD_GRAVITY
 	static_lighting = FALSE
-	base_lighting_color = COLOR_WHITE
 	base_lighting_alpha = 255
 	nad_allowed = TRUE
 	area_flags = NONE
@@ -645,7 +608,6 @@ This applies to all STANDARD station areas
 	requires_power = FALSE
 	has_gravity = STANDARD_GRAVITY
 	static_lighting = FALSE
-	base_lighting_color = COLOR_WHITE
 	base_lighting_alpha = 255
 	nad_allowed = TRUE
 	area_flags = NONE
@@ -660,7 +622,6 @@ This applies to all STANDARD station areas
 /area/asteroid/cave				// -- TLE
 	name = "Asteroid - Underground"
 	icon_state = "cave"
-	requires_power = FALSE
 	outdoors = TRUE
 	min_ambience_cooldown = 70 SECONDS
 	max_ambience_cooldown = 220 SECONDS
@@ -675,19 +636,15 @@ This applies to all STANDARD station areas
 	requires_power = FALSE
 	has_gravity = STANDARD_GRAVITY
 	static_lighting = FALSE
-	base_lighting_color = COLOR_WHITE
 	base_lighting_alpha = 255
 	hide_attacklogs = TRUE
 	area_flags = NONE
 
-
 /area/tdome/arena_source
 	name = "Thunderdome Arena Template"
-	icon_state = "thunder"
 
 /area/tdome/arena
 	name = "Thunderdome Arena"
-	icon_state = "thunder"
 
 /area/tdome/tdome1
 	name = "Thunderdome (Team 1)"
@@ -707,7 +664,6 @@ This applies to all STANDARD station areas
 
 /area/tdome/newtdome
 	name = "New Thunderdome Arena"
-	icon_state = "thunder"
 
 /area/tdome/newtdome/CQC
 	name = "New Thunderdome Arena - Close Combat"
@@ -735,7 +691,6 @@ This applies to all STANDARD station areas
 	has_gravity = STANDARD_GRAVITY
 	static_lighting = FALSE
 	base_lighting_alpha = 255
-	base_lighting_color = COLOR_WHITE
 
 /area/ninja
 	name = "Ninja Area Parent"
@@ -745,7 +700,6 @@ This applies to all STANDARD station areas
 	no_teleportlocs = TRUE
 	static_lighting = FALSE
 	base_lighting_alpha = 255
-	base_lighting_color = COLOR_WHITE
 	sound_environment = SOUND_AREA_MEDIUM_SOFTFLOOR
 	nad_allowed = TRUE
 	area_flags = NONE
@@ -762,9 +716,6 @@ This applies to all STANDARD station areas
 /area/ninja/outside
 	name = "SpiderClan Territory"
 	icon_state = "ninja_outside"
-	static_lighting = FALSE
-	base_lighting_color = COLOR_WHITE
-	base_lighting_alpha = 255
 	sound_environment = SOUND_AREA_ASTEROID
 
 /area/vox_station
@@ -773,7 +724,6 @@ This applies to all STANDARD station areas
 	requires_power = FALSE
 	has_gravity = STANDARD_GRAVITY
 	static_lighting = FALSE
-	base_lighting_color = COLOR_WHITE
 	base_lighting_alpha = 255
 	no_teleportlocs = TRUE
 	area_flags = NONE
@@ -785,7 +735,6 @@ This applies to all STANDARD station areas
 	has_gravity = STANDARD_GRAVITY
 	static_lighting = FALSE
 	base_lighting_alpha = 255
-	base_lighting_color = COLOR_WHITE
 	area_flags = NONE
 
 /area/trader_station/sol
@@ -798,7 +747,6 @@ This applies to all STANDARD station areas
 	has_gravity = STANDARD_GRAVITY
 	static_lighting = FALSE
 	base_lighting_alpha = 255
-	base_lighting_color = COLOR_WHITE
 	area_flags = NONE
 
 /area/ussp_centcom/secretariat
@@ -809,35 +757,30 @@ This applies to all STANDARD station areas
 	name = "Labor Camp"
 	icon_state = "brig"
 
-/area/mine/laborcamp/security
-	name = "Labor Camp Security"
-	icon_state = "security"
-
 //STATION13
 
 /area/atmos
 	name = "Atmospherics"
 	icon_state = "atmos"
 	sound_environment = SOUND_AREA_LARGE_ENCLOSED
+	holomap_color = HOLOMAP_AREACOLOR_ENGINEERING
 
 /area/atmos/control
 	name = "Atmospherics Control Room"
-	icon_state = "atmos"
 	sound_environment = SOUND_AREA_STANDARD_STATION
 
 /area/atmos/distribution
- 	name = "Atmospherics Distribution Loop"
- 	icon_state = "atmos"
+	name = "Atmospherics Distribution Loop"
 
 /area/atmos/break_room
 	name = "Atmospherics Foyer"
-	icon_state = "atmos"
 
 // MAINTENANCE
 /area/maintenance
 	ambientsounds = MAINTENANCE_SOUNDS
 	valid_territory = FALSE
 	sound_environment = SOUND_AREA_TUNNEL_ENCLOSED
+	holomap_color = HOLOMAP_AREACOLOR_MAINTENANCE
 
 /area/maintenance/ai
 	name = "AI Maintenance"
@@ -1084,7 +1027,6 @@ This applies to all STANDARD station areas
 
 /area/maintenance/livingcomplex/hall
 	name = "Abandoned Living Complex Hall"
-	icon_state = "quart"
 
 /area/maintenance/cafeteria
 	name = "Abandoned Cafeteria"
@@ -1108,6 +1050,22 @@ This applies to all STANDARD station areas
 
 /area/maintenance/server
 	name = "Abandoned Server Room"
+	icon_state = "yellow"
+
+/area/maintenance/abandonedwarehouse
+	name = "Abandoned Warehouse"
+	icon_state = "yellow"
+
+/area/maintenance/abandonedoffices
+	name = "Abandoned Offices"
+	icon_state = "yellow"
+
+/area/maintenance/abandonedclub
+	name = "Abandoned Club"
+	icon_state = "yellow"
+
+/area/maintenance/abandonedhangar
+	name = "Abandoned Hangar"
 	icon_state = "yellow"
 
 /area/maintenance/cele //for SDMM group of zones
@@ -1137,6 +1095,7 @@ This applies to all STANDARD station areas
 /area/hallway
 	valid_territory = FALSE //too many areas with similar/same names, also not very interesting summon spots
 	sound_environment = SOUND_AREA_STANDARD_STATION
+	holomap_color = HOLOMAP_AREACOLOR_HALLWAYS
 
 /area/hallway/primary/fore
 	name = "North Primary Hallway"
@@ -1228,7 +1187,6 @@ This applies to all STANDARD station areas
 
 /area/hallway/primary/central/second
 	name = "Second Floor Central Primary Hallway"
-	icon_state = "hallC"
 
 /area/hallway/primary/central/second/north
 /area/hallway/primary/central/second/south
@@ -1285,10 +1243,11 @@ This applies to all STANDARD station areas
 /area/hallway/secondary/exit
 	name = "Escape Shuttle Hallway"
 	icon_state = "escape"
+	holomap_color = HOLOMAP_AREACOLOR_ESCAPE
 
 /area/hallway/secondary/exit/maint
 	name = "Abandoned Escape Shuttle Hallway"
-	icon_state = "escape"
+	holomap_color = HOLOMAP_AREACOLOR_MAINTENANCE
 
 /area/hallway/secondary/construction
 	name = "Construction Area"
@@ -1301,6 +1260,7 @@ This applies to all STANDARD station areas
 /area/hallway/secondary/entry
 	name = "Arrivals Hallway"
 	icon_state = "entry"
+	holomap_color = HOLOMAP_AREACOLOR_ARRIVALS
 
 /area/hallway/secondary/entry/eastarrival
 	name = "Arrival Shuttle East Hallway"
@@ -1320,7 +1280,7 @@ This applies to all STANDARD station areas
 
 /area/hallway/secondary/entry/lounge
 	name = "Arrivals Lounge"
-
+	holomap_color = HOLOMAP_AREACOLOR_HALLWAYS
 
 //Command
 
@@ -1329,6 +1289,7 @@ This applies to all STANDARD station areas
 	icon_state = "bridge"
 	ambientsounds = list('sound/ambience/signal.ogg')
 	sound_environment = SOUND_AREA_STANDARD_STATION
+	holomap_color = HOLOMAP_AREACOLOR_COMMAND
 
 /area/bridge/meeting_room
 	name = "Heads of Staff Meeting Room"
@@ -1338,18 +1299,16 @@ This applies to all STANDARD station areas
 /area/bridge/vip
 	name = "VIP Area"
 	icon_state = "meeting"
-
-/area/crew_quarters
-	sound_environment = SOUND_AREA_SMALL_SOFTFLOOR
+	holomap_color = HOLOMAP_AREACOLOR_HALLWAYS
 
 /area/crew_quarters/captain
 	name = "Captain's Office"
 	icon_state = "captain"
 	sound_environment = SOUND_AREA_WOODFLOOR
+	holomap_color = HOLOMAP_AREACOLOR_COMMAND
 
 /area/crew_quarters/captain/bedroom
 	name = "Captain's Bedroom"
-	icon_state = "captain"
 
 /area/crew_quarters/recruit
 	name = "Recruitment Office"
@@ -1357,43 +1316,45 @@ This applies to all STANDARD station areas
 
 /area/crew_quarters/heads/hop
 	name = "Head of Personnel's Quarters"
-	icon_state = "head_quarters"
 
 /area/crew_quarters/heads/hor
 	name = "Research Director's Quarters"
-	icon_state = "head_quarters"
+	holomap_color = HOLOMAP_AREACOLOR_SCIENCE
 
 /area/crew_quarters/heads/chief
 	name = "Chief Engineer's Quarters"
-	icon_state = "head_quarters"
 
 /area/crew_quarters/heads/hos
 	name = "Head of Security's Quarters"
-	icon_state = "head_quarters"
 
 /area/crew_quarters/heads/cmo
 	name = "Chief Medical Officer's Quarters"
-	icon_state = "head_quarters"
+	holomap_color = HOLOMAP_AREACOLOR_MEDICAL
 
 /area/crew_quarters/courtroom
 	name = "Courtroom"
 	icon_state = "courtroom"
+	holomap_color = HOLOMAP_AREACOLOR_SECURITY
 
 /area/crew_quarters/heads
 	name = "Head of Personnel's Office"
 	icon_state = "head_quarters"
+	holomap_color = HOLOMAP_AREACOLOR_COMMAND
 
 /area/crew_quarters/hor
 	name = "Research Director's Office"
 	icon_state = "head_quarters"
+	holomap_color = HOLOMAP_AREACOLOR_SCIENCE
 
 /area/crew_quarters/hos
 	name = "Head of Security's Office"
 	icon_state = "head_quarters"
+	holomap_color = HOLOMAP_AREACOLOR_SECURITY
 
 /area/crew_quarters/chief
 	name = "Chief Engineer's Office"
 	icon_state = "head_quarters"
+	holomap_color = HOLOMAP_AREACOLOR_ENGINEERING
 
 /area/mint
 	name = "Mint"
@@ -1412,10 +1373,12 @@ This applies to all STANDARD station areas
 /area/ntrep
 	name = "Nanotrasen Representative's Office"
 	icon_state = "ntrep"
+	holomap_color = HOLOMAP_AREACOLOR_COMMAND
 
 /area/blueshield
 	name = "Blueshield's Office"
 	icon_state = "blueshield"
+	holomap_color = HOLOMAP_AREACOLOR_COMMAND
 
 /area/centcomdocks
 	name = "Central Command Docks"
@@ -1423,25 +1386,22 @@ This applies to all STANDARD station areas
 
 /area/bridge/checkpoint
 	name = "Command Checkpoint"
-	icon_state = "bridge"
 
 /area/bridge/checkpoint/north
 	name = "North Command Checkpoint"
-	icon_state = "bridge"
 
 /area/bridge/checkpoint/south
 	name = "South Command Checkpoint"
-	icon_state = "bridge"
 //Crew
 
 /area/crew_quarters
 	name = "Dormitories"
 	icon_state = "Sleep"
-	sound_environment = SOUND_AREA_STANDARD_STATION
+	holomap_color = HOLOMAP_AREACOLOR_DORMS
+	sound_environment = SOUND_AREA_SMALL_SOFTFLOOR
 
 /area/crew_quarters/serviceyard
 	name = "Service Yard"
-	icon_state = "Sleep"
 
 /area/crew_quarters/cabin1
 	name = "First Cabin"
@@ -1474,19 +1434,16 @@ This applies to all STANDARD station areas
 	name = "Arrivals Toilets"
 	icon_state = "toilet"
 	sound_environment = SOUND_AREA_SMALL_ENCLOSED
+	holomap_color = HOLOMAP_AREACOLOR_ARRIVALS
 
 /area/crew_quarters/sleep
-	name = "Dormitories"
-	icon_state = "Sleep"
 	valid_territory = FALSE
 
 /area/crew_quarters/sleep/secondary
 	name = "Secondary Dormitories"
-	icon_state = "Sleep"
 
 /area/crew_quarters/sleep_male
 	name = "Male Dorm"
-	icon_state = "Sleep"
 
 /area/crew_quarters/sleep_male/toilet_male
 	name = "Male Toilets"
@@ -1494,7 +1451,6 @@ This applies to all STANDARD station areas
 
 /area/crew_quarters/sleep_female
 	name = "Female Dorm"
-	icon_state = "Sleep"
 
 /area/crew_quarters/sleep_female/toilet_female
 	name = "Female Toilets"
@@ -1519,6 +1475,7 @@ This applies to all STANDARD station areas
 /area/crew_quarters/trading
 	name = "Abandoned Tradiders Room"
 	icon_state = "blue"
+	holomap_color = HOLOMAP_AREACOLOR_MAINTENANCE
 
 /area/crew_quarters/arcade
 	name = "Arcade"
@@ -1527,15 +1484,18 @@ This applies to all STANDARD station areas
 /area/crew_quarters/cafeteria
 	name = "Cafeteria"
 	icon_state = "cafeteria"
+	holomap_color = HOLOMAP_AREACOLOR_SERVICE
 
 /area/crew_quarters/kitchen
 	name = "Kitchen"
 	icon_state = "kitchen"
+	holomap_color = HOLOMAP_AREACOLOR_SERVICE
 
 /area/crew_quarters/bar
 	name = "Bar"
 	icon_state = "barstation"
 	sound_environment = SOUND_AREA_WOODFLOOR
+	holomap_color = HOLOMAP_AREACOLOR_SERVICE
 
 /area/crew_quarters/bar/atrium
 	name = "Atrium"
@@ -1545,24 +1505,27 @@ This applies to all STANDARD station areas
 	name = "Theatre"
 	icon_state = "Theatre"
 	sound_environment = SOUND_AREA_WOODFLOOR
+	holomap_color = HOLOMAP_AREACOLOR_SERVICE
 
 /area/crew_quarters/mrchangs
 	name = "Mr Chang's"
 	icon_state = "Theatre"
+	holomap_color = HOLOMAP_AREACOLOR_HALLWAYS
 
 /area/library
 	name = "Library"
 	icon_state = "library"
 	sound_environment = SOUND_AREA_LARGE_SOFTFLOOR
+	holomap_color = HOLOMAP_AREACOLOR_SERVICE
 
 /area/library/game_zone
 	name = "Library Games Room"
-	icon_state = "library"
 
 /area/chapel
 	icon_state = "chapel"
 	ambientsounds = HOLY_SOUNDS
 	is_haunted = TRUE
+	holomap_color = HOLOMAP_AREACOLOR_SERVICE
 
 /area/chapel/main
 	name = "Chapel"
@@ -1580,30 +1543,38 @@ This applies to all STANDARD station areas
 /area/escapepodbay
 	name = "Escape Shuttle Hallway Podbay"
 	icon_state = "escape"
+	holomap_color = HOLOMAP_AREACOLOR_HANGAR
 
 /area/lawoffice
 	name = "Law Office"
 	icon_state = "law"
 	sound_environment = SOUND_AREA_SMALL_SOFTFLOOR
+	holomap_color = HOLOMAP_AREACOLOR_SECURITY
 
 /area/magistrateoffice
 	name = "Magistrate's Office"
 	icon_state = "magistrate"
 	sound_environment = SOUND_AREA_SMALL_SOFTFLOOR
+	holomap_color = HOLOMAP_AREACOLOR_SECURITY
 
 /area/clownoffice
 	name = "Clown's Office"
 	icon_state = "clown_office"
 	sound_environment = SOUND_ENVIRONMENT_PADDED_CELL
+	holomap_color = HOLOMAP_AREACOLOR_SERVICE
 
 /area/clownoffice/secret
 	name = "Top Secret Clown HQ"
+	holomap_color = HOLOMAP_AREACOLOR_MAINTENANCE
 
 /area/mimeoffice
 	name = "Mime's Office"
 	icon_state = "mime_office"
+	holomap_color = HOLOMAP_AREACOLOR_SERVICE
 
 // CIVILIAN
+/area/civilian
+	holomap_color = HOLOMAP_AREACOLOR_DORMS
 
 /area/civilian/vacantoffice
 	name = "Vacant Office"
@@ -1621,20 +1592,22 @@ This applies to all STANDARD station areas
 	name = "Pet Store"
 	icon_state = "pet_store"
 
+/area/civilian/vacantoffice2
+	name = "Vacant Office"
+	icon_state = "security"
+
 /area/holodeck
 	name = "Holodeck"
 	icon_state = "Holodeck"
 	static_lighting = FALSE
-	base_lighting_color = COLOR_WHITE
 	base_lighting_alpha = 255
+	holomap_color = HOLOMAP_AREACOLOR_DORMS
 
 /area/holodeck/alphadeck
 	name = "Holodeck Alpha"
 
-
 /area/holodeck/source_plating
 	name = "Holodeck - Off"
-	icon_state = "Holodeck"
 
 /area/holodeck/source_emptycourt
 	name = "Holodeck - Empty Court"
@@ -1650,7 +1623,6 @@ This applies to all STANDARD station areas
 
 /area/holodeck/source_beach
 	name = "Holodeck - Beach"
-	icon_state = "Holodeck" // Lazy.
 
 /area/holodeck/source_burntest
 	name = "Holodeck - Atmospheric Burn Test"
@@ -1679,53 +1651,14 @@ This applies to all STANDARD station areas
 /area/holodeck/source_knightarena
 	name = "Holodeck - Knight Arena"
 
-
-//Embassies
-/area/embassy/
-	name = "Embassy Hallway"
-
-/area/embassy/tajaran
-	name = "Tajaran Embassy"
-	icon_state = "tajaran"
-
-/area/embassy/skrell
-	name = "Skrell Embassy"
-	icon_state = "skrell"
-
-/area/embassy/unathi
-	name = "Unathi Embassy"
-	icon_state = "unathi"
-
-/area/embassy/kidan
-	name = "Kidan Embassy"
-	icon_state = "kidan"
-
-/area/embassy/diona
-	name = "Diona Embassy"
-	icon_state = "diona"
-
-/area/embassy/slime
-	name = "Slime Person Embassy"
-	icon_state = "slime"
-
-/area/embassy/grey
-	name = "Grey Embassy"
-	icon_state = "grey"
-
-/area/embassy/vox
-	name = "Vox Embassy"
-	icon_state = "vox"
-
-
-
 //Engineering
 /area/engineering
 	ambientsounds = ENGINEERING_SOUNDS
 	sound_environment = SOUND_AREA_LARGE_ENCLOSED
+	holomap_color = HOLOMAP_AREACOLOR_ENGINEERING
 
 /area/engineering/engine/smes
 	name = "Engineering SMES"
-	icon_state = "engine_smes"
 
 /area/engineering/engine
 	name = "Engineering"
@@ -1768,14 +1701,13 @@ This applies to all STANDARD station areas
 /area/engineering/mechanic_workshop
 	name = "Mechanic Workshop"
 	icon_state = "engine"
+	holomap_color = HOLOMAP_AREACOLOR_HANGAR
 
 /area/engineering/mechanic_workshop/expedition
 	name = "Hangar Expedition"
-	icon_state = "engine"
 
 /area/engineering/mechanic_workshop/hangar
 	name = "Hangаr Bay"
-	icon_state = "engine"
 
 /area/engineering/supermatter
 	name = "Supermatter Engine"
@@ -1790,7 +1722,6 @@ This applies to all STANDARD station areas
 	ambientsounds = ENGINEERING_SOUNDS
 	sound_environment = SOUND_AREA_SPACE
 	static_lighting = FALSE
-	base_lighting_color = COLOR_WHITE
 	base_lighting_alpha = 255
 
 /area/solar/auxport
@@ -1829,30 +1760,40 @@ This applies to all STANDARD station areas
 /area/maintenance/auxsolarport
 	name = "North-West Solar Maintenance"
 	icon_state = "SolarcontrolA"
+	holomap_color = HOLOMAP_AREACOLOR_ENGINEERING
 
 /area/maintenance/north_solars
 	name = "North Solar Maintenance"
 	icon_state = "SolarcontrolA"
+	holomap_color = HOLOMAP_AREACOLOR_ENGINEERING
 
 /area/maintenance/starboardaux
 	name = "East Solar Maintenance"
 	icon_state = "SolarcontrolS"
+	holomap_color = HOLOMAP_AREACOLOR_ENGINEERING
 
 /area/maintenance/starboardsolar
 	name = "South-East Solar Maintenance"
 	icon_state = "SolarcontrolS"
+	holomap_color = HOLOMAP_AREACOLOR_ENGINEERING
 
 /area/maintenance/portsolar
 	name = "South-West Solar Maintenance"
 	icon_state = "SolarcontrolP"
+	holomap_color = HOLOMAP_AREACOLOR_ENGINEERING
 
 /area/maintenance/auxsolarstarboard
 	name = "North-East Solar Maintenance"
 	icon_state = "SolarcontrolA"
+	holomap_color = HOLOMAP_AREACOLOR_ENGINEERING
 
 /area/maintenance/west_solars
 	name = "West Solar Maintenance"
 	icon_state = "SolarcontrolA"
+	holomap_color = HOLOMAP_AREACOLOR_ENGINEERING
+
+/area/assembly
+	holomap_color = HOLOMAP_AREACOLOR_SCIENCE
 
 /area/assembly/chargebay
 	name = "Mech Bay"
@@ -1879,14 +1820,18 @@ This applies to all STANDARD station areas
 	name = "Teleporter"
 	icon_state = "teleporter"
 	ambientsounds = ENGINEERING_SOUNDS
+	holomap_color = HOLOMAP_AREACOLOR_COMMAND
 
 /area/teleporter/research
 	name = "Robotics Teleporter"
 
 /area/teleporter/abandoned
-    name = "Abandoned Teleporter"
-    icon_state = "teleporter"
-    ambientsounds = ENGINEERING_SOUNDS
+	name = "Abandoned Teleporter"
+	ambientsounds = ENGINEERING_SOUNDS
+	holomap_color = HOLOMAP_AREACOLOR_MAINTENANCE
+
+/area/teleporter/quantum
+	holomap_color = HOLOMAP_AREACOLOR_HALLWAYS
 
 /area/teleporter/quantum/security
 	name = "Security Quantum Pad"
@@ -1916,20 +1861,14 @@ This applies to all STANDARD station areas
 	name = "Gateway"
 	icon_state = "teleporter"
 	ambientsounds = ENGINEERING_SOUNDS
+	holomap_color = HOLOMAP_AREACOLOR_COMMAND
 
 /area/AIsattele
 	name = "Unknown Teleporter"
 	icon_state = "teleporter"
 	ambientsounds = list('sound/ambience/ambimalf.ogg', 'sound/ambience/signal.ogg')
 	area_flags = UNIQUE_AREA
-
-/area/toxins/explab
-	name = "E.X.P.E.R.I-MENTOR Lab"
-	icon_state = "toxmisc"
-
-/area/toxins/explab_chamber
-	name = "E.X.P.E.R.I-MENTOR Chamber"
-	icon_state = "toxmisc"
+	holomap_color = HOLOMAP_AREACOLOR_COMMAND
 
 //MedBay
 
@@ -1938,6 +1877,7 @@ This applies to all STANDARD station areas
 	sound_environment = SOUND_AREA_STANDARD_STATION
 	min_ambience_cooldown = 90 SECONDS
 	max_ambience_cooldown = 180 SECONDS
+	holomap_color = HOLOMAP_AREACOLOR_MEDICAL
 
 /area/medical/medbay
 	name = "Medbay"
@@ -1951,7 +1891,6 @@ This applies to all STANDARD station areas
 /area/medical/medbay3
 	name = "Medbay"
 	icon_state = "medbay3"
-
 
 /area/medical/biostorage
 	name = "Medical Storage"
@@ -2013,22 +1952,16 @@ This applies to all STANDARD station areas
 /area/medical/research
 	name = "Research Division"
 	icon_state = "research"
+	holomap_color = HOLOMAP_AREACOLOR_SCIENCE
 
 /area/medical/research/nhallway
 	name = "RnD North Hallway"
-	icon_state = "research"
 
 /area/medical/research/shallway
 	name = "RnD South Hallway"
-	icon_state = "research"
 
 /area/medical/research/restroom
 	name = "RnD Restroom"
-	icon_state = "research"
-
-/area/medical/research_shuttle_dock
-	name = "Research Shuttle Dock"
-	icon_state = "medresearch"
 
 /area/medical/virology
 	name = "Virology"
@@ -2036,7 +1969,6 @@ This applies to all STANDARD station areas
 
 /area/medical/virology/lab
 	name = "Virology Laboratory"
-	icon_state = "virology"
 
 /area/medical/morgue
 	name = "Morgue"
@@ -2098,6 +2030,7 @@ This applies to all STANDARD station areas
 /area/security
 	ambientsounds = HIGHSEC_SOUNDS
 	sound_environment = SOUND_AREA_STANDARD_STATION
+	holomap_color = HOLOMAP_AREACOLOR_SECURITY
 
 /area/security/main
 	name = "Security Office"
@@ -2152,7 +2085,6 @@ This applies to all STANDARD station areas
 
 /area/security/prison/cell_block/C
 	name = "Prison Cell Block C"
-	icon_state = "brig"
 
 /area/security/reception
 	name = "Brig Reception"
@@ -2262,6 +2194,7 @@ This applies to all STANDARD station areas
 /area/security/nuke_storage
 	name = "Vault"
 	icon_state = "nuke_storage"
+	holomap_color = HOLOMAP_AREACOLOR_COMMAND
 
 /area/security/customs
 	name = "Customs"
@@ -2285,37 +2218,25 @@ This applies to all STANDARD station areas
 
 /area/security/checkpoint/supply
 	name = "Security Post - Cargo Bay"
-	icon_state = "checkpoint1"
 
 /area/security/checkpoint/engineering
 	name = "Security Post - Engineering"
-	icon_state = "checkpoint1"
 
 /area/security/checkpoint/medical
 	name = "Security Post - Medbay"
-	icon_state = "checkpoint1"
 
 /area/security/checkpoint/science
 	name = "Security Post - Science"
-	icon_state = "checkpoint1"
-
-/area/civilian/vacantoffice2
-	name = "Vacant Office"
-	icon_state = "security"
 
 /area/quartermaster
 	name = "Quartermasters"
 	icon_state = "quart"
 	sound_environment = SOUND_AREA_STANDARD_STATION
-
-///////////WORK IN PROGRESS//////////
+	holomap_color = HOLOMAP_AREACOLOR_CARGO
 
 /area/quartermaster/sorting
 	name = "Delivery Office"
 	icon_state = "quartstorage"
-	sound_environment = SOUND_AREA_STANDARD_STATION
-
-////////////WORK IN PROGRESS//////////
 
 /area/quartermaster/office
 	name = "Cargo Office"
@@ -2336,7 +2257,6 @@ This applies to all STANDARD station areas
 
 /area/quartermaster/qm
 	name = "Quartermaster's Office"
-	icon_state = "quart"
 
 /area/quartermaster/miningdock
 	name = "Mining Dock"
@@ -2354,11 +2274,13 @@ This applies to all STANDARD station areas
 	name = "Custodial Closet"
 	icon_state = "janitor"
 	sound_environment = SOUND_AREA_SMALL_ENCLOSED
+	holomap_color = HOLOMAP_AREACOLOR_SERVICE
 
 /area/hydroponics
 	name = "Hydroponics"
 	icon_state = "hydro"
 	sound_environment = SOUND_AREA_STANDARD_STATION
+	holomap_color = HOLOMAP_AREACOLOR_SERVICE
 
 /area/maintenance/garden
 	name = "Old Garden"
@@ -2369,10 +2291,6 @@ This applies to all STANDARD station areas
 
 /area/maintenance/garden/north
 	name = "North Old Garden"
-	icon_state = "hydro"
-	power_equip = FALSE
-	power_light = FALSE
-	power_environ = FALSE
 
 /area/maintenance/kitchen
 	name = "Old Restaurant"
@@ -2385,6 +2303,8 @@ This applies to all STANDARD station areas
 
 /area/toxins
 	sound_environment = SOUND_AREA_STANDARD_STATION
+	holomap_color = HOLOMAP_AREACOLOR_SCIENCE
+
 /area/toxins/lab
 	name = "Research and Development"
 	icon_state = "toxlab"
@@ -2396,10 +2316,6 @@ This applies to all STANDARD station areas
 /area/toxins/rdoffice
 	name = "Research Director's Office"
 	icon_state = "head_quarters"
-
-/area/toxins/supermatter
-	name = "Supermatter Lab"
-	icon_state = "toxlab"
 
 /area/toxins/xenobiology
 	name = "Xenobiology Lab"
@@ -2447,18 +2363,24 @@ This applies to all STANDARD station areas
 	name = "Server Coldroom"
 	icon_state = "servercold"
 
-/area/toxins/explab
-	name = "Experimentation Lab"
-	icon_state = "toxmisc"
-
 /area/toxins/sm_test_chamber
 	name = "Supermatter Testing Lab"
 	icon_state = "toxtest"
+	holomap_color = HOLOMAP_AREACOLOR_MAINTENANCE
+
+/area/toxins/explab
+	name = "E.X.P.E.R.I-MENTOR Lab"
+	icon_state = "toxmisc"
+
+/area/toxins/explab_chamber
+	name = "E.X.P.E.R.I-MENTOR Chamber"
+	icon_state = "toxmisc"
 
 //Storage
 
 /area/storage
 	sound_environment = SOUND_AREA_STANDARD_STATION
+	holomap_color = HOLOMAP_AREACOLOR_HALLWAYS
 
 /area/storage/tools
 	name = "Auxiliary Tool Storage"
@@ -2484,38 +2406,33 @@ This applies to all STANDARD station areas
 	name = "EVA Storage"
 	icon_state = "eva"
 	ambientsounds = HIGHSEC_SOUNDS
+	holomap_color = HOLOMAP_AREACOLOR_COMMAND
 
 /area/storage/secure
 	name = "Secure Storage"
 	icon_state = "storage"
 	ambientsounds = HIGHSEC_SOUNDS
+	holomap_color = HOLOMAP_AREACOLOR_ENGINEERING
 
 /area/storage/emergency
 	name = "East Emergency Storage"
 	icon_state = "emergencystorage"
+	holomap_color = HOLOMAP_AREACOLOR_MAINTENANCE
 
 /area/storage/emergency2
 	name = "West Emergency Storage"
 	icon_state = "emergencystorage"
+	holomap_color = HOLOMAP_AREACOLOR_MAINTENANCE
 
 /area/storage/tech
 	name = "Technical Storage"
 	icon_state = "auxstorage"
+	holomap_color = HOLOMAP_AREACOLOR_ENGINEERING
 
 /area/storage/office
 	name = "Office Supplies"
 	icon_state = "office_supplies"
-
-// ENGIE OUTPOST
-
-/area/engiestation
-	name = "Engineering Outpost"
-	icon_state = "construction"
-	has_gravity = STANDARD_GRAVITY
-
-/area/engiestation/solars
-	name = "Engineering Outpost Solars"
-	icon_state = "panelsP"
+	holomap_color = HOLOMAP_AREACOLOR_DORMS
 
 //DJSTATION
 
@@ -2527,7 +2444,6 @@ This applies to all STANDARD station areas
 
 /area/djstation/solars
 	name = "Ruskie DJ Station Solars"
-	icon_state = "DJ"
 
 //DERELICT
 
@@ -2694,98 +2610,24 @@ This applies to all STANDARD station areas
 	icon_state = "yellow"
 	ambientsounds = ENGINEERING_SOUNDS
 	sound_environment = SOUND_AREA_STANDARD_STATION
-
-/area/mining_construction
-	name = "Auxillary Base Construction"
-	icon_state = "yellow"
-
-/area/construction/supplyshuttle
-	name = "Supply Shuttle"
-	icon_state = "yellow"
-
-/area/construction/quarters
-	name = "Engineer's Quarters"
-	icon_state = "yellow"
-
-/area/construction/qmaint
-	name = "Maintenance"
-	icon_state = "yellow"
+	holomap_color = HOLOMAP_AREACOLOR_ENGINEERING
 
 /area/construction/hallway
 	name = "Hallway"
-	icon_state = "yellow"
+	holomap_color = HOLOMAP_AREACOLOR_COMMAND
 
 /area/construction/solars
 	name = "Solar Panels"
-	icon_state = "yellow"
-
-/area/construction/solarscontrol
-	name = "Solar Panel Control"
-	icon_state = "yellow"
-
-/area/construction/Storage
-	name = "Construction Site Storage"
-	icon_state = "yellow"
-
 
 //GAYBAR
 /area/secret/gaybar
 	name = "Dance Bar"
 	icon_state = "dancebar"
 
-
-//Traitor Station
-/area/traitor
-	name = "Syndicate Base"
-	icon_state = "syndie_hall"
-	report_alerts = FALSE
-	has_gravity = STANDARD_GRAVITY
-	area_flags = NONE
-
-/area/traitor/rnd
-	name = "Syndicate Research and Development"
-	icon_state = "syndie_rnd"
-
-/area/traitor/chem
-	name = "Syndicate Chemistry"
-	icon_state = "syndie_chem"
-
-/area/traitor/tox
-	name = "Syndicate Toxins"
-	icon_state = "syndie_tox"
-
-/area/traitor/atmos
-	name = "Syndicate Atmos"
-	icon_state = "syndie_atmo"
-
-/area/traitor/inter
-	name = "Syndicate Interrogation"
-	icon_state = "syndie_inter"
-
-/area/traitor/radio
-	name = "Syndicate Eavesdropping Booth"
-	icon_state = "syndie_radio"
-
-/area/traitor/surgery
-	name = "Syndicate Surgery Theatre"
-	icon_state = "syndie_surgery"
-
-/area/traitor/hall
-	name = "Syndicate Station"
-	icon_state = "syndie_hall"
-
-/area/traitor/kitchen
-	name = "Syndicate Kitchen"
-	icon_state = "syndie_kitchen"
-
-/area/traitor/empty
-	name = "Syndicate Project Room"
-	icon_state = "syndie_empty"
-
-
 //AI
-/area/turret_protected/
+/area/turret_protected
 	ambientsounds = list('sound/ambience/ambimalf.ogg', 'sound/ambience/ambitech.ogg', 'sound/ambience/ambitech2.ogg', 'sound/ambience/ambiatmos.ogg', 'sound/ambience/ambiatmos2.ogg')
+	holomap_color = HOLOMAP_AREACOLOR_COMMAND
 
 /area/turret_protected/ai_upload
 	name = "AI Upload Chamber"
@@ -2809,10 +2651,12 @@ This applies to all STANDARD station areas
 /area/aisat
 	name = "AI Satellite Hallway"
 	icon_state = "yellow"
+	holomap_color = HOLOMAP_AREACOLOR_COMMAND
 
 /area/aisat/aihallway
 	name = "AI Satellite Exterior Hallway"
-	icon_state = "yellow"
+	ambientsounds = ENGINEERING_SOUNDS
+	sound_environment = SOUND_AREA_STANDARD_STATION
 
 /area/aisat/entrance
 	name = "AI Satellite Entrance"
@@ -2834,35 +2678,12 @@ This applies to all STANDARD station areas
 /area/turret_protected/aisat_interior/secondary
 	name = "AI Satellite Secondary Antechamber"
 
-//Misc
-
-/area/wreck/ai
-	name = "AI Chamber"
-	icon_state = "ai"
-
-/area/wreck/main
-	name = "Wreck"
-	icon_state = "storage"
-
-/area/wreck/engineering
-	name = "Power Room"
-	icon_state = "engine"
-
-/area/wreck/bridge
-	name = "Bridge"
-	icon_state = "bridge"
-
-/area/generic
-	name = "Unknown"
-	icon_state = "storage"
-
-
-
 // Telecommunications Satellite
 
 /area/tcommsat
 	ambientsounds = list('sound/ambience/ambisin2.ogg', 'sound/ambience/signal.ogg', 'sound/ambience/signal.ogg', 'sound/ambience/ambigen10.ogg', 'sound/ambience/ambitech.ogg',\
 											'sound/ambience/ambitech2.ogg', 'sound/ambience/ambitech3.ogg', 'sound/ambience/ambimystery.ogg')
+	holomap_color = HOLOMAP_AREACOLOR_COMMAND
 
 /area/tcommsat/chamber
 	name = "Telecoms Central Compartment"
@@ -2915,20 +2736,18 @@ This applies to all STANDARD station areas
 	ambientsounds = AWAY_MISSION_SOUNDS
 	sound_environment = SOUND_ENVIRONMENT_ROOM
 	area_flags = NONE
+
 /area/awaymission/example
 	name = "Strange Station"
-	icon_state = "away"
 
 /area/awaymission/desert
 	name = "Sudden Drop"
-	icon_state = "away"
 
 /area/awaymission/beach
 	name = "Beach"
 	icon_state = "beach"
 	static_lighting = FALSE
 	base_lighting_alpha = 255
-	base_lighting_color = COLOR_WHITE
 	requires_power = FALSE
 	ambientsounds = list('sound/ambience/shore.ogg', 'sound/ambience/seag1.ogg', 'sound/ambience/seag2.ogg', 'sound/ambience/seag2.ogg', 'sound/ambience/ambiodd.ogg', 'sound/ambience/ambinice.ogg')
 
@@ -2936,13 +2755,13 @@ This applies to all STANDARD station areas
 	name = "Undersea"
 	icon_state = "undersea"
 
-
 // area for AWAY "moonoutpost19"
 /area/moonoutpost19
 	name = "moonoutpost"
 	has_gravity = STANDARD_GRAVITY
 	report_alerts = FALSE
 	area_flags = NONE
+	holomap_should_draw = FALSE
 
 /area/moonoutpost19/mo19arrivals
 	name = "MO19 Arrivals"
@@ -2962,7 +2781,6 @@ This applies to all STANDARD station areas
 	power_light = FALSE
 	poweralm = FALSE
 	outdoors = TRUE
-	area_flags = NONE
 
 /area/moonoutpost19/syndicateoutpost
 	name = "Syndicate Outpost"
@@ -2985,13 +2803,13 @@ This applies to all STANDARD station areas
 /area/ae13
 	icon_state = "ae13"
 	always_unpowered = TRUE
-	requires_power = TRUE
 	poweralm = FALSE
 	power_environ = FALSE
 	power_equip = FALSE
 	power_light = FALSE
 	outdoors = TRUE
 	has_gravity = STANDARD_GRAVITY
+	holomap_should_draw = FALSE
 
 /area/ae13/medbay
 	name = "medbay"
@@ -3021,7 +2839,6 @@ This applies to all STANDARD station areas
 	name = "asteroid"
 	icon_state = "ae13_asteroid"
 
-
 ////////////////////////AWAY AREAS///////////////////////////////////
 
 /area/awaycontent
@@ -3029,6 +2846,7 @@ This applies to all STANDARD station areas
 	report_alerts = FALSE
 	has_gravity = STANDARD_GRAVITY
 	area_flags = NONE
+	holomap_should_draw = FALSE
 
 /area/awaycontent/a1
 	icon_state = "awaycontent1"
@@ -3122,8 +2940,8 @@ This applies to all STANDARD station areas
 
 /////////////////////////////////////////////////////////////////////
 /*
- Lists of areas to be used with is_type_in_list.
- Used in gamemodes code at the moment. --rastaf0
+	Lists of areas to be used with is_type_in_list.
+	Used in gamemodes code at the moment. --rastaf0
 */
 
 // CENTCOM
@@ -3138,17 +2956,14 @@ GLOBAL_LIST_INIT(centcom_areas, list(
 	/area/shuttle/specops/centcom,
 ))
 
-
 //// Special event areas
 
 /area/special_event
 	name = "Special event area"
-	icon_state = "unknown"
-	requires_power = TRUE
-	static_lighting = TRUE
 	report_alerts = FALSE
 	has_gravity = STANDARD_GRAVITY
 	area_flags = NONE
+	holomap_should_draw = FALSE
 
 /area/special_event/alpha
 	name = "Special event area Alpha"
@@ -3173,7 +2988,6 @@ GLOBAL_LIST_INIT(centcom_areas, list(
 //space area
 /area/ruin/space/bubblegum_arena
 	name = "Bubblegum Arena"
-
 
 /area/ruin/USSP_SpaceBanya
 	name = "Space_abandoned_banya"
@@ -3275,3 +3089,669 @@ GLOBAL_LIST_INIT(centcom_areas, list(
 /area/ruin/space/pirate_base/black_market
 	name = "Black Market"
 	icon_state = "awaycontent23"
+
+// Malta event map
+/area/ruin/unpowered/coldcolony_outside
+	name = "Surface"
+	always_unpowered = TRUE
+	ignore_gravgen = TRUE
+	outdoors = TRUE
+
+/area/coldcolony
+	name = "coldcolony"
+	holomap_should_draw = FALSE
+	has_gravity = TRUE
+	ignore_gravgen = TRUE
+
+/area/coldcolony/ruin
+	name = "ruin"
+
+/area/coldcolony/ruin/sm_division
+	name = "Abandoned SM Research Division"
+	icon_state = "research"
+
+/area/coldcolony/ruin/sm_maintenance
+	name = "Abandoned SM Maintenance"
+	icon_state = "asmaint"
+
+/area/coldcolony/ruin/sm_lab
+	name = "Abandoned SM Laboratory"
+	icon_state = "toxlab"
+
+/area/coldcolony/ruin/sm_chamber
+	name = "Abandoned SM Chamber"
+	icon_state = "toxtest"
+
+/area/coldcolony/ruin/abandoned_banya
+	name = "Abandoned Banya"
+	icon_state = "barstation"
+
+/area/coldcolony/ruin/syndie_outpost
+	name = "Syndicate Recruiter Outpost"
+	icon_state = "red"
+
+/area/coldcolony/ruin/abandoned_house
+	name = "House"
+	icon_state = "red"
+
+/area/coldcolony/ruin/abandoned_garage
+	name = "Mech Garage"
+	icon_state = "mining"
+
+//Malta
+/area/coldcolony/malta
+	name = "malta"
+	holomap_should_draw = TRUE
+	sound_environment = SOUND_AREA_STANDARD_STATION
+
+/area/coldcolony/malta/outer
+	name = "outer"
+
+/area/coldcolony/malta/outer/roadblock
+	name = "Roadblock"
+	icon_state = "entry"
+	holomap_color = HOLOMAP_AREACOLOR_ARRIVALS
+
+//Malta Cargo
+/area/coldcolony/malta/quartermaster
+	name = "Quartermasters"
+	icon_state = "quart"
+	holomap_color = HOLOMAP_AREACOLOR_CARGO
+
+/area/coldcolony/malta/quartermaster/miningbar
+	name = "Miner's bar"
+	icon_state = "mining_living"
+
+/area/coldcolony/malta/quartermaster/ore_production
+	name = "Mining Production"
+	icon_state = "mining_production"
+
+/area/coldcolony/malta/quartermaster/miningeva
+	name = "Mining EVA"
+	icon_state = "mining_eva"
+
+/area/coldcolony/malta/quartermaster/mining_post1
+	name = "Mining"
+	icon_state = "mining"
+
+/area/coldcolony/malta/quartermaster/sorting
+	name = "Delivery Office"
+	icon_state = "quartstorage"
+
+/area/coldcolony/malta/quartermaster/storage
+	name = "Cargo Bay"
+	icon_state = "quartstorage"
+	sound_environment = SOUND_AREA_LARGE_ENCLOSED
+
+/area/coldcolony/malta/quartermaster/office
+	name = "Cargo Office"
+	icon_state = "quartoffice"
+
+/area/coldcolony/malta/quartermaster/qm
+	name = "Quartermaster's Office"
+
+//Malta Other
+/area/coldcolony/malta/chapel
+	icon_state = "chapel"
+	ambientsounds = HOLY_SOUNDS
+	is_haunted = TRUE
+	holomap_color = HOLOMAP_AREACOLOR_SERVICE
+
+/area/coldcolony/malta/chapel/main
+	name = "Chapel"
+
+/area/coldcolony/malta/chapel/office
+	name = "Chapel Office"
+	icon_state = "chapeloffice"
+
+/area/coldcolony/malta/escape_toilet
+	name = "Arrivals Toilets"
+	icon_state = "toilet"
+	sound_environment = SOUND_AREA_SMALL_ENCLOSED
+	holomap_color = HOLOMAP_AREACOLOR_ARRIVALS
+
+/area/coldcolony/malta/civilian
+	holomap_color = HOLOMAP_AREACOLOR_DORMS
+
+/area/coldcolony/malta/civilian/vacantoffice
+	name = "Vacant Office"
+	icon_state = "green"
+
+/area/coldcolony/malta/civilian/trading
+	name = "Abandoned Tradiders Room"
+	icon_state = "blue"
+	holomap_color = HOLOMAP_AREACOLOR_MAINTENANCE
+
+/area/coldcolony/malta/civilian/mrchangs
+	name = "Mr Chang's"
+	icon_state = "Theatre"
+	holomap_color = HOLOMAP_AREACOLOR_HALLWAYS
+
+//Malta Residental
+/area/coldcolony/malta/resid_serv
+	holomap_color = HOLOMAP_AREACOLOR_SERVICE
+
+/area/coldcolony/malta/resid_serv/crew_quarters
+	sound_environment = SOUND_AREA_SMALL_SOFTFLOOR
+	icon_state = "Sleep"
+	holomap_color = HOLOMAP_AREACOLOR_DORMS
+
+/area/coldcolony/malta/resid_serv/crew_quarters/cabin1
+	name = "First Cabin"
+
+/area/coldcolony/malta/resid_serv/crew_quarters/cabin2
+	name = "Second Cabin"
+
+/area/coldcolony/malta/resid_serv/crew_quarters/sleep
+	name = "Dormitories"
+	valid_territory = FALSE
+
+/area/coldcolony/malta/resid_serv/crew_quarters/fitness
+	name = "Fitness Room"
+	icon_state = "fitness"
+
+/area/coldcolony/malta/resid_serv/crew_quarters/locker
+	name = "Locker Room"
+	icon_state = "locker"
+
+/area/coldcolony/malta/resid_serv/crew_quarters/locker_toilet
+	name = "Locker Toilets"
+	icon_state = "toilet"
+
+/area/coldcolony/malta/resid_serv/crew_quarters/barber
+	name = "Barber Shop"
+	icon_state = "barber"
+
+/area/coldcolony/malta/resid_serv/crew_quarters/theatre
+	name = "Theatre"
+	icon_state = "Theatre"
+	sound_environment = SOUND_AREA_WOODFLOOR
+
+/area/coldcolony/malta/resid_serv/clownoffice
+	name = "Clown's Office"
+	icon_state = "clown_office"
+	sound_environment = SOUND_ENVIRONMENT_PADDED_CELL
+
+/area/coldcolony/malta/resid_serv/mimeoffice
+	name = "Mime's Office"
+	icon_state = "mime_office"
+
+/area/coldcolony/malta/resid_serv/bar
+	name = "Bar"
+	icon_state = "barstation"
+	sound_environment = SOUND_AREA_WOODFLOOR
+
+/area/coldcolony/malta/resid_serv/bar/atrium
+	name = "Atrium"
+	icon_state = "bar"
+
+/area/coldcolony/malta/resid_serv/janitor
+	name = "Custodial Closet"
+	icon_state = "janitor"
+	sound_environment = SOUND_AREA_SMALL_ENCLOSED
+
+/area/coldcolony/malta/resid_serv/library
+	name = "Library"
+	icon_state = "library"
+	sound_environment = SOUND_AREA_LARGE_SOFTFLOOR
+
+/area/coldcolony/malta/resid_serv/library/game_zone
+	name = "Library Games Room"
+
+/area/coldcolony/malta/resid_serv/hydroponics
+	name = "Hydroponics"
+	icon_state = "hydro"
+
+/area/coldcolony/malta/resid_serv/kitchen
+	name = "Kitchen"
+	icon_state = "kitchen"
+
+//Malta Hallways
+/area/coldcolony/malta/hallway
+	valid_territory = FALSE
+	holomap_color = HOLOMAP_AREACOLOR_HALLWAYS
+
+/area/coldcolony/malta/hallway/service
+	icon_state = "hallP"
+
+/area/coldcolony/malta/hallway/bridge
+	name = "Command Entrance"
+	icon_state = "hallC"
+
+/area/coldcolony/malta/hallway/cargo_escape
+	icon_state = "hallS"
+
+/area/coldcolony/malta/hallway/service/north
+	name = "North Service Entrance"
+
+/area/coldcolony/malta/hallway/service/nw
+	name = "Abandoned Service Hallway"
+
+/area/coldcolony/malta/hallway/service/central
+	name = "Central Service Hallway"
+
+/area/coldcolony/malta/hallway/service/east
+	name = "East Service Hallway"
+
+/area/coldcolony/malta/hallway/service/south
+	name = "South Service Entrance"
+
+/area/coldcolony/malta/hallway/cargo_escape/north
+	name = "North Escape Hallway"
+
+/area/coldcolony/malta/hallway/cargo_escape/exit
+	name = "Escape Shuttle Hallway"
+	icon_state = "escape"
+	holomap_color = HOLOMAP_AREACOLOR_ESCAPE
+
+/area/coldcolony/malta/hallway/cargo_escape/entrance
+	name = "Escape Entrance"
+
+/area/coldcolony/malta/hallway/cargo_escape/port
+	icon_state = "entry"
+
+/area/coldcolony/malta/hallway/cargo_escape/port/west
+	name = "Port Commercial West Hallway"
+
+/area/coldcolony/malta/hallway/cargo_escape/port/central
+	name = "Port Central Hallway"
+
+/area/coldcolony/malta/hallway/cargo_escape/port/east
+	name = "Port East Hallway"
+
+//Malta Maintenance
+/area/coldcolony/malta/maintenance
+	ambientsounds = MAINTENANCE_SOUNDS
+	valid_territory = FALSE
+	sound_environment = SOUND_AREA_TUNNEL_ENCLOSED
+	holomap_color = HOLOMAP_AREACOLOR_MAINTENANCE
+
+/area/coldcolony/malta/maintenance/incinerator
+	name = "Incinerator"
+	icon_state = "disposal"
+
+/area/coldcolony/malta/maintenance/kitchen
+	name = "Old Restaurant"
+	icon_state = "kitchen"
+	power_equip = FALSE
+	power_light = FALSE
+	power_environ = FALSE
+
+/area/coldcolony/malta/maintenance/garden
+	name = "Old Garden"
+	icon_state = "hydro"
+	power_equip = FALSE
+	power_light = FALSE
+	power_environ = FALSE
+
+/area/coldcolony/malta/maintenance/servicegen
+	name = "Generator Service"
+	icon_state = "fmaint"
+
+/area/coldcolony/malta/maintenance/dormitory
+	name = "Dormitory Maintenance"
+	icon_state = "fmaint"
+
+/area/coldcolony/malta/maintenance/bar
+	name = "Bar Maintenance"
+	icon_state = "fmaint"
+
+/area/coldcolony/malta/maintenance/casino
+	name = "Abandoned Casino"
+	icon_state = "yellow"
+
+/area/coldcolony/malta/maintenance/brig
+	name = "Brig Maintenance"
+	icon_state = "pmaint"
+
+/area/coldcolony/malta/maintenance/medbay
+	name = "Medbay Maintenance"
+	icon_state = "asmaint"
+
+/area/coldcolony/malta/maintenance/bridge
+	name = "Bridge Maintenance"
+	icon_state = "central"
+
+/area/coldcolony/malta/maintenance/cargo
+	name = "Cargo Maintenance"
+	icon_state = "apmaint"
+
+/area/coldcolony/malta/maintenance/research
+	name = "Research Maintenance"
+	icon_state = "asmaint"
+
+/area/coldcolony/malta/maintenance/science
+	name = "Science Maintenance"
+	icon_state = "asmaint"
+
+/area/coldcolony/malta/maintenance/engineering
+	name = "Engineering Maintenance"
+	icon_state = "green"
+
+/area/coldcolony/malta/maintenance/perma
+	name = "Prison Maintenance"
+	icon_state = "green"
+
+//Malta Medical
+/area/coldcolony/malta/medical
+	ambientsounds = MEDICAL_SOUNDS
+	min_ambience_cooldown = 90 SECONDS
+	max_ambience_cooldown = 180 SECONDS
+	holomap_color = HOLOMAP_AREACOLOR_MEDICAL
+
+/area/coldcolony/malta/medical/morgue
+	name = "Morgue"
+	icon_state = "morgue"
+	power_environ = FALSE
+	power_equip = FALSE
+	power_light = FALSE
+	poweralm = FALSE
+
+/area/coldcolony/malta/medical/sleeper
+	name = "Medical Treatment Center"
+	icon_state = "exam_room"
+
+/area/coldcolony/malta/medical/cmo
+	name = "Chief Medical Officer's Office"
+	icon_state = "CMO"
+
+/area/coldcolony/malta/medical/cmostore
+	name = "Medical Secondary Storage"
+	icon_state = "medbaysecstorage"
+
+/area/coldcolony/malta/medical/medbay
+	name = "Medbay"
+	icon_state = "medbay"
+
+/area/coldcolony/malta/medical/paramedic
+	name = "Paramedic"
+	icon_state = "medbay"
+
+/area/coldcolony/malta/medical/chemistry
+	name = "Chemistry"
+	icon_state = "chem"
+
+/area/coldcolony/malta/medical/surgery
+	name = "Surgery"
+	icon_state = "surgery"
+
+/area/coldcolony/malta/medical/surgery/west
+	name = "Surgery 1"
+	icon_state = "surgery1"
+
+/area/coldcolony/malta/medical/surgery/east
+	name = "Surgery 2"
+	icon_state = "surgery2"
+
+/area/coldcolony/malta/medical/biostorage
+	name = "Medical Storage"
+	icon_state = "medbaysecstorage"
+
+/area/coldcolony/malta/medical/genetics
+	name = "Genetics Lab"
+	icon_state = "genetics"
+
+/area/coldcolony/malta/medical/virology
+	name = "Virology Laboratory"
+	icon_state = "virology"
+
+//Malta Security
+/area/coldcolony/malta/security
+	ambientsounds = HIGHSEC_SOUNDS
+	holomap_color = HOLOMAP_AREACOLOR_SECURITY
+
+/area/coldcolony/malta/security/lobby
+	name = "Security Lobby"
+	icon_state = "securitylobby"
+
+/area/coldcolony/malta/security/magistrateoffice
+	name = "Magistrate's Office"
+	icon_state = "magistrate"
+	sound_environment = SOUND_AREA_SMALL_SOFTFLOOR
+
+/area/coldcolony/malta/security/reception
+	name = "Brig Reception"
+	icon_state = "brig"
+
+/area/coldcolony/malta/security/brig
+	name = "Brig"
+	icon_state = "brig"
+
+/area/coldcolony/malta/security/prison
+	name = "Prison Wing"
+	icon_state = "sec_prison"
+	can_get_auto_cryod = FALSE
+
+/area/coldcolony/malta/security/prison/prison_break()
+	for(var/obj/structure/closet/secure_closet/brig/temp_closet in src)
+		temp_closet.locked = FALSE
+		temp_closet.update_icon()
+	for(var/obj/machinery/door_timer/temp_timer in machinery_cache)
+		temp_timer.releasetime = 1
+	..()
+
+/area/coldcolony/malta/security/prison/cell_block/A
+	name = "Prison Cell Block A"
+	icon_state = "brigcella"
+
+/area/coldcolony/malta/security/customs
+	name = "Customs"
+	icon_state = "checkpoint1"
+
+/area/coldcolony/malta/security/processing
+	name = "Prisoner Processing"
+	icon_state = "prisonerprocessing"
+	can_get_auto_cryod = FALSE
+
+/area/coldcolony/malta/security/detectives_office
+	name = "Detective's Office"
+	icon_state = "detective"
+	ambientsounds = list('sound/ambience/ambidet1.ogg', 'sound/ambience/ambidet2.ogg')
+
+/area/coldcolony/malta/security/brigstaff
+	name = "Brig Staff Room"
+	icon_state = "brig"
+
+/area/coldcolony/malta/security/medbay
+	name = "Security Medbay"
+	icon_state = "security_medbay"
+
+/area/coldcolony/malta/security/evidence
+	name = "Evidence Room"
+	icon_state = "evidence"
+
+/area/coldcolony/malta/security/hos
+	name = "Head of Security's Office"
+	icon_state = "sec_hos"
+
+/area/coldcolony/malta/security/main
+	name = "Security Office"
+	icon_state = "securityoffice"
+
+/area/coldcolony/malta/security/securehallway
+	name = "Brig Secure Hallway"
+	icon_state = "securehall"
+
+/area/coldcolony/malta/security/warden
+	name = "Warden's Office"
+	icon_state = "Warden"
+	sound_environment = SOUND_AREA_SMALL_SOFTFLOOR
+
+/area/coldcolony/malta/security/securearmory
+	name = "Secure Armory"
+	icon_state = "secarmory"
+
+/area/coldcolony/malta/security/execution
+	name = "Execution"
+	icon_state = "execution"
+	can_get_auto_cryod = FALSE
+
+/area/coldcolony/malta/security/permahallway
+	name = "Permabrig Hallway"
+	icon_state = "sec_prison_perma"
+
+/area/coldcolony/malta/security/permabrig
+	name = "Prison Wing"
+	icon_state = "sec_prison_perma"
+	fast_despawn = TRUE
+	can_get_auto_cryod = FALSE
+
+/area/coldcolony/malta/security/checkpoint
+	name = "Security Checkpoint"
+	icon_state = "checkpoint1"
+
+//Malta Bridge
+/area/coldcolony/malta/bridge
+	name = "Bridge"
+	icon_state = "bridge"
+	ambientsounds = list('sound/ambience/signal.ogg')
+	holomap_color = HOLOMAP_AREACOLOR_COMMAND
+
+/area/coldcolony/malta/bridge/nuke_storage
+	name = "Vault"
+	icon_state = "nuke_storage"
+
+/area/coldcolony/malta/bridge/meeting_room
+	name = "Heads of Staff Meeting Room"
+	icon_state = "meeting"
+	sound_environment = SOUND_AREA_MEDIUM_SOFTFLOOR
+
+/area/coldcolony/malta/bridge/hop
+	name = "Head of Personnel's Quarters"
+	icon_state = "head_quarters"
+
+/area/coldcolony/malta/bridge/ntrep
+	name = "Nanotrasen Representative's Office"
+	icon_state = "ntrep"
+
+/area/coldcolony/malta/bridge/vip
+	name = "VIP Area"
+	icon_state = "meeting"
+
+/area/coldcolony/malta/bridge/blueshield
+	name = "Blueshield's Office"
+	icon_state = "blueshield"
+
+/area/coldcolony/malta/bridge/captain
+	name = "Captain's Office"
+	icon_state = "captain"
+	sound_environment = SOUND_AREA_WOODFLOOR
+
+/area/coldcolony/malta/bridge/captain/bedroom
+	name = "Captain's Bedroom"
+
+/area/coldcolony/malta/bridge/tcomm
+	ambientsounds = list('sound/ambience/ambisin2.ogg', 'sound/ambience/signal.ogg', 'sound/ambience/ambigen10.ogg', 'sound/ambience/ambitech.ogg', 'sound/ambience/ambitech2.ogg', 'sound/ambience/ambitech3.ogg', 'sound/ambience/ambimystery.ogg')
+	name = "Telecoms Central Compartment"
+	icon_state = "tcomms"
+
+/area/coldcolony/malta/bridge/checkpoint
+	name = "Command Checkpoint"
+
+//Malta AI
+/area/coldcolony/malta/turret_protected
+	ambientsounds = list('sound/ambience/ambimalf.ogg', 'sound/ambience/ambitech.ogg', 'sound/ambience/ambitech2.ogg', 'sound/ambience/ambiatmos.ogg', 'sound/ambience/ambiatmos2.ogg')
+	holomap_color = HOLOMAP_AREACOLOR_COMMAND
+
+/area/coldcolony/malta/turret_protected/ai_upload
+	name = "AI Upload Chamber"
+	icon_state = "ai_upload"
+	sound_environment = SOUND_AREA_SMALL_ENCLOSED
+
+/area/coldcolony/malta/turret_protected/ai
+	name = "AI Chamber"
+	icon_state = "ai_chamber"
+
+/area/coldcolony/malta/turret_protected/aisat
+	name = "AI Hallway"
+	icon_state = "ai"
+
+//Malta Research
+/area/coldcolony/malta/research
+	name = "Research Division"
+	icon_state = "research"
+	holomap_color = HOLOMAP_AREACOLOR_SCIENCE
+
+/area/coldcolony/malta/research/lab
+	name = "Research and Development"
+	icon_state = "toxlab"
+
+/area/coldcolony/malta/research/hor
+	name = "Research Director's Office"
+	icon_state = "head_quarters"
+
+/area/coldcolony/malta/research/chargebay
+	name = "Mech Bay"
+	icon_state = "mechbay"
+
+/area/coldcolony/malta/research/hallway
+	name = "RnD Hallway"
+
+/area/coldcolony/malta/research/robotics
+	name = "Robotics Lab"
+	icon_state = "ass_line"
+
+/area/coldcolony/malta/research/server
+	name = "Server Room"
+	icon_state = "server"
+
+/area/coldcolony/malta/research/shallway
+	name = "RnD South Hallway"
+
+/area/coldcolony/malta/research/explab
+	name = "Experimentation Lab"
+	icon_state = "toxmisc"
+
+/area/coldcolony/malta/research/test_chamber
+	name = "Research Testing Chamber"
+	icon_state = "toxtest"
+
+/area/coldcolony/malta/research/storage
+	name = "Toxins Storage"
+	icon_state = "toxstorage"
+
+/area/coldcolony/malta/research/xenobiology
+	name = "Xenobiology Lab"
+	icon_state = "toxmix"
+	xenobiology_compatible = TRUE
+
+//Malta Engineering
+/area/coldcolony/malta/engineering
+	ambientsounds = ENGINEERING_SOUNDS
+	sound_environment = SOUND_AREA_LARGE_ENCLOSED
+	holomap_color = HOLOMAP_AREACOLOR_ENGINEERING
+
+/area/coldcolony/malta/engineering/break_room
+	name = "Engineering Foyer"
+	icon_state = "engine"
+	sound_environment = SOUND_AREA_SMALL_ENCLOSED
+
+/area/coldcolony/malta/engineering/control
+	name = "Atmospherics Control Room"
+	icon_state = "atmos"
+	sound_environment = SOUND_AREA_STANDARD_STATION
+
+/area/coldcolony/malta/engineering/monitor
+	name = "Engineering Monitoring Room"
+	icon_state = "engine_control"
+
+/area/coldcolony/malta/engineering/engine
+	name = "Engineering SMES"
+	icon_state = "engine_smes"
+
+/area/coldcolony/malta/engineering/atmos
+	name = "Atmospherics"
+	icon_state = "atmos"
+
+/area/coldcolony/malta/engineering/storage
+	name = "Secure Storage"
+	icon_state = "storage"
+	ambientsounds = HIGHSEC_SOUNDS
+
+/area/coldcolony/malta/engineering/chief
+	name = "Chief Engineer's Office"
+	icon_state = "head_quarters"
+
+/area/coldcolony/malta/engineering/teg
+	name = "Engineering Thermo Generator"
+	icon_state = "engine"

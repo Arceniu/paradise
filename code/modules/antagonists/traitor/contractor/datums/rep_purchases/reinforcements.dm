@@ -2,18 +2,18 @@
 	*Rep Purchase - Contractor partner
 */
 /datum/rep_purchase/item/contractor_partner
-	name = "Reinforcements"
-	description = "Upon purchase we'll give you a device, that contact available units in the area. Should there be an agent free, we'll send them down to assist you immediately. If no units are free, we give a full refund."
+	name = "Вызов напарника"
+	description = "Устройство, позволяющее связаться с ближайшими отделениями \"Синдиката\" в вашем секторе. \
+			Если в вашем районе есть свободный агент, его незамедлительно отправят к вам на помощь. \
+			В случае отсутствия свободных агентов, средства будут возвращены."
 	stock = 1
 	cost = 2
 	item_type = /obj/item/antag_spawner/contractor_partner
 	refundable = TRUE
 
-
-
 /obj/item/antag_spawner/contractor_partner
-	name = "Contractor communication device"
-	desc = "Working as nuke ops teleporters, this device allows you to get your own support unit for your duties."
+	name = "Устройство связи с Контрактником"
+	desc = "Позволяет вам получить поддержку в выполнении контрактов."
 	icon = 'icons/obj/device.dmi'
 	icon_state = "contractor_tool"
 	var/checking = FALSE
@@ -24,13 +24,13 @@
 
 /obj/item/antag_spawner/contractor_partner/proc/check_usability(mob/user)
 	if(used)
-		to_chat(user, "<span class='warning'>[src] is out of power!</span>")
+		balloon_alert(user, "нет энергии!")
 		return FALSE
 	if(!(user.mind.special_role))
-		to_chat(user, "<span class='danger'>AUTHENTICATION FAILURE. ACCESS DENIED.</span>")
+		balloon_alert(user, "отказано в доступе!")
 		return FALSE
 	if(checking)
-		to_chat(user, "<span class='danger'>The device is already connecting to nearby off-station agents. Please wait.</span>")
+		to_chat(user, span_danger("Устройство уже подключается к ближайшим агентам за пределами станции. Пожалуйста, подождите."))
 		return FALSE
 	return TRUE
 
@@ -44,9 +44,9 @@
 
 	checking = TRUE
 
-	to_chat(user, "<span class='notice'>The uplink vibrates quietly, connecting to nearby agents...</span>")
+	to_chat(user, span_notice("Аплинк тихо вибрирует, соединяясь с ближайшими агентами..."))
 	var/image/source = image('icons/obj/cardboard_cutout.dmi', "cutout_sit")
-	var/list/mob/dead/observer/candidates = SSghost_spawns.poll_candidates("Do you want to play as the Contractor Support Unit for [user.real_name]?", ROLE_TRAITOR, FALSE, 150, source = source)
+	var/list/mob/dead/observer/candidates = SSghost_spawns.poll_candidates("Хотите сыграть за Агента поддержки Контрактника [user.real_name]?", ROLE_TRAITOR, FALSE, 150, source = source)
 	if(length(candidates))
 		checking = FALSE
 		if(QDELETED(src) || !check_usability(user))
@@ -58,7 +58,7 @@
 		qdel(src)
 	else
 		checking = FALSE
-		to_chat(user, "<span class='notice'>No available agents at this time, please try again later or refund device.</span>")
+		to_chat(user, span_notice("В данный момент нет доступных агентов, пожалуйста, повторите попытку позже или выполните возврат средств за устройство."))
 
 /obj/item/antag_spawner/contractor_partner/proc/spawn_contractor_partner(mob/living/user, turf/T, key)
 	var/mob/living/carbon/human/partner = new(T)
@@ -69,22 +69,22 @@
 	partner.dna.ready_dna(partner)
 
 	partner_outfit.equip(partner)
-	partner.ckey = key
+	partner.possess_by_player(key)
 	partner_mind = partner.mind
 	partner_mind.make_contractor_support()
-	to_chat(partner_mind.current, "<font size=4><span class='warning'>[user.real_name] - Ваш начальник. Выполняйте любые приказы, отданные им. Вы здесь только для того, чтобы помочь ему с его задачами.</span>")
-	to_chat(partner_mind.current, "<span class='warning'>Если он погибнет или будет недоступен по другим причинам, вы должны помогать другим агентам в меру своих возможностей.</span>")
+	to_chat(partner_mind.current, span_warning(span_fontsize4("[user.real_name] — Ваш начальник. Выполняйте любые приказы, отданные [GEND_IM_EI_IM_IMI(user)]. Вы здесь только для того, чтобы помочь [GEND_HIM_HER(user)] с выполнением задач.")))
+	to_chat(partner_mind.current, span_warning("Если [GEND_HE_SHE(user)] погибн[PLUR_ET_UT(user)] или буд[PLUR_ET_UT(user)] недоступ[GEND_EN_NA_NO_NY(user)] по другим причинам, вы должны помогать другим агентам в меру своих возможностей."))
 
 	var/datum/objective/protect/contractor/CT = new
 	CT.owner = partner.mind
 	CT.target = user.mind
-	CT.explanation_text = "[user.real_name] - Ваш начальник. Его задачи являются первоочередными."
+	CT.explanation_text = "[user.real_name] — Ваш начальник. [GEND_HIS_HER_CAP(user)] приказы являются первоочередными."
 	partner.mind.objectives += CT
 	partner.change_voice()
 
 /obj/item/antag_spawner/contractor_partner/check_uplink_validity()
 	if(checking)
-		to_chat(src.loc, span_notice("Trying to refund a used device is a rather stupid idea."))
+		to_chat(src.loc, span_notice("Пытаться вернуть деньги за подержанное устройство — довольно глупая затея."))
 		return FALSE
 	return TRUE
 

@@ -17,6 +17,7 @@
 	icon = 'icons/obj/pipes_and_stuff/atmospherics/atmos/filter.dmi'
 	icon_state = "map"
 	can_unwrench = TRUE
+	interaction_flags_click = NEED_HANDS | ALLOW_RESTING | ALLOW_SILICON_REACH
 	/// The amount of pressure the filter wants to operate at.
 	var/target_pressure = ONE_ATMOSPHERE
 	/// The type of gas we want to filter. Valid values that go here are from the `FILTER` defines at the top of the file.
@@ -45,20 +46,13 @@
 	toggle()
 	return ..()
 
-/obj/machinery/atmospherics/trinary/filter/AltClick(mob/living/user)
-	if(!ishuman(usr) && !issilicon(usr))
-		return
-	if(user.incapacitated() || HAS_TRAIT(user, TRAIT_HANDS_BLOCKED))
-		to_chat(user, span_warning("You can't do that right now!"))
-		return
-	if(!in_range(src, user) && !issilicon(user))
-		return
+/obj/machinery/atmospherics/trinary/filter/click_alt(mob/living/user)
 	set_max()
+	return CLICK_ACTION_SUCCESS
 
-/obj/machinery/atmospherics/trinary/filter/AIAltClick()
+/obj/machinery/atmospherics/trinary/filter/ai_click_alt()
 	set_max()
 	return ..()
-
 
 /obj/machinery/atmospherics/trinary/filter/proc/set_max()
 	if(powered())
@@ -119,7 +113,7 @@
 
 	var/output_starting_pressure = air3.return_pressure()
 
-	if(output_starting_pressure >= target_pressure || air2.return_pressure() >= target_pressure )
+	if(output_starting_pressure >= target_pressure || air2.return_pressure() >= target_pressure)
 		//No need to mix if target is already full!
 		return 1
 
@@ -166,7 +160,6 @@
 				removed.sleeping_agent = 0
 			else
 				filtered_out = null
-
 
 		air2.merge(filtered_out)
 		air3.merge(removed)
@@ -245,7 +238,6 @@
 	if(.)
 		investigate_log("was set to [target_pressure] kPa by [key_name_log(usr)]", INVESTIGATE_ATMOS)
 
-
 /obj/machinery/atmospherics/trinary/filter/attackby(obj/item/I, mob/user, params)
 	. = ..()
 
@@ -254,7 +246,6 @@
 
 	. |= ATTACK_CHAIN_SUCCESS
 	rename_interactive(user, I)
-
 
 #undef FILTER_NOTHING
 #undef FILTER_TOXINS

@@ -1,8 +1,8 @@
-#define NITROGEN_RETARDATION_FACTOR 0.15	//Higher == N2 slows reaction more
-#define THERMAL_RELEASE_MODIFIER 10000		//Higher == more heat released during reaction
-#define PLASMA_RELEASE_MODIFIER 1500		//Higher == less phor.. plasma released by reaction
-#define OXYGEN_RELEASE_MODIFIER 15000		//Higher == less oxygen released at high temperature/power
-#define REACTION_POWER_MODIFIER 1.1			//Higher == more overall power
+#define NITROGEN_RETARDATION_FACTOR 0.15 //Higher == N2 slows reaction more
+#define THERMAL_RELEASE_MODIFIER 10000 //Higher == more heat released during reaction
+#define PLASMA_RELEASE_MODIFIER 1500 //Higher == less phor.. plasma released by reaction
+#define OXYGEN_RELEASE_MODIFIER 15000 //Higher == less oxygen released at high temperature/power
+#define REACTION_POWER_MODIFIER 1.1 //Higher == more overall power
 #define SHARD_CUT_COEF 7
 
 /*
@@ -20,12 +20,10 @@
 #define CHARGING_FACTOR 0.05
 #define DAMAGE_RATE_LIMIT 4.5		//damage rate cap at power = 300, scales linearly with power
 
-
 // Base variants are applied to everyone on the same Z level
 // Range variants are applied on per-range basis: numbers here are on point blank, it scales with the map size (assumes square shaped Z levels)
 #define DETONATION_RADS 200
 #define DETONATION_HALLUCINATION 600
-
 
 #define WARNING_DELAY 20			//seconds between warnings.
 /obj/machinery/power/supermatter_shard
@@ -37,7 +35,6 @@
 	anchored = FALSE
 	light_range = 4
 	resistance_flags = INDESTRUCTIBLE | LAVA_PROOF | FIRE_PROOF | UNACIDABLE | ACID_PROOF | FREEZE_PROOF | NO_MALF_EFFECT
-
 
 	var/gasefficency = 0.125
 
@@ -80,8 +77,6 @@
 	var/aw_emerg = FALSE
 	var/aw_delam = FALSE
 
-	var/obj/item/radio/radio
-
 	//for logging
 	var/has_been_powered = 0
 	var/has_reached_emergency = 0
@@ -100,19 +95,15 @@
 	gasefficency = 0.25
 	explosion_power = 24
 
-
 /obj/machinery/power/supermatter_shard/New()
 	. = ..()
 	GLOB.poi_list |= src
 	//Added to the atmos_machine process as the SM is highly coupled with the atmospherics system.
 	//Having the SM run at a different rate then atmospherics causes odd behavior.
 	SSair.atmos_machinery += src
-	radio = new(src)
-	radio.listening = 0
 	investigate_log("has been created.", INVESTIGATE_ENGINE)
 	supermatter_explosive_effects = new()
 	supermatter_explosive_effects.z = src.z
-
 
 /obj/machinery/power/supermatter_shard/proc/handle_admin_warnings()
 	if(disable_adminwarn)
@@ -137,12 +128,10 @@
 	else
 		return FALSE
 
-
 /obj/machinery/power/supermatter_shard/Destroy()
 	investigate_log("has been destroyed.", INVESTIGATE_ENGINE)
 	if(damage > emergency_point)
 		emergency_lighting(0)
-	QDEL_NULL(radio)
 	GLOB.poi_list.Remove(src)
 	SSair.atmos_machinery -= src
 	return ..()
@@ -161,7 +150,7 @@
 	if(isnull(L))		// We have a null turf...something is wrong, stop processing this entity.
 		return PROCESS_KILL
 
-	if(!istype(L)) 	//We are in a crate or somewhere that isn't turf, if we return to turf resume processing but for now.
+	if(!istype(L))	//We are in a crate or somewhere that isn't turf, if we return to turf resume processing but for now.
 		return  //Yeah just stop.
 
 	if(damage > warning_point) // while the core is still damaged and it's still worth noting its status
@@ -171,7 +160,7 @@
 			var/stability = num2text(round((damage / explosion_point) * 100))
 
 			if(damage > emergency_point)
-				radio.autosay("[emergency_alert] Дестабилизация: [stability]%", src.name)
+				radio_announce("[emergency_alert] Дестабилизация: [stability]%", name, PUB_FREQ, src)
 				lastwarning = world.timeofday
 				if(!has_reached_emergency)
 					investigate_log("has reached the emergency point for the first time.", INVESTIGATE_ENGINE)
@@ -179,11 +168,11 @@
 					has_reached_emergency = 1
 
 			else if(damage >= damage_archived) // The damage is still going up
-				radio.autosay("[warning_alert] Дестабилизация: [stability]%", src.name)
+				radio_announce("[warning_alert] Дестабилизация: [stability]%", name, PUB_FREQ, src)
 				lastwarning = world.timeofday - 150
 
 			else                                                 // Phew, we're safe
-				radio.autosay("[safe_alert]", src.name)
+				radio_announce(safe_alert, name, PUB_FREQ, src)
 				emergency_lighting(0)
 				lastwarning = world.timeofday
 
@@ -269,7 +258,7 @@
 	//We are assuming here, that volume does not change here
 	removed.temperature += (thermal_power / heat_capacity)
 
-	removed.temperature = max(0, removed.temperature)
+	removed.temperature = max(TCMB, removed.temperature)
 
 	env.merge(removed)
 
@@ -300,16 +289,13 @@
 
 	return 1
 
-/obj/machinery/power/supermatter_shard
-
-/obj/machinery/power/supermatter_shard/bullet_act(var/obj/item/projectile/Proj)
+/obj/machinery/power/supermatter_shard/bullet_act(obj/projectile/Proj)
 	var/turf/L = loc
 	if(!istype(L))		// We don't run process() when we are in space
 		return 0	// This stops people from being able to really power up the supermatter
 				// Then bring it inside to explode instantly upon landing on a valid turf.
 
-
-	if(Proj.flag != "bullet")
+	if(Proj.flag != BULLET)
 		power += Proj.damage * config_bullet_energy
 		if(!has_been_powered)
 			investigate_log("has been powered for the first time.", INVESTIGATE_ENGINE)
@@ -322,11 +308,12 @@
 
 /obj/machinery/power/supermatter_shard/singularity_act()
 	var/gain = 100
+	var/supermatter_sound = sound('sound/effects/supermatter.ogg')
 	investigate_log("consumed by singularity.", INVESTIGATE_ENGINE)
-	message_admins("<span class='danger'>Singularity has consumed a supermatter shard and can now become stage six</span> [ADMIN_COORDJMP(src)].")
-	visible_message("<span class='userdanger'>[src] is consumed by the singularity!</span>")
+	message_admins("[span_danger("Singularity has consumed a supermatter shard and can now become stage six")] [ADMIN_COORDJMP(src)].")
+	visible_message(span_userdanger("[src] is consumed by the singularity!"))
 	for(var/mob/M in GLOB.mob_list)
-		M << 'sound/effects/supermatter.ogg' //everyone gunna know bout this
+		SEND_SOUND(M, supermatter_sound) //everyone goan know bout this
 		to_chat(M, span_boldannounceic("A horrible screeching fills your ears, and a wave of dread washes over you..."))
 	qdel(src)
 	return(gain)
@@ -344,14 +331,16 @@
 		var/touch_sm = pick(list("poke", "pet", "hug", "cuddle"))
 		user.visible_message(span_notice("[user] [touch_sm]s the supermatter!"), \
 								span_notice("You [touch_sm] the supermatter!"))
-		playsound(loc, 'sound/weapons/thudswoosh.ogg', 50, 1, -1)
+		playsound(loc, 'sound/weapons/thudswoosh.ogg', 50, TRUE, -1)
 		return
 
-	user.visible_message("<span class=\"warning\">\The [user] reaches out and touches \the [src], inducing a resonance... [user.p_their(TRUE)] body starts to glow and bursts into flames before flashing into ash.</span>",\
-		"<span class=\"danger\">You reach out and touch \the [src]. Everything starts burning and all you can hear is ringing. Your last thought is \"That was not a wise decision.\"</span>",\
-		"<span class=\"warning\">You hear an uneartly ringing, then what sounds like a shrilling kettle as you are washed with a wave of heat.</span>")
+	user.visible_message(
+		span_warning("\The [user] reaches out and touches \the [src], inducing a resonance... [user.p_their(TRUE)] body starts to glow and bursts into flames before flashing into ash."),
+		span_danger("You reach out and touch \the [src]. Everything starts burning and all you can hear is ringing. Your last thought is \"That was not a wise decision.\""),
+		span_warning("You hear an uneartly ringing, then what sounds like a shrilling kettle as you are washed with a wave of heat.")
+	)
 
-	playsound(get_turf(src), 'sound/effects/supermatter.ogg', 50, 1)
+	playsound(get_turf(src), 'sound/effects/supermatter.ogg', 50, TRUE)
 
 	consume(user)
 
@@ -366,7 +355,6 @@
 		if(get_dist(R, src) <= 15) // Better than using orange() every process
 			R.receive_pulse(power/10)
 	return
-
 
 /obj/machinery/power/supermatter_shard/attackby(obj/item/I, mob/living/user, params)
 	if(istype(I, /obj/item/scalpel/supermatter))
@@ -424,7 +412,6 @@
 	playsound(loc, 'sound/effects/supermatter.ogg', 50, TRUE)
 	user.apply_effect(150, IRRADIATE)
 
-
 /obj/machinery/power/supermatter_shard/wrench_act(mob/living/user, obj/item/I)
 	. = TRUE
 	if(!I.use_tool(src, user, volume = I.tool_volume))
@@ -454,7 +441,6 @@
 	else
 		consume_wrench(I)
 
-
 /obj/machinery/power/supermatter_shard/Bumped(atom/movable/moving_atom)
 	. = ..()
 	if(isprojectile(moving_atom))	// we update this in bullet_act()
@@ -463,16 +449,20 @@
 		nuclear_touch(moving_atom)
 		return .
 	if(isliving(moving_atom))
-		moving_atom.visible_message("<span class='danger'>\The [moving_atom] slams into \the [src] inducing a resonance... [moving_atom.p_their(TRUE)] body starts to glow and catch flame before flashing into ash.</span>",\
-		"<span class='userdanger'>You slam into \the [src] as your ears are filled with unearthly ringing. Your last thought is \"Oh, fuck.\"</span>",\
-		"<span class='italics'>You hear an unearthly noise as a wave of heat washes over you.</span>")
+		moving_atom.visible_message(
+			span_danger("\The [moving_atom] slams into \the [src] inducing a resonance... [moving_atom.p_their(TRUE)] body starts to glow and catch flame before flashing into ash."),\
+			span_userdanger("You slam into \the [src] as your ears are filled with unearthly ringing. Your last thought is \"Oh, fuck.\""),\
+			span_italics("You hear an unearthly noise as a wave of heat washes over you.")
+		)
 	else if(isobj(moving_atom) && !iseffect(moving_atom))
-		moving_atom.visible_message("<span class='danger'>\The [moving_atom] smacks into \the [src] and rapidly flashes to ash.</span>",\
-		"<span class='italics'>You hear a loud crack as you are washed with a wave of heat.</span>")
+		moving_atom.visible_message(
+			span_danger("\The [moving_atom] smacks into \the [src] and rapidly flashes to ash."),\
+			span_italics("You hear a loud crack as you are washed with a wave of heat.")
+		)
 	else
 		return
 
-	playsound(get_turf(src), 'sound/effects/supermatter.ogg', 50, 1)
+	playsound(get_turf(src), 'sound/effects/supermatter.ogg', 50, TRUE)
 
 	consume(moving_atom)
 
@@ -504,7 +494,6 @@
 			span_hear("You hear a loud crack as you are washed with a wave of heat."))
 	return ..()
 
-
 /obj/machinery/power/supermatter_shard/proc/consume(atom/movable/AM)
 	if(isliving(AM))
 		var/mob/living/user = AM
@@ -528,10 +517,10 @@
 		L.apply_effect(rads, IRRADIATE)
 		investigate_log("has irradiated [L] after consuming [AM].", INVESTIGATE_ENGINE)
 		if(src in view(L.client.maxview()))
-			L.show_message("<span class='danger'>As \the [src] slowly stops resonating, you find your skin covered in new radiation burns.</span>", 1,\
-				"<span class='danger'>The unearthly ringing subsides and you notice you have new radiation burns.</span>", 2)
+			L.show_message(span_danger("As \the [src] slowly stops resonating, you find your skin covered in new radiation burns."), 1,\
+				span_danger("The unearthly ringing subsides and you notice you have new radiation burns."), 2)
 		else
-			L.show_message("<span class='italics'>You hear an uneartly ringing and notice your skin is covered in fresh radiation burns.</span>", 2)
+			L.show_message(span_italics("You hear an uneartly ringing and notice your skin is covered in fresh radiation burns."), 2)
 
 /obj/machinery/power/supermatter_shard/proc/get_status()
 	var/turf/T = get_turf(src)
@@ -572,14 +561,14 @@
 			playsound(src, 'sound/machines/terminal_alert.ogg', 75)
 
 /obj/machinery/power/supermatter_shard/proc/emergency_lighting(active)
-    if(active)
-        post_status(STATUS_DISPLAY_ALERT, "radiation")
-    else
-        post_status(STATUS_DISPLAY_TRANSFER_SHUTTLE_TIME)
+	if(active)
+		post_status(STATUS_DISPLAY_ALERT, "radiation")
+	else
+		post_status(STATUS_DISPLAY_TRANSFER_SHUTTLE_TIME)
 
 /obj/machinery/power/supermatter_shard/proc/supermatter_zap()
-	playsound(src.loc, 'sound/magic/lightningshock.ogg', 100, 1, extrarange = zap_sound_extrarange)
-	tesla_zap(src, 10, max(1000,power * damage / explosion_point))
+	playsound(src.loc, 'sound/magic/lightningshock.ogg', 100, TRUE, extrarange = zap_sound_extrarange)
+	tesla_zap(source = src, zap_range = 10, power = max(1000, power * damage / explosion_point), cutoff = 1e3, zap_flags = ZAP_GENERATES_POWER | ZAP_OBJ_DAMAGE | ZAP_MOB_DAMAGE)
 
 // SM shard that can't be moved for ruins and gates
 /obj/machinery/power/supermatter_shard/anchored
@@ -587,12 +576,10 @@
 	desc = "A strangely translucent and iridescent crystal that looks like it used to be part of a larger structure. Apparently the structure is attached to the surface with industrial equipment, it cannot be unanchored with simple equipment. <span class='danger'>You get headaches just from looking at it.</span>"
 	anchored = TRUE
 
-
 /obj/machinery/power/supermatter_shard/anchored/attackby(obj/item/I, mob/living/user, params)
 	consume_wrench(I)
 	user.apply_effect(150, IRRADIATE)
 	return ATTACK_CHAIN_BLOCKED_ALL
-
 
 /obj/machinery/power/supermatter_shard/anchored/wrench_act(mob/living/user, obj/item/I)
 	. = TRUE
@@ -605,10 +592,30 @@
 	consume_wrench(I)
 	user.apply_effect(150, IRRADIATE)
 
-
-/obj/machinery/power/supermatter_shard/proc/nuclear_touch(var/mob/living/user)
+/obj/machinery/power/supermatter_shard/proc/nuclear_touch(mob/living/user)
 	var/datum/species/nucleation/nuclear = user.dna.species
 	if(nuclear.touched_supermatter == FALSE)
 		user.revive()
 		nuclear.touched_supermatter = TRUE
 		to_chat(user, span_userdanger("The wave of warm energy is overwhelming you. You feel calm."))
+
+/obj/effect/warp_effect/supermatter
+	icon = 'icons/effects/light_overlays/light_352.dmi'
+	icon_state = "light"
+	pixel_x = -176
+	pixel_y = -176
+
+#undef NITROGEN_RETARDATION_FACTOR
+#undef THERMAL_RELEASE_MODIFIER
+#undef PLASMA_RELEASE_MODIFIER
+#undef OXYGEN_RELEASE_MODIFIER
+#undef REACTION_POWER_MODIFIER
+#undef SHARD_CUT_COEF
+#undef POWER_FACTOR
+#undef DECAY_FACTOR
+#undef CRITICAL_TEMPERATURE
+#undef CHARGING_FACTOR
+#undef DAMAGE_RATE_LIMIT
+#undef DETONATION_RADS
+#undef DETONATION_HALLUCINATION
+#undef WARNING_DELAY

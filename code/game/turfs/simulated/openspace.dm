@@ -15,7 +15,6 @@
 	transparent_floor = TURF_FULLTRANSPARENT // bruh
 	intact = FALSE //this means wires go on top
 
-
 /turf/simulated/openspace/airless
 	temperature = TCMB
 	oxygen = 0
@@ -126,7 +125,6 @@
 /turf/simulated/openspace/proc/CanBuildHere()
 	return can_build_on
 
-
 /turf/simulated/openspace/attackby(obj/item/I, mob/user, params)
 	. = ..()
 
@@ -192,7 +190,6 @@
 		new /obj/structure/lattice/catwalk/fireproof(src)
 		return .|ATTACK_CHAIN_SUCCESS
 
-
 /turf/simulated/openspace/can_have_cabling()
 	if(locate(/obj/structure/lattice/catwalk, src))
 		return TRUE
@@ -206,22 +203,22 @@
 
 /turf/simulated/openspace/rcd_construct_act(mob/user, obj/item/rcd/our_rcd, rcd_mode)
 	. = ..()
-	
+
 	if(rcd_mode != RCD_MODE_TURF)
 		return RCD_NO_ACT
 
 	if(our_rcd.useResource(1, user))
 		to_chat(user, "Building Floor...")
-		playsound(get_turf(our_rcd), our_rcd.usesound, 50, 1)
+		playsound(get_turf(our_rcd), our_rcd.usesound, 50, TRUE)
 		add_attack_logs(user, src, "Constructed floor with RCD")
 		ChangeTurf(our_rcd.floor_type)
 		return RCD_ACT_SUCCESSFULL
 
 	to_chat(user, span_warning("ERROR! Not enough matter in unit to construct this floor!"))
-	playsound(get_turf(our_rcd), 'sound/machines/click.ogg', 50, 1)
+	playsound(get_turf(our_rcd), 'sound/machines/click.ogg', 50, TRUE)
 	return RCD_ACT_FAILED
 
-/turf/simulated/openspace/bullet_act(obj/item/projectile/P, def_zone)
+/turf/simulated/openspace/bullet_act(obj/projectile/P, def_zone)
 	return -1
 
 // Every new proc that should be edited or added here. Also needs to be copied into /turf/space/openspace. I'm not sorry.

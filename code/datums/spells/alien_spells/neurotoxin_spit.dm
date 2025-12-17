@@ -3,9 +3,9 @@
 	desc = "This ability allows you to fire some neurotoxin. Knocks down anyone you hit, applies a small amount of stamina damage as well."
 	base_cooldown = 1 SECONDS
 	plasma_cost = 50
-	selection_activated_message		= span_noticealien("<B>Your prepare some neurotoxin!</B>")
-	selection_deactivated_message	= span_noticealien("<B>You swallow your prepared neurotoxin.</B>")
-	var/neurotoxin_type = /obj/item/projectile/bullet/neurotoxin
+	selection_activated_message		= span_noticealien("<b>Your prepare some neurotoxin!</b>")
+	selection_deactivated_message	= span_noticealien("<b>You swallow your prepared neurotoxin.</b>")
+	var/neurotoxin_type = /obj/projectile/bullet/neurotoxin
 	action_icon_state = "alien_neurotoxin_0"
 	sound = 'sound/creatures/terrorspiders/spit2.ogg'
 
@@ -15,13 +15,11 @@
 /obj/effect/proc_holder/spell/alien_spell/neurotoxin/create_new_targeting()
 	return new /datum/spell_targeting/clicked_atom
 
-
 /obj/effect/proc_holder/spell/alien_spell/neurotoxin/update_icon_state()
 	if(!action)
 		return
 	action.button_icon_state = "alien_neurotoxin_[active]"
 	action.UpdateButtonIcon()
-
 
 //sets charge_check = FALSE so that you can cancel spell while it's charging
 /obj/effect/proc_holder/spell/alien_spell/neurotoxin/can_cast(mob/living/user, charge_check = FALSE, show_message)
@@ -31,7 +29,6 @@
 			to_chat(user, span_warning("You cannot use <b>[initial(name)]</b> while lying!"))
 		return FALSE
 
-
 /obj/effect/proc_holder/spell/alien_spell/neurotoxin/cast(list/targets, mob/living/carbon/user)
 	var/target = targets[1]
 	var/turf/T = user.loc
@@ -39,12 +36,12 @@
 	if(!istype(U) || !istype(T))
 		return FALSE
 
-	var/obj/item/projectile/bullet/neurotoxin/neurotoxin = new neurotoxin_type(user.loc)
+	var/obj/projectile/bullet/neurotoxin/neurotoxin = new neurotoxin_type(user.loc)
 	neurotoxin.current = get_turf(user)
 	neurotoxin.original = target
 	neurotoxin.firer = user
 	var/turf/target_turf = get_turf(target)
-	neurotoxin.preparePixelProjectile(target, target_turf, user, targeting.click_params)
+	neurotoxin.preparePixelProjectile(target, user)
 	neurotoxin.fire()
 	user.newtonian_move(get_dir(target_turf, T))
 

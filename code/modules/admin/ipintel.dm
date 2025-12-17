@@ -82,8 +82,7 @@
 			query_add_ip_intel.warn_execute()
 			qdel(query_add_ip_intel)
 
-
-/proc/ip_intel_query(ip, var/retryed=0)
+/proc/ip_intel_query(ip, retryed=0)
 	. = -1 //default
 	if(!ip)
 		return
@@ -129,7 +128,6 @@
 		if(!retryed)
 			sleep(25)
 			return .(ip, 1)
-
 
 /proc/ipintel_handle_error(error, ip, retryed)
 	if(retryed)
@@ -195,7 +193,7 @@
 	return FALSE
 
 /proc/vpn_whitelist_add(target_ckey)
-	var/reason_string = input(usr, "Enter link to the URL of their whitelist request on the forum.","Reason required") as message|null
+	var/reason_string = tgui_input_text(usr, "Enter link to the URL of their whitelist request on the forum.", "Reason required", multiline = TRUE, encode = FALSE)
 	if(!reason_string)
 		return FALSE
 	var/datum/db_query/query_whitelist_add = SSdbcore.NewQuery("INSERT INTO [CONFIG_GET(string/utility_database)].[format_table_name("vpn_whitelist")] (ckey,reason) VALUES (:targetckey, :reason)", list(
@@ -225,7 +223,7 @@
 		return
 	var/is_already_whitelisted = vpn_whitelist_check(target_ckey)
 	if(is_already_whitelisted)
-		var/confirm = alert("[target_ckey] is already whitelisted. Remove them?", "Confirm Removal", "No", "Yes")
+		var/confirm = tgui_alert(usr, "[target_ckey] is already whitelisted. Remove them?", "Confirm Removal", list("No", "Yes"))
 		if(!confirm || confirm != "Yes")
 			to_chat(usr, "VPN whitelist alteration cancelled.")
 			return

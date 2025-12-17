@@ -8,7 +8,6 @@
 	chemical_cost = 30 //High cost to prevent spam
 	req_human = TRUE
 
-
 /datum/action/changeling/biodegrade/sting_action(mob/living/carbon/human/user)
 	var/used = FALSE // only one form of shackles removed per use
 
@@ -38,7 +37,7 @@
 		addtimer(CALLBACK(src, PROC_REF(dissolve_restraint), user, legcuffs), 3 SECONDS)
 		used = TRUE
 
-	if(user.wear_suit?.breakouttime && !used)
+	if(user.wear_suit?.breakout_time && !used)
 		var/obj/item/clothing/suit/res_suit = user.get_item_by_slot(ITEM_SLOT_CLOTH_OUTER)
 		if(!istype(res_suit))
 			return FALSE
@@ -48,6 +47,20 @@
 
 		addtimer(CALLBACK(src, PROC_REF(dissolve_restraint), user, res_suit), 3 SECONDS)
 		used = TRUE
+
+	// mech supress escape
+	if(HAS_TRAIT_FROM(user, TRAIT_IMMOBILIZED, MECH_SUPRESSED_TRAIT))
+		user.remove_traits(list(TRAIT_IMMOBILIZED, TRAIT_FLOORED), MECH_SUPRESSED_TRAIT)
+		used = TRUE
+
+	// mech cage container escape
+	if(istype(user.loc, /obj/item/mecha_parts/mecha_equipment/cage))
+		var/obj/item/mecha_parts/mecha_equipment/cage/container = user.loc
+		var/obj/mecha/mech = container.chassis
+		mech.visible_message(span_warning("Камера содержания [mech.declent_ru(GENITIVE)] начинает плавиться!"), \
+									span_warning("Мы изрыгаем кислотную жидкость на стенки клетки!"))
+		user.forceMove(get_turf(container))
+		container.prisoner = null
 
 	if(istype(user.loc, /obj/structure/closet) && !used)
 		var/obj/structure/closet/closet = user.loc
@@ -85,7 +98,6 @@
 
 	return TRUE
 
-
 /datum/action/changeling/biodegrade/proc/dissolve_restraint(mob/living/carbon/human/user, obj/restraints)
 	if(QDELETED(user) || QDELETED(restraints))
 		return
@@ -94,7 +106,6 @@
 		user.visible_message(span_warning("[restraints] dissolves into a puddle of sizzling goop."))
 		user.temporarily_remove_item_from_inventory(restraints, force = TRUE)
 		qdel(restraints)
-
 
 /datum/action/changeling/biodegrade/proc/open_closet(mob/living/carbon/human/user, obj/structure/closet/closet)
 	if(QDELETED(user) || QDELETED(closet))
@@ -107,7 +118,6 @@
 		closet.open()
 		closet.visible_message(span_warning("[closet]'s door breaks and opens!"), \
 								span_warning("We open the container restraining us!"))
-
 
 /datum/action/changeling/biodegrade/proc/dissolve_cocoon(mob/living/carbon/human/user, obj/structure/spider/cocoon/cocoon)
 	if(QDELETED(user) || QDELETED(cocoon))

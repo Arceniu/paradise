@@ -1,6 +1,5 @@
 ///Datum Surgery Helpers//
 
-
 /datum/surgery
 	/// Name of the surgery
 	var/name
@@ -49,7 +48,6 @@
 	/// Whether this surgery should be cancelled when an organ change happens. (removed if requires bodypart, or added if doesn't require bodypart)
 	var/cancel_on_organ_change = TRUE
 
-
 /datum/surgery/New(atom/surgery_target, surgery_location, surgery_bodypart)
 	..()
 	if(!surgery_target)
@@ -79,7 +77,6 @@
 	if(!affecting || !istype(affecting))
 		return TRUE
 	return requires_organic_bodypart && affecting.is_robotic() || !requires_organic_bodypart && !affecting.is_robotic()
-
 
 /**
  * Whether or not we can start this surgery.
@@ -122,7 +119,7 @@
 		if(tool && tool.GetComponent(/datum/component/surgery_initiator))
 			return FALSE
 		if(tool && HAS_TRAIT(tool, TRAIT_SURGICAL))
-			to_chat(user, span_warning("This step requires a different tool!"))
+			user.balloon_alert(user, "неподходящий инструмент!")
 			return TRUE
 	return FALSE
 
@@ -170,7 +167,6 @@
 /datum/surgery/proc/on_organ_remove(mob/living/carbon/organ_owner, obj/item/organ/external/organ)
 	SIGNAL_HANDLER  // COMSIG_CARBON_LOSE_ORGAN
 	handle_organ_state_change(organ_owner, organ, FALSE)
-
 
 /* SURGERY STEPS */
 /datum/surgery_step
@@ -274,7 +270,7 @@
 		if(target_zone == surgery.location)
 			if(get_location_accessible(target, target_zone) || surgery.ignore_clothes)
 				return initiate(user, target, target_zone, tool, surgery)
-			to_chat(user, span_warning("You need to expose [target]'s [parse_zone(target_zone)] before you can perform surgery on it!"))
+			user.balloon_alert(user, "часть тела чем-то закрыта!")
 			return SURGERY_INITIATE_FAILURE //returns TRUE so we don't stab the guy in the dick or wherever.
 
 	if(repeatable)
@@ -340,7 +336,7 @@
 		surgery.step_in_progress = FALSE
 		return SURGERY_INITIATE_SUCCESS
 
-	play_begin_sound(user, target, tool)
+	INVOKE_ASYNC(src, PROC_REF(play_begin_sound), user, target, tool)
 
 	if(tool)
 		speed_mod = tool.toolspeed * user.get_actionspeed_by_category(DA_CAT_SURGERY)
@@ -352,13 +348,21 @@
 
 	// They also have some interesting ways that surgery success/fail prob get evaluated, maybe worth looking at
 	speed_mod /= (get_location_modifier(target) * 1 + surgery.speed_modifier) * implement_speed_mod
-	var/modded_time = slowdown_immune(user) ? time : time * speed_mod
+	var/step_time = time
+
+	SEND_SIGNAL(user, COMSIG_SURGERY_STEP_INIT, &step_time)
+
+	var/modded_time = slowdown_immune(user) ? step_time : (step_time * speed_mod)
 
 	if(implement_type)	// If this is set, we aren't in an allow_hand or allow_any_item step.
 		prob_success = allowed_tools[implement_type]
 	prob_success *= get_location_modifier(target)
 
+	var/was_sleeping = (target.stat != DEAD && target.IsSleeping())
+
 	if(!do_after(user, modded_time, target, DA_IGNORE_SLOWDOWNS))
+		if(target.stat == DEAD && was_sleeping && user.client)
+			user.client.give_award(/datum/award/achievement/jobs/sandman, user)
 		surgery.step_in_progress = FALSE
 		return SURGERY_INITIATE_INTERRUPTED
 
@@ -370,10 +374,10 @@
 
 	if((prob(prob_success) || silicons_ignore_prob && isrobot(user)) && chem_check_result && !try_to_fail)
 		step_result = end_step(user, target, target_zone, tool, surgery)
-		play_end_sound(user, target, tool)
+		INVOKE_ASYNC(src, PROC_REF(play_end_sound), user, target, tool)
 	else
 		step_result = fail_step(user, target, target_zone, tool, surgery)
-		play_fail_sound(user, target, tool)
+		INVOKE_ASYNC(src, PROC_REF(play_fail_sound), user, target, tool)
 	switch(step_result)
 		if(SURGERY_STEP_CONTINUE)
 			advance = TRUE
@@ -393,6 +397,9 @@
 		surgery.step_number++
 		if(surgery.step_number > length(surgery.steps))
 			surgery.complete(target)
+
+	if(target.stat == DEAD && was_sleeping && user.client)
+		user.client.give_award(/datum/award/achievement/jobs/sandman, user)
 
 	surgery.step_in_progress = FALSE
 	if(advance)
@@ -521,7 +528,7 @@
  * * user - The user who's manipulating the organ.
  * * tool - The tool the user is using to mess with the organ.
  */
-/proc/spread_germs_to_organ(obj/item/organ/target_organ, mob/living/carbon/human/user, obj/item/tool)
+/datum/surgery_step/proc/spread_germs_to_organ(obj/item/organ/target_organ, mob/living/carbon/human/user, obj/item/tool)
 	if(!istype(user) || !istype(target_organ) || target_organ.is_robotic() || target_organ.sterile)
 		return
 
@@ -529,9 +536,10 @@
 
 	// germ spread from surgeon touching the patient
 	if(user.gloves)
-		germ_level = user.gloves.germ_level
+		var/obj/item/clothing/gloves/gloves = user.gloves
+		germ_level = !(istype(gloves) && prob(gloves.surgery_germ_chance)) ? user.gloves.germ_level : 0
 	target_organ.germ_level = max(germ_level, target_organ.germ_level)
-	spread_germs_by_incision(target_organ, tool) //germ spread from environement to patient
+	INVOKE_ASYNC(src, PROC_REF(spread_germs_by_incision), target_organ, tool) //germ spread from environement to patient
 
 /**
  * Spread germs directly from a tool.
@@ -539,7 +547,7 @@
  * * E - An external organ being operated on.
  * * tool - The tool performing the operation.
  */
-/proc/spread_germs_by_incision(obj/item/organ/external/E, obj/item/tool)
+/datum/surgery_step/proc/spread_germs_by_incision(obj/item/organ/external/E, obj/item/tool)
 	if(!isexternalorgan(E))
 		return
 
@@ -554,7 +562,7 @@
 		if(length(get_path_to(E.loc, M.loc, max_distance = 2, simulated_only = FALSE)))
 			germs++
 
-	if(tool && tool.blood_DNA && length(tool.blood_DNA)) //germs from blood-stained tools
+	if(tool?.blood_DNA && length(tool.blood_DNA)) //germs from blood-stained tools
 		germs += 30
 
 	var/internals_length = LAZYLEN(E.internal_organs)

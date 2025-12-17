@@ -41,10 +41,6 @@
 	// Optimization, not for setting outside of initialize
 	var/init_air = TRUE
 
-	var/datum/pathnode/PNode = null //associated PathNode in the A* algorithm
-
-	flags = 0
-
 	var/changing_turf = FALSE
 
 	var/list/blueprint_data //for the station blueprints, images of objects eg: pipes
@@ -78,6 +74,17 @@
 	///whether or not this turf forces movables on it to have no gravity (unless they themselves have forced gravity)
 	var/force_no_gravity = FALSE
 
+	///Icon-smoothing variable to map a diagonal wall corner with a fixed underlay.
+	var/list/fixed_underlay = null
+
+	///what /mob/oranges_ear instance is already assigned to us as there should only ever be one.
+	///used for guaranteeing there is only one oranges_ear per turf when assigned, speeds up view() iteration
+	var/mob/oranges_ear/assigned_oranges_ear
+
+	var/pressure_difference = 0
+	var/pressure_direction = 0
+	var/list/atmos_adjacent_turfs = list()
+	var/atmos_supeconductivity = 0
 
 /turf/Initialize(mapload)
 	SHOULD_CALL_PARENT(FALSE)
@@ -108,7 +115,7 @@
 
 	levelupdate()
 	if(smooth)
-		queue_smooth(src)
+		QUEUE_SMOOTH(src)
 
 	for(var/atom/movable/content as anything in src)
 		Entered(content)
@@ -125,13 +132,9 @@
 
 	if(istype(loc, /area/space))
 		force_no_gravity = TRUE
-		
+
 	ComponentInitialize()
 	return INITIALIZE_HINT_NORMAL
-
-/turf/ComponentInitialize()
-	. = ..()
-	AddComponent(/datum/component/blob_turf_consuming, 0)
 
 /turf/Destroy(force)
 	. = QDEL_HINT_IWILLGC
@@ -165,7 +168,6 @@
 	if(length(vis_contents))
 		vis_contents.Cut()
 
-
 /// WARNING WARNING
 /// Turfs DO NOT lose their signals when they get replaced, REMEMBER THIS
 /// It's possible because turfs are fucked, and if you have one in a list and it's replaced with another one, the list ref points to the new turf
@@ -173,17 +175,15 @@
 /turf/_clear_signal_refs()
 	return
 
-
 /turf/attack_hand(mob/user)
 	. = ..()
 	if(!.)
 		user.Move_Pulled(src)
 
-
 /turf/attack_robot(mob/user)
 	user.Move_Pulled(src)
 
-/turf/ex_act(severity)
+/turf/ex_act(severity, target)
 	return FALSE
 
 /turf/proc/blob_consume()
@@ -205,18 +205,31 @@
 	else if(our_rpd.mode == RPD_DELETE_MODE)
 		our_rpd.delete_all_pipes(user, src)
 
-/turf/bullet_act(obj/item/projectile/Proj)
-	if(istype(Proj, /obj/item/projectile/beam/pulse))
-		src.ex_act(2)
+/turf/bullet_act(obj/projectile/proj)
+	if(istype(proj, /obj/projectile/bullet/gyro))
+		explosion(src, devastation_range = -1, heavy_impact_range = 0, light_impact_range = 2, cause = "[proj.type] fired by [key_name(proj.firer)] (hit turf)")
+	if(istype(proj, /obj/projectile/beam/pulse))
+		ex_act(EXPLODE_HEAVY)
 	..()
 	return FALSE
 
-/turf/bullet_act(obj/item/projectile/Proj)
-	if(istype(Proj, /obj/item/projectile/bullet/gyro))
-		explosion(src, -1, 0, 2, cause = Proj)
-	..()
-	return FALSE
+// Enter, but hypothetical.
+/turf/proc/can_enter(atom/movable/mover)
+	var/atom/mover_loc = mover.loc
+	var/border_dir = get_dir(src, mover)
+	var/can_pass_self = CanPass(mover, border_dir)
+	if(!can_pass_self)
+		return FALSE
 
+	for(var/atom/movable/obstacle as anything in contents)
+		// Multi tile objects and moving out of other objects.
+		if(obstacle == mover || obstacle == mover_loc)
+			continue
+
+		if(!obstacle.CanPass(mover, border_dir))
+			return FALSE
+
+	return TRUE
 
 /turf/Enter(atom/movable/mover)
 	// Do not call ..()
@@ -268,7 +281,6 @@
 		return (mover.movement_type & PHASING)
 	return TRUE
 
-
 /turf/proc/levelupdate()
 	for(var/obj/object in src)
 		if(object.level == 1 && (object.flags & INITIALIZED)) // Only do this if the object has initialized
@@ -296,9 +308,9 @@
 			return
 		if(/turf/baseturf_bottom)
 			path = check_level_trait(z, ZTRAIT_BASETURF) || /turf/space
-			if (!ispath(path))
+			if(!ispath(path))
 				path = text2path(path)
-				if (!ispath(path))
+				if(!ispath(path))
 					warning("Z-level [z] has invalid baseturf '[check_level_trait(z, ZTRAIT_BASETURF)]'")
 					path = /turf/space
 	if(!GLOB.use_preloader && path == type) // Don't no-op if the map loader requires it to be reconstructed
@@ -363,7 +375,7 @@
 		// We are guarenteed to have these overlays because of how generation works
 		var/mutable_appearance/overlay = GLOB.fullbright_overlays[GET_TURF_PLANE_OFFSET(src) + 1]
 		W.add_overlay(overlay)
-	else if (old_always_lit)
+	else if(old_always_lit)
 		var/mutable_appearance/overlay = GLOB.fullbright_overlays[GET_TURF_PLANE_OFFSET(src) + 1]
 		W.cut_overlay(overlay)
 
@@ -495,7 +507,6 @@
 		L.Add(T)
 	return L
 
-
 //////////////////////////////
 //Distance procs
 //////////////////////////////
@@ -535,12 +546,11 @@
 /turf/proc/acid_melt()
 	return
 
-
 /turf/handle_fall(mob/living/carbon/faller)
-	if(has_gravity(src))
-		playsound(src, "bodyfall", 50, TRUE)
-	faller.drop_from_hands()
+	if(!no_gravity(src))
+		playsound(src, SFX_BODYFALL, 50, TRUE)
 
+	faller.drop_from_hands()
 
 /turf/singularity_act()
 	if(intact)
@@ -551,7 +561,6 @@
 				O.singularity_act()
 	ChangeTurf(baseturf)
 	return 2
-
 
 /turf/attackby(obj/item/I, mob/user, params)
 	. = ..()
@@ -587,14 +596,11 @@
 		. |= (ATTACK_CHAIN_BLOCKED_ALL)
 		return .
 
-
 /turf/proc/can_have_cabling()
 	return TRUE
 
-
 /turf/proc/can_lay_cable()
 	return can_have_cabling() && !intact && transparent_floor != TURF_TRANSPARENT
-
 
 /turf/proc/get_smooth_underlay_icon(mutable_appearance/underlay_appearance, turf/asking_turf, adjacency_dir)
 	underlay_appearance.icon = icon
@@ -617,26 +623,22 @@
 	if(!SSticker || SSticker.current_state != GAME_STATE_PLAYING)
 		add_blueprints(AM)
 
-/turf/proc/empty(turf_type = /turf/space)
-	// Remove all atoms except observers, landmarks, docking ports, and (un)`simulated` atoms (lighting overlays)
-	var/turf/T0 = src
-	for(var/X in T0.GetAllContents())
-		var/atom/A = X
-		if(!A.simulated)
-			continue
-		if(istype(A, /mob/dead))
-			continue
-		if(istype(A, /obj/effect/landmark))
-			continue
-		if(istype(A, /obj/docking_port))
-			continue
-		qdel(A, force = TRUE)
+/turf/proc/empty(turf_type=/turf/space, list/ignore_typecache, flags)
+	// Remove all atoms except observers, landmarks, docking ports
+	var/static/list/ignored_atoms = typecacheof(list(/mob/dead, /obj/effect/landmark, /obj/docking_port))
+	var/list/allowed_contents = typecache_filter_list_reverse(get_all_contents_ignoring(ignore_typecache), ignored_atoms)
+	allowed_contents -= src
+	for(var/i in 1 to allowed_contents.len)
+		var/thing = allowed_contents[i]
+		qdel(thing, force=TRUE)
 
-	T0.ChangeTurf(turf_type)
+	if(!turf_type)
+		return
 
-	SSair.remove_from_active(T0)
-	T0.CalculateAdjacentTurfs()
-	SSair.add_to_active(T0, TRUE)
+	var/turf/new_turf = ChangeTurf(turf_type, after_flags = flags)
+	SSair.remove_from_active(new_turf)
+	new_turf.CalculateAdjacentTurfs()
+	SSair.add_to_active(new_turf, TRUE)
 
 /turf/AllowDrop()
 	return TRUE
@@ -692,12 +694,20 @@
 
 /// Precipitates a movable (plus whatever buckled to it) to lower z levels if possible and then calls zImpact()
 /turf/proc/zFall(atom/movable/falling, levels = 1, force = FALSE, falling_from_move = FALSE)
-	var/turf/target = get_step_multiz(src, DOWN)
+	if(no_gravity())
+		return FALSE
+
+	// Yes, you can fall up.
+	var/fall_dir = get_gravity() > 0 ? DOWN : UP
+
+	var/turf/target = get_step_multiz(src, fall_dir)
 	if(!target)
 		return FALSE
+
 	var/isliving = isliving(falling)
 	if(!isliving && !isobj(falling))
 		return FALSE
+
 	var/atom/movable/living_buckled
 	if(isliving)
 		var/mob/living/falling_living = falling
@@ -705,9 +715,11 @@
 		if(falling_living.buckled)
 			living_buckled = falling
 			falling = falling_living.buckled
+
 	if(!falling_from_move && falling.currently_z_moving)
 		return FALSE
-	if(!force && !falling.can_z_move(DOWN, src, target, ZMOVE_FALL_FLAGS))
+
+	if(!force && !falling.can_z_move(fall_dir, src, target, ZMOVE_FALL_FLAGS))
 		falling.set_currently_z_moving(FALSE, TRUE)
 		living_buckled?.set_currently_z_moving(FALSE, TRUE)
 		return FALSE
@@ -719,7 +731,6 @@
 	falling.zMove(null, target, ZMOVE_CHECK_PULLEDBY)
 	target.zImpact(falling, levels, src)
 	return TRUE
-
 
 /**
  * Returns adjacent turfs to this turf that are reachable, in all cardinal directions
@@ -743,7 +754,6 @@
 			continue
 		. += turf_to_check
 
-
 /**
  * Makes an image of up to 20 things on a turf + the turf.
  */
@@ -761,16 +771,16 @@
 			return I
 	return I
 
-
 /turf/hit_by_thrown_carbon(mob/living/carbon/human/C, datum/thrownthing/throwingdatum, damage, mob_hurt, self_hurt)
 	if(mob_hurt || !density)
 		return
 	playsound(src, 'sound/weapons/punch1.ogg', 35, TRUE)
-	C.visible_message(span_danger("[C] slams into [src]!"),
-					span_userdanger("You slam into [src]!"))
+	C.visible_message(
+		span_danger("[capitalize(C.declent_ru(NOMINATIVE))] с размаху вреза[PLUR_ET_YUT(C)]ся в [declent_ru(ACCUSATIVE)]!"),
+		span_userdanger("Вы с размаху врезаетесь в [declent_ru(ACCUSATIVE)]!")
+	)
 	C.take_organ_damage(damage)
 	C.Weaken(0.1 SECONDS)
-
 
 /**
  * Check whether the specified turf is blocked by something dense inside it with respect to a specific atom.
@@ -795,7 +805,7 @@
 
 	for(var/atom/movable/movable_content as anything in contents)
 		// We don't want to block ourselves
-		if((movable_content == source_atom))
+		if(movable_content == source_atom)
 			continue
 		// dont consider ignored atoms or their types
 		if(length(ignore_atoms))
@@ -812,7 +822,6 @@
 			return TRUE
 
 	return FALSE
-
 
 /turf/grab_attack(mob/living/grabber, atom/movable/grabbed_thing)
 	. = TRUE
@@ -868,3 +877,20 @@
 	/// Ought to work
 	turf_mask.color = list(255,255,255,0, 255,255,255,0, 255,255,255,0, 0,0,0,0, 0,0,0,255)
 	underlay_appearance.overlays += turf_mask
+
+/proc/get_random_reachable_space_turf()
+	var/list/datum/space_level/reachable_levels = levels_by_trait(REACHABLE)
+	var/trys = 1000
+	var/turf/target_space_turf
+	while(trys > 0) {
+		var/x = rand(1, world.maxx)
+		var/y = rand(1, world.maxy)
+		var/z = pick(reachable_levels)
+		target_space_turf = locate(x, y, z)
+		if(isspaceturf(target_space_turf))
+			break
+
+		trys--
+	}
+
+	return target_space_turf

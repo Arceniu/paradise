@@ -21,15 +21,15 @@
 
 	req_access = list(ACCESS_ENGINE, ACCESS_ROBOTICS)
 
-/obj/machinery/navbeacon/New()
-	..()
+/obj/machinery/navbeacon/Initialize(mapload)
+	. = ..()
 
 	set_codes()
 
 	var/turf/T = loc
 	if(!T.transparent_floor)
 		hide(T.intact)
-	if(!codes || !codes.len)
+	if(!codes || !length(codes))
 		log_runtime(EXCEPTION("Empty codes datum at ([x],[y],[z])"), src, list("codes_txt: '[codes_txt]'"))
 	if("patrol" in codes)
 		if(!GLOB.navbeacons["[z]"])
@@ -71,20 +71,17 @@
 		else
 			codes[e] = "1"
 
-
 // called when turf state changes
 // hide the object if turf is intact
 /obj/machinery/navbeacon/hide(intact)
 	invisibility = intact ? INVISIBILITY_MAXIMUM : 0
 	update_icon(UPDATE_ICON_STATE)
 
-
 // update the icon_state
 /obj/machinery/navbeacon/update_icon_state()
 	// if invisible, set icon to faded version
 	// in case revealed by T-scanner
 	icon_state = "navbeacon[open][invisibility ? "-f" : ""]"
-
 
 /obj/machinery/navbeacon/attackby(obj/item/I, mob/user, params)
 	var/turf/our_turf = loc
@@ -109,7 +106,6 @@
 
 	return ..()
 
-
 /obj/machinery/navbeacon/screwdriver_act(mob/living/user, obj/item/I)
 	var/turf/T = get_turf(src)
 	if(T.intact)
@@ -121,7 +117,6 @@
 	)
 	update_icon(UPDATE_ICON_STATE)
 	return TRUE
-
 
 /obj/machinery/navbeacon/attack_ai(mob/user)
 	interact(user, 1)
@@ -139,34 +134,33 @@
 		to_chat(user, span_warning("The beacon's control cover is closed!"))
 		return
 
-
 	var/t
 
 	if(locked && !ai)
-		t = {"<TT><B>Navigation Beacon</B><HR><BR>
-<i>(swipe card to unlock controls)</i><BR>
-Location: [location ? location : "(none)"]</A><BR>
-Transponder Codes:<UL>"}
+		t = {"<tt><b>Navigation Beacon</b><hr><br>
+<i>(swipe card to unlock controls)</i><br>
+Location: [location ? location : "(none)"]</a><br>
+Transponder Codes:<ul>"}
 
 		for(var/key in codes)
-			t += "<LI>[key] ... [codes[key]]"
-		t+= "<UL></TT>"
+			t += "<li>[key] ... [codes[key]]"
+		t+= "<ul></tt>"
 
 	else
 
-		t = {"<TT><B>Navigation Beacon</B><HR><BR>
-<i>(swipe card to lock controls)</i><BR>
+		t = {"<tt><b>Navigation Beacon</b><hr><br>
+<i>(swipe card to lock controls)</i><br>
 
-<HR>
-Location: <A href='byond://?src=[UID()];locedit=1'>[location ? location : "None"]</A><BR>
-Transponder Codes:<UL>"}
+<hr>
+Location: <a href='byond://?src=[UID()];locedit=1'>[location ? location : "None"]</a><br>
+Transponder Codes:<ul>"}
 
 		for(var/key in codes)
-			t += "<LI>[key] ... [codes[key]]"
-			t += "	<A href='byond://?src=[UID()];edit=1;code=[key]'>Edit</A>"
-			t += "	<A href='byond://?src=[UID()];delete=1;code=[key]'>Delete</A><BR>"
-		t += "	<A href='byond://?src=[UID()];add=1;'>Add New</A><BR>"
-		t+= "<UL></TT>"
+			t += "<li>[key] ... [codes[key]]"
+			t += "	<a href='byond://?src=[UID()];edit=1;code=[key]'>Edit</a>"
+			t += "	<a href='byond://?src=[UID()];delete=1;code=[key]'>Delete</a><br>"
+		t += "	<a href='byond://?src=[UID()];add=1;'>Add New</a><br>"
+		t+= "<ul></tt>"
 
 	var/datum/browser/popup = new(user, "navbeacon", "Navigation Beacon", 300, 400)
 	popup.set_content(t)
@@ -226,7 +220,6 @@ Transponder Codes:<UL>"}
 			codes[newkey] = newval
 
 			updateDialog()
-
 
 /obj/machinery/navbeacon/invisible
 	invisibility = INVISIBILITY_ABSTRACT

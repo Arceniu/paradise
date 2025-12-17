@@ -93,7 +93,7 @@
 	item_color = "camopants"
 
 /obj/item/clothing/under/pants/camo/commando
-	armor = list("melee" = 10, "bullet" = 10, "laser" = 10, "energy" = 0, "bomb" = 0, "bio" = 0, "rad" = 0, "fire" = 50, "acid" = 50)
+	armor = list(MELEE = 10, BULLET = 10, LASER = 10, ENERGY = 0, BOMB = 0, BIO = 0, RAD = 0, FIRE = 50, ACID = 50)
 
 /obj/item/clothing/under/pants/galifepants
 	name = "check breeches"
@@ -114,8 +114,8 @@
 		SPECIES_FARWA = 'icons/mob/clothing/species/monkey/uniform.dmi',
 		SPECIES_WOLPIN = 'icons/mob/clothing/species/monkey/uniform.dmi',
 		SPECIES_NEARA = 'icons/mob/clothing/species/monkey/uniform.dmi',
-		SPECIES_STOK = 'icons/mob/clothing/species/monkey/uniform.dmi'
-		)
+		SPECIES_STOK = 'icons/mob/clothing/species/monkey/uniform.dmi',
+	)
 
 /obj/item/clothing/under/pants/sandpants
 	name = "long sand pants"
@@ -136,5 +136,5 @@
 		SPECIES_FARWA = 'icons/mob/clothing/species/monkey/uniform.dmi',
 		SPECIES_WOLPIN = 'icons/mob/clothing/species/monkey/uniform.dmi',
 		SPECIES_NEARA = 'icons/mob/clothing/species/monkey/uniform.dmi',
-		SPECIES_STOK = 'icons/mob/clothing/species/monkey/uniform.dmi'
-		)
+		SPECIES_STOK = 'icons/mob/clothing/species/monkey/uniform.dmi',
+	)

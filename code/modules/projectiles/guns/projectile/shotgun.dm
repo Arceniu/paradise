@@ -5,7 +5,6 @@
 	item_state = "shotgun"
 	w_class = WEIGHT_CLASS_BULKY
 	force = 10
-	flags = CONDUCT
 	can_holster = FALSE
 	slot_flags = ITEM_SLOT_BACK
 	origin_tech = "combat=4;materials=2"
@@ -14,43 +13,33 @@
 	weapon_weight = WEAPON_HEAVY
 	pb_knockback = 2
 	COOLDOWN_DECLARE(last_pump)	// to prevent spammage
+	accuracy = GUN_ACCURACY_SHOTGUN
+	recoil = GUN_RECOIL_HIGH
 
-
-/obj/item/gun/projectile/shotgun/attackby(obj/item/I, mob/user, params)
-	if(istype(I, /obj/item/ammo_box/speedloader) || istype(I, /obj/item/ammo_casing))
-		add_fingerprint(user)
-		var/num_loaded = magazine.reload(I, user)
-		if(num_loaded)
-			update_appearance()
-			return ATTACK_CHAIN_BLOCKED_ALL
+/obj/item/gun/projectile/shotgun/attackby(obj/item/item, mob/user, params)
+	if(speedloader_reload(item, user))
 		return ATTACK_CHAIN_PROCEED
-
 	return ..()
 
-
-/obj/item/gun/projectile/shotgun/process_chamber(eject_casing = TRUE, empty_chamber = TRUE)
+/obj/item/gun/projectile/shotgun/handle_chamber(eject_casing = TRUE, empty_chamber = TRUE)
 	return ..(FALSE, FALSE)
-
 
 /obj/item/gun/projectile/shotgun/chamber_round()
 	return
-
 
 /obj/item/gun/projectile/shotgun/can_shoot(mob/user)
 	if(!chambered)
 		return FALSE
 	return (chambered.BB ? TRUE : FALSE)
 
-
-/obj/item/gun/projectile/shotgun/attack_self(mob/living/user)
+/obj/item/gun/projectile/shotgun/unload_act(mob/user)
 	if(!COOLDOWN_FINISHED(src, last_pump))
 		return
 	COOLDOWN_START(src, last_pump, 1 SECONDS)
 	pump(user)
 
-
 /obj/item/gun/projectile/shotgun/proc/pump(mob/M)
-	playsound(M, 'sound/weapons/gun_interactions/shotgunpump.ogg', 60, 1)
+	playsound(M, 'sound/weapons/gun_interactions/shotgunpump.ogg', 60, TRUE)
 	pump_unload(M)
 	pump_reload(M)
 	update_icon() //I.E. fix the desc
@@ -60,7 +49,7 @@
 	if(chambered)//We have a shell in the chamber
 		chambered.loc = get_turf(src)//Eject casing
 		chambered.SpinAnimation(5, 1)
-		playsound(src, chambered.casing_drop_sound, 60, 1)
+		playsound(src, chambered.casing_drop_sound, 60, TRUE)
 		chambered = null
 
 /obj/item/gun/projectile/shotgun/proc/pump_reload(mob/M)
@@ -72,7 +61,7 @@
 /obj/item/gun/projectile/shotgun/examine(mob/user)
 	. = ..()
 	if(chambered)
-		. += "<span class='notice'>A [chambered.BB ? "live" : "spent"] one is in the chamber.</span>"
+		. += span_notice("A [chambered.BB ? "live" : "spent"] one is in the chamber.")
 
 /obj/item/gun/projectile/shotgun/lethal
 	mag_type = /obj/item/ammo_box/magazine/internal/shot/lethal
@@ -83,11 +72,17 @@
 	name = "riot shotgun"
 	desc = "A sturdy shotgun with a longer magazine and a fixed tactical stock designed for non-lethal riot control."
 	icon_state = "riotshotgun"
+	item_state = "riotshotgun"
 	mag_type = /obj/item/ammo_box/magazine/internal/shot/riot
 	sawn_desc = "Come with me if you want to live."
-	sawn_state = SAWN_INTACT
 	fire_sound = 'sound/weapons/gunshots/1shotgun.ogg'
-
+	suppressed_fire_sound = 'sound/weapons/gunshots/shotgunsupp.ogg'
+	attachable_allowed = GUN_MODULE_CLASS_SHOTGUN_MUZZLE | GUN_MODULE_CLASS_SHOTGUN_RAIL | GUN_MODULE_CLASS_SHOTGUN_UNDER
+	attachable_offset = list(
+		ATTACHMENT_SLOT_MUZZLE = list("x" = 23, "y" = 1),
+		ATTACHMENT_SLOT_RAIL = list("x" = 4, "y" = 5),
+		ATTACHMENT_SLOT_UNDER = list("x" = 7, "y" = -6),
+	)
 
 /obj/item/gun/projectile/shotgun/riot/attackby(obj/item/I, mob/user, params)
 	if(istype(I, /obj/item/circular_saw) || istype(I, /obj/item/gun/energy/plasmacutter))
@@ -111,8 +106,10 @@
 
 	return ..()
 
-
 /obj/item/gun/projectile/shotgun/riot/sawoff(mob/user)
+	if(attachments_by_slot[ATTACHMENT_SLOT_MUZZLE])
+		balloon_alert(user, "нужно снять дульный модуль!")
+		return
 	if(sawn_state == SAWN_OFF)
 		balloon_alert(user, "уже укорочено!")
 		return
@@ -122,13 +119,22 @@
 	if(chambered)	//if the gun is chambering live ammo, shoot self, if chambering empty ammo, 'click'
 		if(chambered.BB)
 			afterattack(user, user)
-			user.visible_message("<span class='danger'>\The [src] goes off!</span>", "<span class='danger'>\The [src] goes off in your face!</span>")
+			user.visible_message(
+				span_danger("\The [src] goes off!"),
+				span_danger("\The [src] goes off in your face!")
+			)
 			return
 		else
 			afterattack(user, user)
-			user.visible_message("The [src] goes click!", "<span class='notice'>The [src] you are holding goes click.</span>")
+			user.visible_message(
+				"The [src] goes click!",
+				span_notice("The [src] you are holding goes click.")
+			)
 	if(magazine.ammo_count())	//Spill the mag onto the floor
-		user.visible_message("<span class='danger'>[user.name] opens [src] up and the shells go goes flying around!</span>", "<span class='userdanger'>You open [src] up and the shells go goes flying everywhere!!</span>")
+		user.visible_message(
+			span_danger("[user.name] opens [src] up and the shells go goes flying around!"),
+			span_userdanger("You open [src] up and the shells go goes flying everywhere!!")
+		)
 		while(get_ammo(FALSE) > 0)
 			var/obj/item/ammo_casing/CB
 			CB = magazine.get_round(0)
@@ -137,25 +143,36 @@
 				CB.update_icon()
 
 	if(do_after(user, 3 SECONDS, src))
-		user.visible_message("[user] shortens \the [src]!", "<span class='notice'>You shorten \the [src].</span>")
+		user.visible_message(
+			"[user] shortens \the [src]!",
+			span_notice("You shorten \the [src].")
+		)
 		post_sawoff()
 		return 1
-
 
 /obj/item/gun/projectile/shotgun/riot/proc/post_sawoff()
 	name = "assault shotgun"
 	desc = sawn_desc
 	w_class = WEIGHT_CLASS_NORMAL
 	current_skin = "riotshotgun-short"
-	item_state = "gun"			//phil235 is it different with different skin?
+	item_state = "riotshotgun-short"			//phil235 is it different with different skin?
+	item_color = "riotshotgun-short"
 	slot_flags &= ~ITEM_SLOT_BACK    //you can't sling it on your back
 	slot_flags |= ITEM_SLOT_BELT     //but you can wear it on your belt (poorly concealed under a trenchcoat, ideally)
 	sawn_state = SAWN_OFF
+	accuracy = GUN_ACCURACY_MINIMAL
 	magazine.max_ammo = 3
+	attachable_offset = list(
+		ATTACHMENT_SLOT_MUZZLE = list("x" = 18, "y" = 1),
+		ATTACHMENT_SLOT_RAIL = list("x" = 4, "y" = 5),
+		ATTACHMENT_SLOT_UNDER = list("x" = 7, "y" = -6),
+	)
 	update_icon()
 
-
 /obj/item/gun/projectile/shotgun/riot/proc/unsaw(obj/item/A, mob/user)
+	if(attachments_by_slot[ATTACHMENT_SLOT_MUZZLE])
+		balloon_alert(user, "нужно снять дульный модуль!")
+		return
 	if(sawn_state == SAWN_INTACT)
 		balloon_alert(user, "операция провалилась!")
 		return
@@ -165,13 +182,13 @@
 	if(chambered)	//if the gun is chambering live ammo, shoot self, if chambering empty ammo, 'click'
 		if(chambered.BB)
 			afterattack(user, user)
-			user.visible_message("<span class='danger'>\The [src] goes off!</span>", "<span class='danger'>\The [src] goes off in your face!</span>")
+			user.visible_message(span_danger("\The [src] goes off!"), span_danger("\The [src] goes off in your face!"))
 			return
 		else
 			afterattack(user, user)
-			user.visible_message("The [src] goes click!", "<span class='notice'>The [src] you are holding goes click.</span>")
+			user.visible_message("The [src] goes click!", span_notice("The [src] you are holding goes click."))
 	if(magazine.ammo_count())	//Spill the mag onto the floor
-		user.visible_message("<span class='danger'>[user.name] opens [src] up and the shells go goes flying around!</span>", "<span class='userdanger'>You open [src] up and the shells go goes flying everywhere!!</span>")
+		user.visible_message(span_danger("[user.name] opens [src] up and the shells go goes flying around!"), span_userdanger("You open [src] up and the shells go goes flying everywhere!!"))
 		while(get_ammo() > 0)
 			var/obj/item/ammo_casing/CB
 			CB = magazine.get_round(0)
@@ -181,7 +198,7 @@
 
 	if(do_after(user, 3 SECONDS, src))
 		qdel(A)
-		user.visible_message("<span class='notice'>[user] lengthens [src]!</span>", "<span class='notice'>You lengthen [src].</span>")
+		user.visible_message(span_notice("[user] lengthens [src]!"), span_notice("You lengthen [src]."))
 		post_unsaw(user)
 		return 1
 
@@ -195,6 +212,11 @@
 	slot_flags |= ITEM_SLOT_BACK
 	sawn_state = SAWN_INTACT
 	magazine.max_ammo = 6
+	attachable_offset = list(
+		ATTACHMENT_SLOT_MUZZLE = list("x" = 23, "y" = 1),
+		ATTACHMENT_SLOT_RAIL = list("x" = 4, "y" = 5),
+		ATTACHMENT_SLOT_UNDER = list("x" = 7, "y" = -6),
+	)
 	update_icon()
 
 /obj/item/gun/projectile/shotgun/riot/update_icon_state() //Can't use the old proc as it makes it go to riotshotgun-short_sawn
@@ -205,6 +227,8 @@
 
 /obj/item/gun/projectile/shotgun/riot/short
 	mag_type = /obj/item/ammo_box/magazine/internal/shot/riot/short
+	accuracy = GUN_ACCURACY_MINIMAL
+	recoil = GUN_RECOIL_MEGA
 
 /obj/item/gun/projectile/shotgun/riot/short/Initialize(mapload)
 	. = ..()
@@ -213,27 +237,31 @@
 /obj/item/gun/projectile/shotgun/riot/buckshot	//comes pre-loaded with buckshot rather than rubber
 	mag_type = /obj/item/ammo_box/magazine/internal/shot/riot/buckshot
 
-
 ///////////////////////
 // BOLT ACTION RIFLE //
 ///////////////////////
 
 /obj/item/gun/projectile/shotgun/boltaction
-	name = "\improper Mosin Nagant"
+	name = "Mosin Nagant"
 	desc = "This piece of junk looks like something that could have been used 700 years ago. Has a bayonet lug for attaching a knife."
 	icon_state = "moistnugget"
 	item_state = "moistnugget"
 	slot_flags = NONE //no ITEM_SLOT_BACK sprite, alas
 	mag_type = /obj/item/ammo_box/magazine/internal/boltaction
 	fire_sound = 'sound/weapons/gunshots/1rifle.ogg'
-	bolt_open = FALSE
 	can_bayonet = TRUE
 	bayonet_x_offset = 27
 	bayonet_y_offset = 13
 	pb_knockback = 0
+	accuracy = GUN_ACCURACY_RIFLE
+	attachable_allowed = GUN_MODULE_CLASS_SHOTGUN_RAIL
+	attachable_offset = list(
+		ATTACHMENT_SLOT_RAIL = list("x" = 7, "y" = 4),
+	)
+	recoil = GUN_RECOIL_MEDIUM
 
 /obj/item/gun/projectile/shotgun/boltaction/pump(mob/M)
-	playsound(M, 'sound/weapons/gun_interactions/rifle_load.ogg', 60, 1)
+	playsound(M, 'sound/weapons/gun_interactions/rifle_load.ogg', 60, TRUE)
 	if(bolt_open)
 		pump_reload(M)
 	else
@@ -242,17 +270,14 @@
 	update_icon(UPDATE_ICON_STATE)
 	return 1
 
-
 /obj/item/gun/projectile/shotgun/boltaction/update_icon_state()
 	icon_state = "[initial(icon_state)][bolt_open ? "-open" : ""]"
 
-
 /obj/item/gun/projectile/shotgun/blow_up(mob/user)
 	. = 0
-	if(chambered && chambered.BB)
+	if(chambered?.BB)
 		process_fire(user, user,0)
 		. = 1
-
 
 /obj/item/gun/projectile/shotgun/boltaction/attackby(obj/item/I, mob/user, params)
 	if(!bolt_open)
@@ -261,10 +286,9 @@
 		return ATTACK_CHAIN_PROCEED
 	return ..()
 
-
 /obj/item/gun/projectile/shotgun/boltaction/examine(mob/user)
 	. = ..()
-	. += "<span class='notice'>The bolt is [bolt_open ? "open" : "closed"].</span>"
+	. += span_notice("The bolt is [bolt_open ? "open" : "closed"].")
 
 /obj/item/gun/projectile/shotgun/boltaction/enchanted
 	name = "enchanted bolt action rifle"
@@ -298,7 +322,7 @@
 		discard_gun(user)
 
 /obj/item/gun/projectile/shotgun/boltaction/enchanted/proc/discard_gun(mob/living/user)
-	user.visible_message("<span class='warning'>[user] tosses aside the spent rifle!</span>")
+	user.visible_message(span_warning("[user] tosses aside the spent rifle!"))
 	user.throw_item(pick(oview(7, get_turf(user))))
 
 /obj/item/gun/projectile/shotgun/boltaction/enchanted/arcane_barrage
@@ -313,7 +337,7 @@
 
 /obj/item/gun/projectile/shotgun/boltaction/enchanted/arcane_barrage/examine(mob/user)
 	var/f_name = "\a [src]."
-	. = list("[bicon(src)] That's [f_name]")
+	. = list("[icon2html(src, user)] That's [f_name]")
 	. += desc // Override since magical hand lasers don't have chambers or bolts
 
 /obj/item/gun/projectile/shotgun/boltaction/enchanted/arcane_barrage/discard_gun(mob/living/user)
@@ -325,16 +349,25 @@
 
 /obj/item/gun/projectile/shotgun/automatic/shoot_live_shot(mob/living/user, atom/target, pointblank = FALSE, message = TRUE)
 	..()
-	pump(user)
+	addtimer(CALLBACK(src, PROC_REF(pump), user), 1)
 
 /obj/item/gun/projectile/shotgun/automatic/combat
 	name = "combat shotgun"
 	desc = "A semi automatic shotgun with tactical furniture and a six-shell capacity underneath."
 	icon_state = "cshotgun"
+	item_state = "cshotgun"
 	origin_tech = "combat=6"
 	mag_type = /obj/item/ammo_box/magazine/internal/shot/com
-	w_class = WEIGHT_CLASS_HUGE
 	fire_sound = 'sound/weapons/gunshots/1shotgun.ogg'
+	suppressed_fire_sound = 'sound/weapons/gunshots/shotgunsupp.ogg'
+	accuracy = GUN_ACCURACY_SHOTGUN
+	attachable_allowed = GUN_MODULE_CLASS_SHOTGUN_MUZZLE | GUN_MODULE_CLASS_SHOTGUN_RAIL | GUN_MODULE_CLASS_SHOTGUN_UNDER
+	attachable_offset = list(
+		ATTACHMENT_SLOT_MUZZLE = list("x" = 22, "y" = 3),
+		ATTACHMENT_SLOT_RAIL = list("x" = 6, "y" = 7),
+		ATTACHMENT_SLOT_UNDER = list("x" = 9, "y" = -4),
+	)
+	recoil = GUN_RECOIL_HIGH
 
 //Dual Feed Shotgun
 
@@ -342,20 +375,25 @@
 	name = "cycler shotgun"
 	desc = "An advanced shotgun with two separate magazine tubes, allowing you to quickly toggle between ammo types."
 	icon_state = "cycler"
-	origin_tech = "combat=4;materials=2"
 	mag_type = /obj/item/ammo_box/magazine/internal/shot/tube
 	w_class = WEIGHT_CLASS_HUGE
 	var/toggled = 0
 	var/obj/item/ammo_box/magazine/internal/shot/alternate_magazine
 	fire_sound = 'sound/weapons/gunshots/1shotgun_auto.ogg'
+	accuracy = GUN_ACCURACY_SHOTGUN
+	attachable_allowed = GUN_MODULE_CLASS_SHOTGUN_RAIL
+	attachable_offset = list(
+		ATTACHMENT_SLOT_RAIL = list("x" = 3, "y" = 7),
+	)
+	recoil = GUN_RECOIL_HIGH
 
 /obj/item/gun/projectile/shotgun/automatic/dual_tube/Initialize(mapload)
 	. = ..()
 	if(!alternate_magazine)
 		alternate_magazine = new mag_type(src)
 
-/obj/item/gun/projectile/shotgun/automatic/dual_tube/attack_self(mob/living/user)
-	if(!chambered && magazine.contents.len)
+/obj/item/gun/projectile/shotgun/automatic/dual_tube/unload_act(mob/user)
+	if(!chambered && length(magazine.contents))
 		pump()
 	else
 		toggle_tube(user)
@@ -370,12 +408,14 @@
 		balloon_alert(user, "переключено на первый ствол")
 	else
 		balloon_alert(user, "переключено на второй ствол")
-	playsound(user, 'sound/weapons/gun_interactions/selector.ogg', 100, 1)
+	playsound(user, 'sound/weapons/gun_interactions/selector.ogg', 100, TRUE)
 
-/obj/item/gun/projectile/shotgun/automatic/dual_tube/AltClick(mob/living/user)
-	. = ..()
-	if(user.incapacitated() || HAS_TRAIT(user, TRAIT_HANDS_BLOCKED) || !Adjacent(user) || !istype(user))
-		return
+/obj/item/gun/projectile/shotgun/automatic/dual_tube/click_alt(mob/living/user)
 	pump()
+	return CLICK_ACTION_SUCCESS
+
+/obj/item/gun/projectile/shotgun/automatic/dual_tube/AltShiftClick(mob/user)
+	. = ..()
+	try_detach_gun_module(user)
 
 // DOUBLE BARRELED SHOTGUN, IMPROVISED SHOTGUN, and CANE SHOTGUN are in revolver.dm

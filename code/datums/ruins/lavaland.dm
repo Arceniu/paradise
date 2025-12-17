@@ -48,8 +48,16 @@
 	description = "A race of unbreathing lizards live here, that run faster than a human can, worship a broken dead city, and are capable of reproducing by something involving tentacles? \
 	Probably best to stay clear."
 	suffix = "lavaland_surface_ash_walker1.dmm"
-	always_place = TRUE
 	allow_duplicates = FALSE
+	unpickable = TRUE
+
+/datum/map_template/ruin/lavaland/ash_walker_updated
+	name = "Ash Walker Village"
+	id = "ash-walker_updated"
+	description = "A race of unbreathing lizards live here, that run faster than a human can, worship a broken dead city, and are capable of reproducing by something involving tentacles? \
+	Probably best to stay clear."
+	suffix = "lavaland_surface_ash_walker_new.dmm"
+	unpickable = TRUE
 
 /datum/map_template/ruin/lavaland/syndicate_base
 	name = "Syndicate Lava Base"
@@ -134,7 +142,6 @@
 	id = "blooddrunk"
 	description = "A strange arrangement of stone tiles and an insane, beastly miner contemplating them."
 	suffix = "lavaland_surface_blooddrunk1.dmm"
-	cost = 0
 	allow_duplicates = FALSE //will only spawn one variant of the ruin
 
 /datum/map_template/ruin/lavaland/blood_drunk_miner/guidance
@@ -310,3 +317,10 @@
 	cost = 10
 	allow_duplicates = FALSE
 */
+
+/datum/map_template/ruin/lavaland/lavalake
+	name = "Lavaland Lava Lake"
+	id = "lavalake"
+	description = "Огромное лавовое озеро, которое не подвержено стандартным изменениям Лазиса."
+	suffix = "lavaland_surface_lavalake.dmm"
+	unpickable = TRUE

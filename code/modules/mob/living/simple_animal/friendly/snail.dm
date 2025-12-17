@@ -1,19 +1,19 @@
 /mob/living/simple_animal/snail
 	name = "space snail"
 	desc = "Маленькая космо-улиточка со своим космо-домиком. Прочная, тихая и медленная."
+	gender = FEMALE
 	icon_state = "snail"
 	icon_living = "snail"
 	icon_dead = "snail_dead"
-	speak = list("Uhh.", "Hurrr.")
+	speak = list("Бхх.", "Бхухх.", "Бхххх.", "Бххуухх.")
 	tts_seed = "Ladyvashj"
 	health = 100
 	maxHealth = 100
 	speed = 10
 	attacktext = "толкает"
 	death_sound = 'sound/creatures/crack_death1.ogg'
-	response_help  = "pets"
-	response_disarm = "shoos"
-	response_harm   = "stomps on"
+	response_help  = "гладит"
+	response_harm   = "топчет"
 	ventcrawler_trait = TRAIT_VENTCRAWLER_ALWAYS
 	density = FALSE
 	pass_flags = PASSTABLE | PASSMOB
@@ -28,6 +28,16 @@
 	faction = list("slime", "neutral")
 	reagents = new()
 	holder_type = /obj/item/holder/snail
+
+/mob/living/simple_animal/snail/get_ru_names()
+	return list(
+		NOMINATIVE = "космо-улитка",
+		GENITIVE = "космо-улитки",
+		DATIVE = "космо-улитке",
+		ACCUSATIVE = "космо-улитку",
+		INSTRUMENTAL = "космо-улиткой",
+		PREPOSITIONAL = "космо-улитке",
+	)
 
 /mob/living/simple_animal/hostile/snail/ComponentInitialize()
 	AddComponent( \
@@ -52,7 +62,6 @@
 		reagents.remove_any(10)
 
 /mob/living/simple_animal/snail/lube
-	name = "space snail"
 	desc = "Маленькая космо-улиточка со своим космо-домиком. Прочная, тихая и медленная. И очень склизкая."
 	gold_core_spawnable = HOSTILE_SPAWN
 	faction = list("slime", "hostile")
@@ -64,24 +73,22 @@
 		reagents.remove_any(10)
 
 /mob/living/simple_animal/turtle
-	name = "черепаха"
+	name = "turtle"
 	desc = "Большая космочерепаха. Прочная, тихая и медленная."
-	icon = 'icons/mob/animal.dmi'
+	gender = FEMALE
 	icon_state = "yeeslow"
 	icon_living = "yeeslow"
 	icon_dead = "yeeslow_dead"
 	icon_resting = "yeeslow_scared"
-	speak = list("Uhh.", "Hurrr.")
+	speak = list("Бухх.", "Хухх.")
 	tts_seed = "Ladyvashj"
 	health = 500
 	maxHealth = 500
 	speed = 20
 	attacktext = "толкает"
 	death_sound = 'sound/creatures/crack_death1.ogg'
-	response_help  = "pets"
-	response_disarm = "shoos"
-	response_harm   = "stomps on"
-	density = TRUE
+	response_help  = "гладит"
+	response_harm   = "топчет"
 	mobility_flags = MOBILITY_FLAGS_REST_CAPABLE_DEFAULT
 	pass_flags = PASSTABLE | PASSGRILLE
 	status_flags = CANPARALYSE | CANPUSH
@@ -89,3 +96,13 @@
 	butcher_results = list(/obj/item/reagent_containers/food/snacks/salmonmeat/turtlemeat = 10, /obj/item/stack/ore/tranquillite = 5)
 	footstep_type = FOOTSTEP_MOB_SLIME
 	holder_type = /obj/item/holder/turtle
+
+/mob/living/simple_animal/turtle/get_ru_names()
+	return list(
+		NOMINATIVE = "черепаха",
+		GENITIVE = "черепахи",
+		DATIVE = "черепахе",
+		ACCUSATIVE = "черепаху",
+		INSTRUMENTAL = "черепахой",
+		PREPOSITIONAL = "черепахе",
+	)
